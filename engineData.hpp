@@ -14,6 +14,7 @@ class Engine{
 		int dim;
 		int curLev;
 		dataMap* w;
+		scoremap sm;
 		int* NodeMembership;
 		TreeClass tree;
 		Engine(graphData* G, int d);
@@ -52,9 +53,46 @@ bool Engine::initializeFirstLev() {
 
 bool Engine::doStage() {
 	curLev++;
+	int a,b,i,d;
+	std::set<int> aset,bset,xset;
+	std::set<int> *p1set;
+	std::set<int> *p2set;
+	std::set<int>::iterator setiter,setiter2,setiter3;
+	// dataMap iterators
 	std::map<int, std::map<int,float> >::iterator it1;
 	std::map<int,float>::iterator it2;
-	
+	for (d=dim;d<dim;d++) {
+		p1set = w[d].grkeys();
+		for (setiter = p1set->begin(); setiter != p1set->end(); ++setiter) aset.insert(*setiter);
+		delete p1set;
+	}
+	// aset is the set of all groups to use as 'a' (all active groups in case of undirected graph)
+	for (setiter = aset.begin(); setiter != aset.end(); ++setiter) {
+		a = (*setiter);
+		// let us go through all the dimensions to get the 1st and 2nd neighbors in bset
+		for (d=0;d<dim;d++) {
+			p1set = w[d].neighbors(a);
+			for (setiter2 = p1set->begin(); setiter2 != p1set->end(); ++setiter2) {
+				bset.insert(*setiter2);
+				p2set = w[d].neighbors(*setiter2);
+				for (setiter3 = p2set->begin(); setiter3 != p2set->end(); ++setiter3) bset.insert(*setiter3);
+				delete p2set;
+			}
+			delete p1set;
+		}
+		for (setiter2 = bset.begin(); setiter2 != bset.end(); ++setiter2) {
+			b = *setiter2;
+			if (not sm.has_uv(a,b)) {
+				// calculate score for a,b
+				for (d=0;d<dim;d++) {
+					sm.Addto(u,v,deltascore(d,a,b,x));
+			
+		
+		
+
+		for (it1 = w[d].dat.begin(); it1 != w[d].dat.end(); ++it1) {
+			a = (*it1).first;
+			p1set = w[d].neighbors
 
 };
 
