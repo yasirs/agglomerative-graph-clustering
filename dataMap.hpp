@@ -11,13 +11,29 @@
 class dataMap{
 	public:
 		std::map<int, std::map<int,float> > dat;
-		std::vector<int> degrees;
+		std::map<int, float> degrees;
 		bool has_uv(int u, int v); //done
 		bool AddPair(int u, int v, float d); //done
 		bool Addto(int u, int v, float d); //done
 		bool eraseAll(); //done
 		bool erase(int u, int v); //done
 		std::set<int>* neighbors(int i); //done
+		float getuv_ifhas(int u, int v);
+		float get_uv(int u, int v);
+};
+
+float dataMap::get_uv(int u, int v) {
+	//NOTE: returns zero if not present
+	if (dat.find(u)!=dat.end()) {
+		if (dat[u].find(v)!=dat[u].end()) {
+			return dat[u][v];
+		} else {
+			return 0;
+		}
+
+	} else {
+		return 0;
+	}
 };
 
 std::set<int>* dataMap::neighbors(int i) {
@@ -42,7 +58,7 @@ bool dataMap::has_uv(int u, int v) {
 };
 
 bool dataMap::AddPair(int u, int v, float d) {
-	if (degrees.size()<(u+1)) degrees.resize(u+1);
+	if (degrees.find(u)==degrees.end()) degrees[u]=0;
 	if (dat.find(u) != dat.end()) {
 		if (dat[u].find(v) != dat[u].end()) {
 			degrees[u] = degrees[u] - dat[u][v] + d;

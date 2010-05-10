@@ -19,7 +19,7 @@ class Engine{
 		TreeClass tree;
 		std::map<int,std::set<int> > firstNeighbors;
 		std::map<int,std::set<int> > secondNeighbors;
-		std::map<int, float> groupDegrees;
+		//std::map<int, float> groupDegrees;
 		std::map<int, float> selfMissing;
 		
 		Engine(graphData* G, int d);
@@ -37,13 +37,14 @@ class Engine{
 int Engine::run() {
 	int numJoins = 0;
 	int a,b,c;
+	float wc,mc,dc;
 	Node* pnode;
 	scoremap::pairScore pscore;
 	while (sm.hasPos()) {
 		// join and do stuff
 		pscore = sm.popBestScore();
 		a = pscore.u; b = pscore.v;
-		// let us create new group c
+		// let us create new group c and create heirarchical relations
 		c = tree.numNodes;
 		c++;
 		tree.numNodes = c;
@@ -55,6 +56,12 @@ int Engine::run() {
 		tree.topLevel.erase(a);
 		tree.topLevel.erase(b);
 		tree.topLevel.insert(c);
+		// compute d,w,n,m for c
+		for (d=0;d<dim;d++) {
+			wc = w[d].get_uv(a,a) + w[d].get_uv(b,b) + w[d].get_uv(a,b);
+			assert(w[d].AddPair(c,c,wc));
+		}
+		
 
 
 
@@ -82,17 +89,17 @@ bool Engine::initializeFirstLev() {
 		for (it1 = D[d].edgeList.begin(); it1 != D[d].edgeList.end(); ++it1) {
 			u = (*it1).first;
 			if (firstNeighbors.find(u)==firstNeighbors.end()) firstNeighbors[u] = emptySet;
-			if (groupDegrees.find(u)==groupDegrees.end()) groupDegrees[u]=0;
+			//if (groupDegrees.find(u)==groupDegrees.end()) groupDegrees[u]=0;
 			if (selfMissing.find(u)==selfMissing.end()) selfMissing[u]=0;
 			for (it2 = (*it1).second.begin(); it2 != (*it1).second.end(); ++it2) {
 				v = (*it2).first;
 	
 				w[d].AddPair(u,v,(*it2).second);
 				w[d].AddPair(v,u,(*it2).second);
-				if (groupDegrees.find(v)==groupDegrees.end()) groupDegrees[v]=0;
+				//if (groupDegrees.find(v)==groupDegrees.end()) groupDegrees[v]=0;
 				if (selfMissing.find(v)==selfMissing.end()) selfMissing[v]=0;
-				groupDegrees[u] += (*it2).second;
-				groupDegrees[v] += (*it2).second;
+				//groupDegrees[u] += (*it2).second;
+				//groupDegrees[v] += (*it2).second;
 				if (firstNeighbors.find(v)==firstNeighbors.end()) firstNeighbors[v] = emptySet;
 				firstNeighbors[u].insert(v);
 				firstNeighbors[v].insert(u);
