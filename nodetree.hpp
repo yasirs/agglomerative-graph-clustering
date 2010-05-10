@@ -21,7 +21,9 @@ class TreeClass{
 		std::vector<Node*> nodeVec;
 		std::set<int> topLevel;
 		int numNodes;
-		Tree() {numNodes=0;}
+		TreeClass() {
+			numNodes=0;
+		}
 };		
 
 

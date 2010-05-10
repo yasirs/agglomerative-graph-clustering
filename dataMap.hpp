@@ -59,42 +59,34 @@ bool dataMap::has_uv(int u, int v) {
 };
 
 bool dataMap::AddPair(int u, int v, float d) {
-	if (degrees.find(u)==degrees.end()) degrees[u]=0;
 	if (dat.find(u) != dat.end()) {
 		if (dat[u].find(v) != dat[u].end()) {
-			degrees[u] = degrees[u] - dat[u][v] + d;
 			dat[u][v] = d;
 			return 0;
 		} else {
-			degrees[u] = degrees[u] + d;
 			dat[u][v]=d;
 		}
 	} else {
 		std::map<int,float> mnew;
 		mnew[v] = d;
 		dat[u] = mnew;
-		degrees[u] = degrees[u]+ d;
 	}
 	return 1;
 };
 
 
 bool dataMap::Addto(int u, int v, float d) {
-	if (degrees.find(u)==degrees.end()) degrees[u]=0;
 	if (dat.find(u) != dat.end()) {
 		if (dat[u].find(v) != dat[u].end()) {
 			dat[u][v] = dat[u][v]+d;
-			degrees[u] = degrees[u] + d;
 			return 1;
 		} else {
-			degrees[u] = degrees[u] + d;
 			dat[u][v]=d;
 		}
 	} else {
 		std::map<int,float> mnew;
 		mnew[v] = d;
 		dat[u] = mnew;
-		degrees[u] = degrees[u] + d;
 	}
 	return 0;
 };
@@ -104,7 +96,7 @@ bool dataMap::eraseAll() {
 		return 0;
 	} else {
 		dat.erase(dat.begin(), dat.end());
-		degrees.resize(0);
+		degrees.erase(degrees.begin(), degrees.end());
 		return 1;
 	}
 };
@@ -112,7 +104,6 @@ bool dataMap::eraseAll() {
 bool dataMap::erase(int u, int v) {
 	if (dat.find(u)!=dat.end()) {
 		if (dat[u].find(v) != dat[u].end()) {
-			degrees[u] = degrees[u] - dat[u][v];
 			dat[u].erase(v);
 			
 		} else {

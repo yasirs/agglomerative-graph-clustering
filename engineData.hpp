@@ -7,7 +7,10 @@
 #include "nodetree.hpp"
 #include "scoremap.hpp"
 #include "dataMap.hpp"
+#include "mysetfuncs.hpp"
 #include <iostream>
+#include <cassert>
+
 
 #define DEBUGMODE 1
 
@@ -31,6 +34,7 @@ class Engine{
 		bool doStage();
 		bool cleanUp();
 		double deltaScore(int d, int a, int b, int x);
+		double centerscore(int d, int a, int b);
 		std::set<int> getNeighborsVertex(int i);
 		std::set<int> getNeighborsNode(int i);
 		
@@ -41,11 +45,16 @@ int Engine::run() {
 	std::set<int> possSet1, possSet2;
 	std::set<int>::iterator intit, intit2, intit3;
 	int numJoins = 0;
-	int a,b,c,x,y,z;
+	int a,b,c,x,y,z,d;
 	float wc,mc,dc;
-	doouble cscore, jscore;
+	double cscore, jscore;
 	Node* pnode;
 	scoremap::pairScore pscore;
+	std::map<int, scoremap::smap>::iterator smOut;
+	std::map<int, scoremap::twoScores>::iterator smIn;
+	std::map<int, std::map<int,float> >::iterator datOut;
+	std::map<int, float>::iterator datIn;
+
 	while (sm.hasPos()) {
 		// join and do stuff
 		pscore = sm.popBestScore();
@@ -55,10 +64,11 @@ int Engine::run() {
 		c++;
 		tree.numNodes = c;
 		pnode = new Node(-1,c);
+		tree.nodeVec[c] = pnode;
 		tree.nodeVec[a]->parent = c;
 		tree.nodeVec[b]->parent = c;
-		c.childSet.insert(a);
-		c.childSet.insert(b);
+		tree.nodeVec[c]->childSet.insert(a);
+		tree.nodeVec[c]->childSet.insert(b);
 		tree.topLevel.erase(a);
 		tree.topLevel.erase(b);
 		tree.topLevel.insert(c);
@@ -72,37 +82,58 @@ int Engine::run() {
 		secondNeighbors[c] = emptySet;
 		set_union_update(firstNeighbors[c],firstNeighbors[a],firstNeighbors[b]);
 		tempSet = emptySet;
-		set_union_update(tempSet,secondNeigbors[a],secondNeighbors[b]);
+		set_union_update(tempSet,secondNeighbors[a],secondNeighbors[b]);
 		set_difference_update(secondNeighbors[c],tempSet,firstNeighbors[c]);
 		for (d=0;d<dim;d++) {
-			for (intit = firstNeighbors[c].begin(); intit != firstNeighbors.end(); ++intit) {
+			for (intit = firstNeighbors[c].begin(); intit != firstNeighbors[c].end(); ++intit) {
 				w[d].AddPair(c,x,w[d].get_uv(a,x) + w[d].get_uv(b,x));
 				w[d].AddPair(x,c,w[d].get_uv(x,a) + w[d].get_uv(b,x));
 			}
 		}
 		// delete a,b scores
 		for (intit = firstNeighbors[a].begin(); intit != secondNeighbors[a].end(); ++intit) {
-			if (intit==firstNeighbors[a].end()) intit = secondNeighbors.begin(); //NOTE: this is a hack
+			if (intit==firstNeighbors[a].end()) intit = secondNeighbors[a].begin(); //NOTE: this is a hack
 			x = *intit;
 			sm.erase(a,x);
 		}
 		for (intit = firstNeighbors[b].begin(); intit != secondNeighbors[b].end(); ++intit) {
-			if (intit==firstNeighbors[b].end()) intit = secondNeighbors.begin(); //NOTE: this is a hack
+			if (intit==firstNeighbors[b].end()) intit = secondNeighbors[b].begin(); //NOTE: this is a hack
 			x = *intit;
 			sm.erase(b,x);
 		}
 
 
-		// update old scores
-		// TODO
+		// update all existing old scores
+		for (smOut = sm.scores.begin(); smOut != sm.scores.end(); ++smOut) {
+			x = (*smOut).first;
+			for (smIn = (*smOut).second.scoreDest.begin(); smIn != (*smOut).second.scoreDest.end(); ++smIn) {
+				y = (*smIn).first;
+				jscore =0;
+				for (d=0;d<dim;d++) {
+					jscore = jscore + deltascore(d,x,y,c)-deltascore(d,x,y,a)-deltascore(d,x,y,b);
+				}
+				sm.AddTo(x,y,jscore);
+			}
+		}
+		
 
 		// create new c,x scores
 		for (intit = firstNeighbors[c].begin(); intit != secondNeighbors[c].end(); ++intit) {
-			if (intit==firstNeighbors[c].end()) intit = secondNeighbors.begin(); //NOTE: this is a hack
+			if (intit==firstNeighbors[c].end()) intit = secondNeighbors[c].begin(); //NOTE: this is a hack
 			x = *intit;
-			for (intit3 = tree.topLevel.begin(); intit3 != tree.topLevel.end(); ++
-
-
+			cscore = 0;
+			jscore = 0;
+			for (d=0;d<dim;d++) {
+				for (intit3 = tree.topLevel.begin(); intit3 != tree.topLevel.end(); ++intit3) {
+					z = *intit3;
+					if ((z!=x)and(z!=c)) {
+						jscore += deltascore(d,c,x,z);
+					}
+				}
+				cscore += centerscore(d,c,x);
+			}
+			assert(sm.AddPair(c,x,jscore,cscore));
+		}
 
 		//create NEW 2nd neighbor scores, if any
 		for (intit = firstNeighbors[a].begin(); intit != firstNeighbors[a].end(); ++intit) {
@@ -142,14 +173,54 @@ int Engine::run() {
 			}
 		}
 
-		// delete a,b from weights (and degrees), and neighbors, but keep them in the tree
-			
+		// delete a,b from weights (and degrees) in all dimensions
+		for (d=0;d<dim;d++) {
+			w[d].degrees.erase(a);
+			w[d].degrees.erase(b);
+			w[d].selfMissing.erase(a);
+			w[d].selfMissing.erase(b);
+			// now let us go through the neighbors of a
+			for (intit = firstNeighbors[a].begin(); intit != firstNeighbors[a].end(); ++intit) {
+				x = *intit;
+				w[d].dat[x].erase(a);
+			}
+			w[d].dat.erase(a);
+			// now let us go through the neighbors of b
+			for (intit = firstNeighbors[b].begin(); intit != firstNeighbors[b].end(); ++intit) {
+				x = *intit;
+				w[d].dat[x].erase(b);
+			}
+			w[d].dat.erase(b);
+		}
+		// delete a,b from neighbors
+		for (intit = firstNeighbors[a].begin(); intit != firstNeighbors[a].end(); ++intit) {
+			x = *intit;
+			firstNeighbors[x].erase(a);
+		}
+		firstNeighbors.erase(a);
+		for (intit = firstNeighbors[b].begin(); intit != firstNeighbors[b].end(); ++intit) {
+			x = *intit;
+			firstNeighbors[x].erase(b);
+		}
+		firstNeighbors.erase(b);
+		for (intit = secondNeighbors[a].begin(); intit != secondNeighbors[a].end(); ++intit) {
+			x = *intit;
+			secondNeighbors[x].erase(a);
+		}
+		secondNeighbors.erase(a);
+		for (intit = secondNeighbors[b].begin(); intit != secondNeighbors[b].end(); ++intit) {
+			x = *intit;
+			secondNeighbors[x].erase(b);
+		}
+		secondNeighbors.erase(b);
+		// should be done!
 		
-		
 
-
-
+	
 		numJoins++;
+		if (DEBUGMODE) {
+			std::cout << "joined "<<a<<", and "<<b<<"to form "<<c<<"\n";
+		}
 	}
 	return numJoins;
 };
@@ -161,13 +232,13 @@ bool Engine::initializeFirstLev() {
 	int i,d,u,v,x,y,z;
 	double jscore,cscore;
 	Node* pn;
-	for (i=0;i<G[0].numV;i++) {
+	std::map<int,graphData::destList>::iterator it1;
+	graphData::destList::iterator it2;
+	for (i=0;i<D[0].numV;i++) {
 		pn = new Node(i,-1);
 		tree.nodeVec.push_back(pn);
 		tree.topLevel.insert(tree.nodeVec.size());
 	}
-	std::map<int,graphData::destList>::iterator it1;
-	destList::iterator it2;
 	// initialize weights, degrees, selfMissing and first neighbors
 	for (d=0;d<dim;d++) {
 		for (it1 = D[d].edgeList.begin(); it1 != D[d].edgeList.end(); ++it1) {
@@ -195,8 +266,8 @@ bool Engine::initializeFirstLev() {
 	std::set<int>::iterator neighbit;
 	std::set<int>::iterator intsetit;
 	for (itnode = tree.nodeVec.begin(); itnode != tree.nodeVec.end(); ++itnode) {
-		x = itnode->nid;
-		for (neighbit = firstNeighbors[x].begin(); neighbit != firstNeighbors[x].end(); ++neighit) {
+		x = (*itnode)->nid;
+		for (neighbit = firstNeighbors[x].begin(); neighbit != firstNeighbors[x].end(); ++neighbit) {
 			y = *neighbit;
 			if (secondNeighbors.find(x)==secondNeighbors.end()) secondNeighbors[u] = emptySet;
 			set_difference_update(secondNeighbors[x],firstNeighbors[y],firstNeighbors[x]);
@@ -204,8 +275,8 @@ bool Engine::initializeFirstLev() {
 	}
 	// initialize scores
 	for (itnode = tree.nodeVec.begin(); itnode != tree.nodeVec.end(); ++itnode) {
-		x = itnode->nid;
-		for (neighbit = firstNeighbors[x].begin(); neighbit != secondNeighbors[x].end(); ++neighit) {
+		x = (*itnode)->nid;
+		for (neighbit = firstNeighbors[x].begin(); neighbit != secondNeighbors[x].end(); ++neighbit) {
 			// NOTE: this is a hack to go through two sets, 1st and 2nd neighbrs
 			if (neighbit == firstNeighbors[x].end()) neighbit = secondNeighbors[x].begin();
 			y = *neighbit;

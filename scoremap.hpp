@@ -43,6 +43,7 @@ class scoremap{
 		bool isempty(); //done
 		int AddPair(int u, int v, double jscore, double cscore); //done
 		int AddPair(int u, int v, twoScores score); 
+		int AddTo(int u, int v, double scorej); // done
 		bool eraseAll(); //done
 		bool erase(int u,int v); //done
 };
@@ -152,6 +153,16 @@ int scoremap::AddPair(int u, int v, twoScores score) {
 			return 1;
 	}
 };
+
+
+int scoremap::AddTo(int u, int v, double scorej) {
+	double nsj;
+	double nsc;
+	nsj = scores[u].scoreDest[v].joinScore + scorej;
+	nsc = scores[u].scoreDest[v].joinScore;
+	this->AddPair(u,v,nsj,nsc);
+}
+
 
 
 int scoremap::AddPair(int u, int v, double scorej, double scorec) {
