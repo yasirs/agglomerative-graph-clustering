@@ -17,38 +17,94 @@ class Engine{
 		scoremap sm;
 		int* NodeMembership;
 		TreeClass tree;
+		std::map<int,std::set<int> > firstNeighbors;
+		std::map<int,std::set<int> > secondNeighbors;
+		std::map<int, float> groupDegrees;
+		
 		Engine(graphData* G, int d);
-		scoremap::twoScores deltascore(int d, int a, int b, int x);
+		double deltascore(int d, int a, int b, int x);
 		bool initializeFirstLev();
 		bool doStage();
 		bool cleanUp();
 		double deltaScore(int d, int a, int b, int x);
 		std::set<int> getNeighborsVertex(int i);
 		std::set<int> getNeighborsNode(int i);
+		
 };
 
 
 bool Engine::initializeFirstLev() {
+	std::set<int> emptySet;
 	curLev = 0;
-	int i,d,u,v;
+	int i,d,u,v,x,y,z;
+	double jscore,cscore;
 	Node* pn;
 	for (i=0;i<G[0].numV;i++) {
-		pn = new Node(-1);
+		pn = new Node(i,-1);
 		tree.nodeVec.push_back(pn);
 		tree.topLevel.insert(tree.nodeVec.size());
 	}
-	it1 = std::map<int,graphData::destList>::iterator;
-	it2 = destList::Iterator;
+	std::map<int,graphData::destList>::iterator it1;
+	destList::iterator it2;
+	// initialize weights,degrees and first neighbors
 	for (d=0;d<dim;d++) {
 		for (it1 = D[d].edgeList.begin(); it1 != D[d].edgeList.end(); ++it1) {
 			u = (*it1).first;
+			if (firstNeighbors.find(u)==firstNeighbors.end()) firstNeighbors[u] = emptySet;
+			if (groupDegrees.find(u)==groupDegrees.end()) groupDegrees[u]=0;
 			for (it2 = (*it1).second.begin(); it2 != (*it1).second.end(); ++it2) {
 				v = (*it2).first;
+	
 				w[d].AddPair(u,v,(*it2).second);
 				w[d].AddPair(v,u,(*it2).second);
+				if (groupDegrees.find(v)==groupDegrees.end()) groupDegrees[v]=0;
+				groupDegrees[u] += (*it2).second;
+				groupDegrees[v] += (*it2).second;
+				if (firstNeighbors.find(v)==firstNeighbors.end()) firstNeighbors[v] = emptySet;
+				firstNeighbors[u].insert(v);
+				firstNeighbors[v].insert(u);
 			}
 		}
 	}
+	// initialize 2nd neighbors
+	std::vector<Node*>::iterator itnode;
+	std::set<int>::iterator neighbit;
+	std::set<int>::iterator intsetit;
+	for (itnode = tree.nodeVec.begin(); itnode != tree.nodeVec.end(); ++itnode) {
+		x = itnode->nid;
+		for (neighbit = firstNeighbors[x].begin(); neighbit != firstNeighbors[x].end(); ++neighit) {
+			y = *neighbit;
+			if (secondNeighbors.find(x)==secondNeighbors.end()) secondNeighbors[u] = emptySet;
+			set_difference_update(secondNeighbors[x],firstNeighbors[y],firstNeighbors[x]);
+		}
+	}
+	// initialize scores
+	for (itnode = tree.nodeVec.begin(); itnode != tree.nodeVec.end(); ++itnode) {
+		x = itnode->nid;
+		for (neighbit = firstNeighbors[x].begin(); neighbit != secondNeighbors[x].end(); ++neighit) {
+			// NOTE: this is a hack to go through two sets, 1st and 2nd neighbrs
+			if (neighbit == firstNeighbors[x].end()) neighbit = secondNeighbors[x].begin();
+			y = *neighbit;
+			// if score(x,y) doesnt exist, compute it
+			if (not sm.has_uv(x,y)) {
+				// add up score contributions
+				jscore = 0; cscore = 0;
+				// go through all dimensions
+				for (d=0;d<dim;d++) {
+					// go through all top level groups z != x,y
+					for (intsetit = tree.topLevel.begin(); intsetit != tree.topLevel.end(); ++intsetit) {
+						z = *intsetit;
+						if (not ((x==z)or(y==z)) ) {
+							jscore = jscore + deltascore(d,x,y,z);
+						}
+					}
+					cscore = cscore + centerscore(d,x,y);
+				}
+				sm.AddPair(x,y,jscore,cscore);
+			}
+		}
+	}
+	//done initializations
 	return 1;
 };
 

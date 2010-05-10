@@ -7,10 +7,12 @@
 class Node{
 	public:
 		int parent;
+		int nid;
 		std::set<int> childSet;
 		std::set<int> vertexSet;
-		Node(int i) {
-			parent = i;
+		Node(int i, int j) {
+			nid = i;
+			parent = j;
 		}
 };
 		

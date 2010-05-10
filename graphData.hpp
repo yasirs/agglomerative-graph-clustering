@@ -1,7 +1,7 @@
 #ifndef GRAPHDATA_HPP
 #define GRAPHDATA_HPP
 #include <map>
-
+#include <set>
 
 class graphData{
 	public:
