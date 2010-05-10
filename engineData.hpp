@@ -18,6 +18,7 @@ class Engine{
 		int* NodeMembership;
 		TreeClass tree;
 		Engine(graphData* G, int d);
+		scoremap::twoScores deltascore(int d, int a, int b, int x);
 		bool initializeFirstLev();
 		bool doStage();
 		bool cleanUp();
@@ -44,6 +45,7 @@ bool Engine::initializeFirstLev() {
 			for (it2 = (*it1).second.begin(); it2 != (*it1).second.end(); ++it2) {
 				v = (*it2).first;
 				w[d].AddPair(u,v,(*it2).second);
+				w[d].AddPair(v,u,(*it2).second);
 			}
 		}
 	}
@@ -59,8 +61,6 @@ bool Engine::doStage() {
 	std::set<int> *p2set;
 	std::set<int>::iterator setiter,setiter2,setiter3;
 	// dataMap iterators
-	std::map<int, std::map<int,float> >::iterator it1;
-	std::map<int,float>::iterator it2;
 	for (d=dim;d<dim;d++) {
 		p1set = w[d].grkeys();
 		for (setiter = p1set->begin(); setiter != p1set->end(); ++setiter) aset.insert(*setiter);
@@ -85,14 +85,13 @@ bool Engine::doStage() {
 			if (not sm.has_uv(a,b)) {
 				// calculate score for a,b
 				for (d=0;d<dim;d++) {
+					// run over x
+					for (setiter3 = aset.begin();
 					sm.Addto(u,v,deltascore(d,a,b,x));
 			
 		
 		
 
-		for (it1 = w[d].dat.begin(); it1 != w[d].dat.end(); ++it1) {
-			a = (*it1).first;
-			p1set = w[d].neighbors
 
 };
 
