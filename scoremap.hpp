@@ -110,7 +110,8 @@ bool scoremap::erase(int u, int v) {
 	if (scores.empty()) {
 		bestP =  twoScorestruct(BIGNEG,BIGNEG);
 		bestK=-1;
-	}	
+	}
+	return 1;
 };
 
 bool scoremap::eraseAll() {

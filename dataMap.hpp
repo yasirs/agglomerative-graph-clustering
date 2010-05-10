@@ -12,6 +12,7 @@ class dataMap{
 	public:
 		std::map<int, std::map<int,float> > dat;
 		std::map<int, float> degrees;
+		std::map<int, float> selfMissing;
 		bool has_uv(int u, int v); //done
 		bool AddPair(int u, int v, float d); //done
 		bool Addto(int u, int v, float d); //done
@@ -79,7 +80,7 @@ bool dataMap::AddPair(int u, int v, float d) {
 
 
 bool dataMap::Addto(int u, int v, float d) {
-	if (degrees.size()<(u+1)) degrees.resize(u+1);
+	if (degrees.find(u)==degrees.end()) degrees[u]=0;
 	if (dat.find(u) != dat.end()) {
 		if (dat[u].find(v) != dat[u].end()) {
 			dat[u][v] = dat[u][v]+d;

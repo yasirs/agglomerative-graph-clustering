@@ -7,6 +7,9 @@
 #include "nodetree.hpp"
 #include "scoremap.hpp"
 #include "dataMap.hpp"
+#include <iostream>
+
+#define DEBUGMODE 1
 
 class Engine{
 	public:
@@ -20,7 +23,6 @@ class Engine{
 		std::map<int,std::set<int> > firstNeighbors;
 		std::map<int,std::set<int> > secondNeighbors;
 		//std::map<int, float> groupDegrees;
-		std::map<int, float> selfMissing;
 		
 		Engine(graphData* G, int d);
 		double deltascore(int d, int a, int b, int x);
@@ -35,9 +37,13 @@ class Engine{
 };
 
 int Engine::run() {
+	std::set<int> emptySet, tempSet;
+	std::set<int> possSet1, possSet2;
+	std::set<int>::iterator intit, intit2, intit3;
 	int numJoins = 0;
-	int a,b,c;
+	int a,b,c,x,y,z;
 	float wc,mc,dc;
+	doouble cscore, jscore;
 	Node* pnode;
 	scoremap::pairScore pscore;
 	while (sm.hasPos()) {
@@ -56,11 +62,89 @@ int Engine::run() {
 		tree.topLevel.erase(a);
 		tree.topLevel.erase(b);
 		tree.topLevel.insert(c);
+		//TODO: collapsed
 		// compute d,w,n,m for c
 		for (d=0;d<dim;d++) {
 			wc = w[d].get_uv(a,a) + w[d].get_uv(b,b) + w[d].get_uv(a,b);
 			assert(w[d].AddPair(c,c,wc));
 		}
+		firstNeighbors[c] = emptySet;
+		secondNeighbors[c] = emptySet;
+		set_union_update(firstNeighbors[c],firstNeighbors[a],firstNeighbors[b]);
+		tempSet = emptySet;
+		set_union_update(tempSet,secondNeigbors[a],secondNeighbors[b]);
+		set_difference_update(secondNeighbors[c],tempSet,firstNeighbors[c]);
+		for (d=0;d<dim;d++) {
+			for (intit = firstNeighbors[c].begin(); intit != firstNeighbors.end(); ++intit) {
+				w[d].AddPair(c,x,w[d].get_uv(a,x) + w[d].get_uv(b,x));
+				w[d].AddPair(x,c,w[d].get_uv(x,a) + w[d].get_uv(b,x));
+			}
+		}
+		// delete a,b scores
+		for (intit = firstNeighbors[a].begin(); intit != secondNeighbors[a].end(); ++intit) {
+			if (intit==firstNeighbors[a].end()) intit = secondNeighbors.begin(); //NOTE: this is a hack
+			x = *intit;
+			sm.erase(a,x);
+		}
+		for (intit = firstNeighbors[b].begin(); intit != secondNeighbors[b].end(); ++intit) {
+			if (intit==firstNeighbors[b].end()) intit = secondNeighbors.begin(); //NOTE: this is a hack
+			x = *intit;
+			sm.erase(b,x);
+		}
+
+
+		// update old scores
+		// TODO
+
+		// create new c,x scores
+		for (intit = firstNeighbors[c].begin(); intit != secondNeighbors[c].end(); ++intit) {
+			if (intit==firstNeighbors[c].end()) intit = secondNeighbors.begin(); //NOTE: this is a hack
+			x = *intit;
+			for (intit3 = tree.topLevel.begin(); intit3 != tree.topLevel.end(); ++
+
+
+
+		//create NEW 2nd neighbor scores, if any
+		for (intit = firstNeighbors[a].begin(); intit != firstNeighbors[a].end(); ++intit) {
+			for (intit2 = firstNeighbors[b].begin(); intit2 != firstNeighbors[b].end(); ++intit2) {
+				x = *intit; y = *intit2;
+				// x and y may have just become 2nd neighbors
+				if (secondNeighbors[x].find(y)==secondNeighbors[x].end()) {
+					// make second neighbors and add the score
+					secondNeighbors[x].insert(y);
+					cscore = 0; jscore = 0;
+					for (d=0;d<dim;d++) {
+						for (intit3 = tree.topLevel.begin(); intit3 != tree.topLevel.end(); intit3++) {
+							z = *intit3;
+							if ((z!=x)and(z!=y)) {
+								jscore = jscore + deltascore(d,x,y,z);
+							}
+						}
+						cscore = cscore + centerscore(d,x,y);
+					}
+					assert(sm.AddPair(x,y,jscore,cscore));
+				}
+				if (secondNeighbors[y].find(x)==secondNeighbors[y].end()) {
+					// make second neighbors and add the score
+					secondNeighbors[y].insert(x);
+					cscore = 0; jscore = 0;
+					for (d=0;d<dim;d++) {
+						for (intit3 = tree.topLevel.begin(); intit3 != tree.topLevel.end(); intit3++) {
+							z = *intit3;
+							if ((z!=y)and(z!=x)) {
+								jscore = jscore + deltascore(d,y,x,z);
+							}
+						}
+						cscore = cscore + centerscore(d,y,x);
+					}
+					assert(sm.AddPair(y,x,jscore,cscore));
+				}
+			}
+		}
+
+		// delete a,b from weights (and degrees), and neighbors, but keep them in the tree
+			
+		
 		
 
 
@@ -90,14 +174,14 @@ bool Engine::initializeFirstLev() {
 			u = (*it1).first;
 			if (firstNeighbors.find(u)==firstNeighbors.end()) firstNeighbors[u] = emptySet;
 			//if (groupDegrees.find(u)==groupDegrees.end()) groupDegrees[u]=0;
-			if (selfMissing.find(u)==selfMissing.end()) selfMissing[u]=0;
+			if (w[d].selfMissing.find(u)==w[d].selfMissing.end()) w[d].selfMissing[u]=0;
 			for (it2 = (*it1).second.begin(); it2 != (*it1).second.end(); ++it2) {
 				v = (*it2).first;
 	
 				w[d].AddPair(u,v,(*it2).second);
 				w[d].AddPair(v,u,(*it2).second);
 				//if (groupDegrees.find(v)==groupDegrees.end()) groupDegrees[v]=0;
-				if (selfMissing.find(v)==selfMissing.end()) selfMissing[v]=0;
+				if (w[d].selfMissing.find(v)==w[d].selfMissing.end()) w[d].selfMissing[v]=0;
 				//groupDegrees[u] += (*it2).second;
 				//groupDegrees[v] += (*it2).second;
 				if (firstNeighbors.find(v)==firstNeighbors.end()) firstNeighbors[v] = emptySet;
