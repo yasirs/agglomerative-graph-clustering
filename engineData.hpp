@@ -244,17 +244,17 @@ bool Engine::initializeFirstLev() {
 		for (it1 = D[d].edgeList.begin(); it1 != D[d].edgeList.end(); ++it1) {
 			u = (*it1).first;
 			if (firstNeighbors.find(u)==firstNeighbors.end()) firstNeighbors[u] = emptySet;
-			//if (groupDegrees.find(u)==groupDegrees.end()) groupDegrees[u]=0;
+			if (w[d].degrees.find(u)==w[d].degrees.end()) w[d].degrees[u]=0;
 			if (w[d].selfMissing.find(u)==w[d].selfMissing.end()) w[d].selfMissing[u]=0;
 			for (it2 = (*it1).second.begin(); it2 != (*it1).second.end(); ++it2) {
 				v = (*it2).first;
 	
 				w[d].AddPair(u,v,(*it2).second);
 				w[d].AddPair(v,u,(*it2).second);
-				//if (groupDegrees.find(v)==groupDegrees.end()) groupDegrees[v]=0;
+				if (w[d].degrees.find(u)==w[d].degrees.end()) w[d].degrees[u]=0;
 				if (w[d].selfMissing.find(v)==w[d].selfMissing.end()) w[d].selfMissing[v]=0;
-				//groupDegrees[u] += (*it2).second;
-				//groupDegrees[v] += (*it2).second;
+				w[d].degrees[u] += (*it2).second;
+				w[d].degrees[v] += (*it2).second;
 				if (firstNeighbors.find(v)==firstNeighbors.end()) firstNeighbors[v] = emptySet;
 				firstNeighbors[u].insert(v);
 				firstNeighbors[v].insert(u);
