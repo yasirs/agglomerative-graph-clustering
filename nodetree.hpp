@@ -20,6 +20,8 @@ class TreeClass{
 	public:
 		std::vector<Node*> nodeVec;
 		std::set<int> topLevel;
+		int numNodes;
+		Tree() {numNodes=0;}
 };		
 
 

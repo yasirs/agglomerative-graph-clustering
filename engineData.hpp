@@ -20,16 +20,47 @@ class Engine{
 		std::map<int,std::set<int> > firstNeighbors;
 		std::map<int,std::set<int> > secondNeighbors;
 		std::map<int, float> groupDegrees;
+		std::map<int, float> selfMissing;
 		
 		Engine(graphData* G, int d);
 		double deltascore(int d, int a, int b, int x);
 		bool initializeFirstLev();
+		int run();
 		bool doStage();
 		bool cleanUp();
 		double deltaScore(int d, int a, int b, int x);
 		std::set<int> getNeighborsVertex(int i);
 		std::set<int> getNeighborsNode(int i);
 		
+};
+
+int Engine::run() {
+	int numJoins = 0;
+	int a,b,c;
+	Node* pnode;
+	scoremap::pairScore pscore;
+	while (sm.hasPos()) {
+		// join and do stuff
+		pscore = sm.popBestScore();
+		a = pscore.u; b = pscore.v;
+		// let us create new group c
+		c = tree.numNodes;
+		c++;
+		tree.numNodes = c;
+		pnode = new Node(-1,c);
+		tree.nodeVec[a]->parent = c;
+		tree.nodeVec[b]->parent = c;
+		c.childSet.insert(a);
+		c.childSet.insert(b);
+		tree.topLevel.erase(a);
+		tree.topLevel.erase(b);
+		tree.topLevel.insert(c);
+
+
+
+		numJoins++;
+	}
+	return numJoins;
 };
 
 
@@ -46,18 +77,20 @@ bool Engine::initializeFirstLev() {
 	}
 	std::map<int,graphData::destList>::iterator it1;
 	destList::iterator it2;
-	// initialize weights,degrees and first neighbors
+	// initialize weights, degrees, selfMissing and first neighbors
 	for (d=0;d<dim;d++) {
 		for (it1 = D[d].edgeList.begin(); it1 != D[d].edgeList.end(); ++it1) {
 			u = (*it1).first;
 			if (firstNeighbors.find(u)==firstNeighbors.end()) firstNeighbors[u] = emptySet;
 			if (groupDegrees.find(u)==groupDegrees.end()) groupDegrees[u]=0;
+			if (selfMissing.find(u)==selfMissing.end()) selfMissing[u]=0;
 			for (it2 = (*it1).second.begin(); it2 != (*it1).second.end(); ++it2) {
 				v = (*it2).first;
 	
 				w[d].AddPair(u,v,(*it2).second);
 				w[d].AddPair(v,u,(*it2).second);
 				if (groupDegrees.find(v)==groupDegrees.end()) groupDegrees[v]=0;
+				if (selfMissing.find(v)==selfMissing.end()) selfMissing[v]=0;
 				groupDegrees[u] += (*it2).second;
 				groupDegrees[v] += (*it2).second;
 				if (firstNeighbors.find(v)==firstNeighbors.end()) firstNeighbors[v] = emptySet;
@@ -108,7 +141,7 @@ bool Engine::initializeFirstLev() {
 	return 1;
 };
 
-
+/*
 bool Engine::doStage() {
 	curLev++;
 	int a,b,i,d;
@@ -149,6 +182,6 @@ bool Engine::doStage() {
 		
 
 
-};
+}; */
 
 #endif
