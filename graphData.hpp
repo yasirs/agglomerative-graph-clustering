@@ -23,7 +23,7 @@ class graphData{
 };
 
 bool graphData::readBinary(const char* fn) {
-	gtype = 'b';
+	gtype = 'w'; //TODO:: has to be 'b'
 	numV = 0;
 	std::string strline;
 	std::ifstream file;
@@ -36,19 +36,21 @@ bool graphData::readBinary(const char* fn) {
 		getline(file,strline);
 		tok.clear();
 		my_Tokenize(strline,tok," \t");
-		std::istringstream(tok[0]) >> u;
-		std::istringstream(tok[1]) >> v;
-		if (numV<(u+1)) numV = u+1;
-		if (numV<(v+1)) numV = v+1;
-		if (edgeList.find(u)==edgeList.end()) {
-			edgeList[u] = destList();
+		if (tok.size()>1) {
+			std::istringstream(tok[0]) >> u;
+			std::istringstream(tok[1]) >> v;
+			if (numV<(u+1)) numV = u+1;
+			if (numV<(v+1)) numV = v+1;
+			if (edgeList.find(u)==edgeList.end()) {
+				edgeList[u] = destList();
+			}
+			edgeList[u][v] = 1.0f;
+			if (edgeList.find(v)==edgeList.end()) {
+				edgeList[v] = destList();
+			}
+			edgeList[v][u] = 1.0f;
+			sum += 2;
 		}
-		edgeList[u][v] = 1.0f;
-		if (edgeList.find(v)==edgeList.end()) {
-			edgeList[v] = destList();
-		}
-		edgeList[v][u] = 1.0f;
-		sum += 2;
 	}
 	aveP = sum/(numV * numV);
 	return 1;

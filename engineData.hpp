@@ -10,6 +10,7 @@
 #include "mysetfuncs.hpp"
 #include <iostream>
 #include <cassert>
+#include "gsl/gsl_sf.h"
 
 
 #define DEBUGMODE 1
@@ -26,19 +27,56 @@ class Engine{
 		std::map<int,std::set<int> > firstNeighbors;
 		std::map<int,std::set<int> > secondNeighbors;
 		//std::map<int, float> groupDegrees;
-		
+		~Engine();
 		Engine(graphData* G, int d);
-		double deltascore(int d, int a, int b, int x);
 		bool initializeFirstLev();
 		int run();
 		bool doStage();
 		bool cleanUp();
-		double deltaScore(int d, int a, int b, int x);
+		double deltascore(int d, int a, int b, int x);
 		double centerscore(int d, int a, int b);
 		std::set<int> getNeighborsVertex(int i);
 		std::set<int> getNeighborsNode(int i);
 		
 };
+
+
+Engine::Engine(graphData* G, int d) {
+	D = G;
+	dim = d;
+	w = new dataMap[dim];
+};
+
+Engine::~Engine() {
+	delete[] w;
+};
+
+double Engine::centerscore(int d, int a, int b) {
+	return 1;
+	//TODO
+
+
+};
+
+double Engine::deltascore(int d, int a, int b, int x) {
+	double ans;
+	if (D[d].gtype=='b') {
+		//compute the score for binary networks
+		std::cout << "not yet implemented for binary graphs\n";
+		throw 1;
+
+	} else if (D[d].gtype=='w') {
+		float Eax, Ebx, Hax, Hbx;
+		Eax = w[d].get_uv(a,x);
+		Ebx = w[d].get_uv(b,x);
+		Hax = w[d].degrees[a] * w[d].degrees[x] - Eax;
+		Hbx = w[d].degrees[a] * w[d].degrees[x] - Ebx;
+		return gsl_sf_lnbeta(Eax+Ebx+1.0f,Hax+Hbx+1.0f)
+			-gsl_sf_lnbeta(Eax+1.0f,Hax+1.0f)
+			-gsl_sf_lnbeta(Ebx+1.0f,Hbx+1.0f);
+	}
+};
+
 
 int Engine::run() {
 	std::set<int> emptySet, tempSet;
@@ -91,17 +129,23 @@ int Engine::run() {
 			}
 		}
 		// delete a,b scores
-		for (intit = firstNeighbors[a].begin(); intit != secondNeighbors[a].end(); ++intit) {
-			if (intit==firstNeighbors[a].end()) intit = secondNeighbors[a].begin(); //NOTE: this is a hack
+		for (intit = firstNeighbors[a].begin(); intit != firstNeighbors[a].end(); ++intit) {
 			x = *intit;
 			sm.erase(a,x);
 		}
-		for (intit = firstNeighbors[b].begin(); intit != secondNeighbors[b].end(); ++intit) {
-			if (intit==firstNeighbors[b].end()) intit = secondNeighbors[b].begin(); //NOTE: this is a hack
+		for (intit = secondNeighbors[a].begin(); intit != secondNeighbors[a].end(); ++intit) {
+			x = *intit;
+			sm.erase(a,x);
+		}
+
+		for (intit = firstNeighbors[b].begin(); intit != firstNeighbors[b].end(); ++intit) {
 			x = *intit;
 			sm.erase(b,x);
 		}
-
+		for (intit = secondNeighbors[b].begin(); intit != secondNeighbors[b].end(); ++intit) {
+			x = *intit;
+			sm.erase(b,x);
+		}	
 
 		// update all existing old scores
 		for (smOut = sm.scores.begin(); smOut != sm.scores.end(); ++smOut) {
@@ -118,8 +162,22 @@ int Engine::run() {
 		
 
 		// create new c,x scores
-		for (intit = firstNeighbors[c].begin(); intit != secondNeighbors[c].end(); ++intit) {
-			if (intit==firstNeighbors[c].end()) intit = secondNeighbors[c].begin(); //NOTE: this is a hack
+		for (intit = firstNeighbors[c].begin(); intit != firstNeighbors[c].end(); ++intit) {
+			x = *intit;
+			cscore = 0;
+			jscore = 0;
+			for (d=0;d<dim;d++) {
+				for (intit3 = tree.topLevel.begin(); intit3 != tree.topLevel.end(); ++intit3) {
+					z = *intit3;
+					if ((z!=x)and(z!=c)) {
+						jscore += deltascore(d,c,x,z);
+					}
+				}
+				cscore += centerscore(d,c,x);
+			}
+			assert(sm.AddPair(c,x,jscore,cscore));
+		}
+		for (intit = secondNeighbors[c].begin(); intit != secondNeighbors[c].end(); ++intit) {
 			x = *intit;
 			cscore = 0;
 			jscore = 0;
@@ -236,7 +294,7 @@ bool Engine::initializeFirstLev() {
 	graphData::destList::iterator it2;
 	for (i=0;i<D[0].numV;i++) {
 		pn = new Node(i,-1);
-		tree.nodeMap[0] = pn;
+		tree.nodeMap[i] = pn;
 		tree.topLevel.insert(tree.nodeMap.size());
 	}
 	// initialize weights, degrees, selfMissing and first neighbors
