@@ -174,6 +174,7 @@ int Engine::run() {
 		// create new c,x scores
 		for (intit = firstNeighbors[c].begin(); intit != firstNeighbors[c].end(); ++intit) {
 			x = *intit;
+			firstNeighbors[x].insert(c);
 			if ((x!=a)and(x!=b)) {
 				cscore = 0;
 				jscore = 0;
@@ -191,6 +192,7 @@ int Engine::run() {
 		}
 		for (intit = secondNeighbors[c].begin(); intit != secondNeighbors[c].end(); ++intit) {
 			x = *intit;
+			secondNeighbors[x].insert(c);
 			if ((x!=a)and(x!=b)) {
 				cscore = 0;
 				jscore = 0;
