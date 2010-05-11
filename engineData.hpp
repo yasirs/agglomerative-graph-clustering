@@ -97,9 +97,6 @@ int Engine::run() {
 		// join and do stuff
 		pscore = sm.popBestScore();
 		a = pscore.u; b = pscore.v;
-		//TODO remove this, its only for debugging
-		if (a==26)
-			std::cout<<"DEBUG merging 26\n";
 		sm.erase(b,a);
 		// let us create new group c and create heirarchical relations
 		c = tree.numNodes;
