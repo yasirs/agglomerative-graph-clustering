@@ -70,7 +70,7 @@ double Engine::deltascore(int d, int a, int b, int x) {
 		Eax = w[d].get_uv(a,x);
 		Ebx = w[d].get_uv(b,x);
 		Hax = w[d].degrees[a] * w[d].degrees[x] - Eax;
-		Hbx = w[d].degrees[a] * w[d].degrees[x] - Ebx;
+		Hbx = w[d].degrees[b] * w[d].degrees[x] - Ebx;
 		return gsl_sf_lnbeta(Eax+Ebx+1.0f,Hax+Hbx+1.0f)
 			-gsl_sf_lnbeta(Eax+1.0f,Hax+1.0f)
 			-gsl_sf_lnbeta(Ebx+1.0f,Hbx+1.0f);
@@ -97,6 +97,10 @@ int Engine::run() {
 		// join and do stuff
 		pscore = sm.popBestScore();
 		a = pscore.u; b = pscore.v;
+		//TODO remove this, its only for debugging
+		if (a==26)
+			std::cout<<"DEBUG merging 26\n";
+		sm.erase(b,a);
 		// let us create new group c and create heirarchical relations
 		c = tree.numNodes;
 		c++;
@@ -115,6 +119,8 @@ int Engine::run() {
 		for (d=0;d<dim;d++) {
 			wc = w[d].get_uv(a,a) + w[d].get_uv(b,b) + w[d].get_uv(a,b);
 			assert(w[d].AddPair(c,c,wc));
+			w[d].degrees[c] = w[d].degrees[a] + w[d].degrees[b];
+			w[d].selfMissing[c] = w[d].selfMissing[a] + w[d].selfMissing[b] + (w[d].degrees[a] * w[d].degrees[b]) - w[d].get_uv(a,b);
 		}
 		firstNeighbors[c] = emptySet;
 		secondNeighbors[c] = emptySet;
@@ -132,19 +138,23 @@ int Engine::run() {
 		for (intit = firstNeighbors[a].begin(); intit != firstNeighbors[a].end(); ++intit) {
 			x = *intit;
 			sm.erase(a,x);
+			sm.erase(x,a);
 		}
 		for (intit = secondNeighbors[a].begin(); intit != secondNeighbors[a].end(); ++intit) {
 			x = *intit;
 			sm.erase(a,x);
+			sm.erase(x,a);
 		}
 
 		for (intit = firstNeighbors[b].begin(); intit != firstNeighbors[b].end(); ++intit) {
 			x = *intit;
 			sm.erase(b,x);
+			sm.erase(x,b);
 		}
 		for (intit = secondNeighbors[b].begin(); intit != secondNeighbors[b].end(); ++intit) {
 			x = *intit;
 			sm.erase(b,x);
+			sm.erase(x,b);
 		}	
 
 		// update all existing old scores
@@ -164,69 +174,78 @@ int Engine::run() {
 		// create new c,x scores
 		for (intit = firstNeighbors[c].begin(); intit != firstNeighbors[c].end(); ++intit) {
 			x = *intit;
-			cscore = 0;
-			jscore = 0;
-			for (d=0;d<dim;d++) {
-				for (intit3 = tree.topLevel.begin(); intit3 != tree.topLevel.end(); ++intit3) {
-					z = *intit3;
-					if ((z!=x)and(z!=c)) {
-						jscore += deltascore(d,c,x,z);
+			if ((x!=a)and(x!=b)) {
+				cscore = 0;
+				jscore = 0;
+				for (d=0;d<dim;d++) {
+					for (intit3 = tree.topLevel.begin(); intit3 != tree.topLevel.end(); ++intit3) {
+						z = *intit3;
+						if ((z!=x)and(z!=c)) {
+							jscore += deltascore(d,c,x,z);
+						}
 					}
+					cscore += centerscore(d,c,x);
 				}
-				cscore += centerscore(d,c,x);
+				assert(sm.AddPair(c,x,jscore,cscore));
 			}
-			assert(sm.AddPair(c,x,jscore,cscore));
 		}
 		for (intit = secondNeighbors[c].begin(); intit != secondNeighbors[c].end(); ++intit) {
 			x = *intit;
-			cscore = 0;
-			jscore = 0;
-			for (d=0;d<dim;d++) {
-				for (intit3 = tree.topLevel.begin(); intit3 != tree.topLevel.end(); ++intit3) {
-					z = *intit3;
-					if ((z!=x)and(z!=c)) {
-						jscore += deltascore(d,c,x,z);
+			if ((x!=a)and(x!=b)) {
+				cscore = 0;
+				jscore = 0;
+				for (d=0;d<dim;d++) {
+					for (intit3 = tree.topLevel.begin(); intit3 != tree.topLevel.end(); ++intit3) {
+						z = *intit3;
+						if ((z!=x)and(z!=c)) {
+							jscore += deltascore(d,c,x,z);
+						}
 					}
+					cscore += centerscore(d,c,x);
 				}
-				cscore += centerscore(d,c,x);
+				assert(sm.AddPair(c,x,jscore,cscore));
 			}
-			assert(sm.AddPair(c,x,jscore,cscore));
 		}
 
 		//create NEW 2nd neighbor scores, if any
 		for (intit = firstNeighbors[a].begin(); intit != firstNeighbors[a].end(); ++intit) {
-			for (intit2 = firstNeighbors[b].begin(); intit2 != firstNeighbors[b].end(); ++intit2) {
-				x = *intit; y = *intit2;
-				// x and y may have just become 2nd neighbors
-				if (secondNeighbors[x].find(y)==secondNeighbors[x].end()) {
-					// make second neighbors and add the score
-					secondNeighbors[x].insert(y);
-					cscore = 0; jscore = 0;
-					for (d=0;d<dim;d++) {
-						for (intit3 = tree.topLevel.begin(); intit3 != tree.topLevel.end(); intit3++) {
-							z = *intit3;
-							if ((z!=x)and(z!=y)) {
-								jscore = jscore + deltascore(d,x,y,z);
+			x = *intit;
+			if (x!=b) {
+				for (intit2 = firstNeighbors[b].begin(); intit2 != firstNeighbors[b].end(); ++intit2) {
+					y = *intit2;
+					if (y!=a) {
+						// x and y may have just become 2nd neighbors
+						if ((x!=y)and(secondNeighbors[x].find(y)==secondNeighbors[x].end())and(firstNeighbors[x].find(y)==firstNeighbors[x].end())) {
+							// make second neighbors and add the score
+							secondNeighbors[x].insert(y);
+							cscore = 0; jscore = 0;
+							for (d=0;d<dim;d++) {
+								for (intit3 = tree.topLevel.begin(); intit3 != tree.topLevel.end(); intit3++) {
+									z = *intit3;
+									if ((z!=x)and(z!=y)) {
+										jscore = jscore + deltascore(d,x,y,z);
+									}
+								}
+								cscore = cscore + centerscore(d,x,y);
 							}
+							assert(sm.AddPair(x,y,jscore,cscore));
 						}
-						cscore = cscore + centerscore(d,x,y);
-					}
-					assert(sm.AddPair(x,y,jscore,cscore));
-				}
-				if (secondNeighbors[y].find(x)==secondNeighbors[y].end()) {
-					// make second neighbors and add the score
-					secondNeighbors[y].insert(x);
-					cscore = 0; jscore = 0;
-					for (d=0;d<dim;d++) {
-						for (intit3 = tree.topLevel.begin(); intit3 != tree.topLevel.end(); intit3++) {
-							z = *intit3;
-							if ((z!=y)and(z!=x)) {
-								jscore = jscore + deltascore(d,y,x,z);
+						if ((x!=y)and(secondNeighbors[y].find(x)==secondNeighbors[y].end())and(firstNeighbors[y].find(x)==firstNeighbors[y].end())) {
+							// make second neighbors and add the score
+							secondNeighbors[y].insert(x);
+							cscore = 0; jscore = 0;
+							for (d=0;d<dim;d++) {
+								for (intit3 = tree.topLevel.begin(); intit3 != tree.topLevel.end(); intit3++) {
+									z = *intit3;
+									if ((z!=y)and(z!=x)) {
+										jscore = jscore + deltascore(d,y,x,z);
+									}
+								}
+								cscore = cscore + centerscore(d,y,x);
 							}
+							assert(sm.AddPair(y,x,jscore,cscore));
 						}
-						cscore = cscore + centerscore(d,y,x);
 					}
-					assert(sm.AddPair(y,x,jscore,cscore));
 				}
 			}
 		}
@@ -241,12 +260,25 @@ int Engine::run() {
 			for (intit = firstNeighbors[a].begin(); intit != firstNeighbors[a].end(); ++intit) {
 				x = *intit;
 				w[d].dat[x].erase(a);
+				w[d].dat[a].erase(x);
 			}
+			for (intit = secondNeighbors[a].begin(); intit != secondNeighbors[a].end(); ++intit) {
+				x = *intit;
+				w[d].dat[x].erase(a);
+				w[d].dat[a].erase(x);
+			}
+
 			w[d].dat.erase(a);
 			// now let us go through the neighbors of b
 			for (intit = firstNeighbors[b].begin(); intit != firstNeighbors[b].end(); ++intit) {
 				x = *intit;
 				w[d].dat[x].erase(b);
+				w[d].dat[b].erase(x);
+			}
+			for (intit = secondNeighbors[b].begin(); intit != secondNeighbors[b].end(); ++intit) {
+				x = *intit;
+				w[d].dat[x].erase(b);
+				w[d].dat[b].erase(x);
 			}
 			w[d].dat.erase(b);
 		}
@@ -277,7 +309,9 @@ int Engine::run() {
 	
 		numJoins++;
 		if (DEBUGMODE) {
-			std::cout << "joined "<<a<<", and "<<b<<"to form "<<c<<"\n";
+			std::cout << "joined "<<a<<" and "<<b<<" to form "<<c<<"\n";
+			assert(not (1+sm.has_u(a)));
+			assert(not (1+sm.has_u(b)));
 		}
 	}
 	return numJoins;
@@ -295,6 +329,7 @@ bool Engine::initializeFirstLev() {
 	for (i=0;i<D[0].numV;i++) {
 		pn = new Node(i,-1);
 		tree.nodeMap[i] = pn;
+		tree.numNodes = i+1;
 		tree.topLevel.insert(tree.nodeMap.size());
 	}
 	// initialize weights, degrees, selfMissing and first neighbors
@@ -329,14 +364,33 @@ bool Engine::initializeFirstLev() {
 			y = *neighbit;
 			if (secondNeighbors.find(x)==secondNeighbors.end()) secondNeighbors[u] = emptySet;
 			set_difference_update(secondNeighbors[x],firstNeighbors[y],firstNeighbors[x]);
+			secondNeighbors[x].erase(x);
 		}
 	}
 	// initialize scores
 	for (itnode = tree.nodeMap.begin(); itnode != tree.nodeMap.end(); ++itnode) {
 		x = (*itnode).second->nid;
-		for (neighbit = firstNeighbors[x].begin(); neighbit != secondNeighbors[x].end(); ++neighbit) {
-			// NOTE: this is a hack to go through two sets, 1st and 2nd neighbrs
-			if (neighbit == firstNeighbors[x].end()) neighbit = secondNeighbors[x].begin();
+		for (neighbit = firstNeighbors[x].begin(); neighbit != firstNeighbors[x].end(); ++neighbit) {
+			y = *neighbit;
+			// if score(x,y) doesnt exist, compute it
+			if (not sm.has_uv(x,y)) {
+				// add up score contributions
+				jscore = 0; cscore = 0;
+				// go through all dimensions
+				for (d=0;d<dim;d++) {
+					// go through all top level groups z != x,y
+					for (intsetit = tree.topLevel.begin(); intsetit != tree.topLevel.end(); ++intsetit) {
+						z = *intsetit;
+						if (not ((x==z)or(y==z)) ) {
+							jscore = jscore + deltascore(d,x,y,z);
+						}
+					}
+					cscore = cscore + centerscore(d,x,y);
+				}
+				sm.AddPair(x,y,jscore,cscore);
+			}
+		}
+		for (neighbit = secondNeighbors[x].begin(); neighbit != secondNeighbors[x].end(); ++neighbit) {
 			y = *neighbit;
 			// if score(x,y) doesnt exist, compute it
 			if (not sm.has_uv(x,y)) {
