@@ -18,7 +18,7 @@ class Node{
 		
 class TreeClass{
 	public:
-		std::vector<Node*> nodeVec;
+		std::map<int, Node*> nodeMap;
 		std::set<int> topLevel;
 		int numNodes;
 		TreeClass() {

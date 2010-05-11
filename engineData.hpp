@@ -64,11 +64,11 @@ int Engine::run() {
 		c++;
 		tree.numNodes = c;
 		pnode = new Node(-1,c);
-		tree.nodeVec[c] = pnode;
-		tree.nodeVec[a]->parent = c;
-		tree.nodeVec[b]->parent = c;
-		tree.nodeVec[c]->childSet.insert(a);
-		tree.nodeVec[c]->childSet.insert(b);
+		tree.nodeMap[c] = pnode;
+		tree.nodeMap[a]->parent = c;
+		tree.nodeMap[b]->parent = c;
+		tree.nodeMap[c]->childSet.insert(a);
+		tree.nodeMap[c]->childSet.insert(b);
 		tree.topLevel.erase(a);
 		tree.topLevel.erase(b);
 		tree.topLevel.insert(c);
@@ -236,8 +236,8 @@ bool Engine::initializeFirstLev() {
 	graphData::destList::iterator it2;
 	for (i=0;i<D[0].numV;i++) {
 		pn = new Node(i,-1);
-		tree.nodeVec.push_back(pn);
-		tree.topLevel.insert(tree.nodeVec.size());
+		tree.nodeMap[0] = pn;
+		tree.topLevel.insert(tree.nodeMap.size());
 	}
 	// initialize weights, degrees, selfMissing and first neighbors
 	for (d=0;d<dim;d++) {
@@ -262,11 +262,11 @@ bool Engine::initializeFirstLev() {
 		}
 	}
 	// initialize 2nd neighbors
-	std::vector<Node*>::iterator itnode;
+	std::map<int, Node*>::iterator itnode;
 	std::set<int>::iterator neighbit;
 	std::set<int>::iterator intsetit;
-	for (itnode = tree.nodeVec.begin(); itnode != tree.nodeVec.end(); ++itnode) {
-		x = (*itnode)->nid;
+	for (itnode = tree.nodeMap.begin(); itnode != tree.nodeMap.end(); ++itnode) {
+		x = (*itnode).second->nid;
 		for (neighbit = firstNeighbors[x].begin(); neighbit != firstNeighbors[x].end(); ++neighbit) {
 			y = *neighbit;
 			if (secondNeighbors.find(x)==secondNeighbors.end()) secondNeighbors[u] = emptySet;
@@ -274,8 +274,8 @@ bool Engine::initializeFirstLev() {
 		}
 	}
 	// initialize scores
-	for (itnode = tree.nodeVec.begin(); itnode != tree.nodeVec.end(); ++itnode) {
-		x = (*itnode)->nid;
+	for (itnode = tree.nodeMap.begin(); itnode != tree.nodeMap.end(); ++itnode) {
+		x = (*itnode).second->nid;
 		for (neighbit = firstNeighbors[x].begin(); neighbit != secondNeighbors[x].end(); ++neighbit) {
 			// NOTE: this is a hack to go through two sets, 1st and 2nd neighbrs
 			if (neighbit == firstNeighbors[x].end()) neighbit = secondNeighbors[x].begin();
