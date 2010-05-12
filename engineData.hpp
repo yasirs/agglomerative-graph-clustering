@@ -67,13 +67,23 @@ double Engine::deltascore(int d, int a, int b, int x) {
 
 	} else if (D[d].gtype=='w') {
 		float Eax, Ebx, Hax, Hbx;
+		float Ebarax, Ebarbx, Hbarax, Hbarbx;
 		Eax = w[d].get_uv(a,x);
 		Ebx = w[d].get_uv(b,x);
 		Hax = w[d].degrees[a] * w[d].degrees[x] - Eax;
 		Hbx = w[d].degrees[b] * w[d].degrees[x] - Ebx;
-		return gsl_sf_lnbeta(Eax+Ebx+1.0f,Hax+Hbx+1.0f)
-			-gsl_sf_lnbeta(Eax+1.0f,Hax+1.0f)
-			-gsl_sf_lnbeta(Ebx+1.0f,Hbx+1.0f);
+		Ebarax = w[d].degrees[a] * w[d].degrees[x]/(2.0f*D[d].Etot);
+		Ebarbx = w[d].degrees[b] * w[d].degrees[x]/(2.0f*D[d].Etot);
+		Hbarax = w[d].degrees[a] * w[d].degrees[x] - Ebarax;
+		Hbarbx = w[d].degrees[b] * w[d].degrees[x] - Ebarbx;
+		return   (	gsl_sf_lnbeta(Eax+Ebx+1.0f,Hax+Hbx+1.0f)
+				-gsl_sf_lnbeta(Eax+1.0f,Hax+1.0f)
+				-gsl_sf_lnbeta(Ebx+1.0f,Hbx+1.0f)
+			 )
+			-(	gsl_sf_lnbeta(Ebarax+Ebarbx+1.0f,Hbarax+Hbarbx+1.0f)
+				-gsl_sf_lnbeta(Ebarax+1.0f,Hbarax+1.0f)
+				-gsl_sf_lnbeta(Ebarbx+1.0f,Hbarbx+1.0f)
+			 );
 	}
 };
 
@@ -102,7 +112,7 @@ int Engine::run() {
 		c = tree.numNodes;
 		c++;
 		tree.numNodes = c;
-		pnode = new Node(-1,c);
+		pnode = new Node(-1,c,0);
 		tree.nodeMap[c] = pnode;
 		tree.nodeMap[a]->parent = c;
 		tree.nodeMap[b]->parent = c;
@@ -326,10 +336,10 @@ bool Engine::initializeFirstLev() {
 	std::map<int,graphData::destList>::iterator it1;
 	graphData::destList::iterator it2;
 	for (i=0;i<D[0].numV;i++) {
-		pn = new Node(i,-1);
+		pn = new Node(i,-1,1);
 		tree.nodeMap[i] = pn;
 		tree.numNodes = i+1;
-		tree.topLevel.insert(tree.nodeMap.size());
+		tree.topLevel.insert(i);
 	}
 	// initialize weights, degrees, selfMissing and first neighbors
 	for (d=0;d<dim;d++) {

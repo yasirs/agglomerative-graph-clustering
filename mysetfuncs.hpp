@@ -2,6 +2,8 @@
 #define MYSETFUNCS_HPP
 #include <set>
 #include <algorithm>
+#include <iostream>
+#include "nodetree.hpp"
 
 
 template<typename T> bool set_update(std::set<T>&  target, const std::set<T>&  source) {
@@ -32,6 +34,16 @@ template<typename T> bool set_symmetric_difference_update(std::set<T>& target, c
 };
 
 
+//TODO comment out this debug function
+
+
+Node* NfromMap(std::map<int, Node*>& nm, int i) {
+	if (nm.find(i)==nm.end()) {
+		std::cout << "key " << i << "not present\n";
+		throw 1;
+	}
+	return nm[i];
+};
 
 
 #endif

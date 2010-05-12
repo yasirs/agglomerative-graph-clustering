@@ -4,6 +4,7 @@
 #include <list>
 #include <set>
 #include <cmath>
+#include <cassert>
 #include "graphData.hpp"
 #include "nodetree.hpp"
 

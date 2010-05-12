@@ -40,13 +40,15 @@ bool TreeClass::writeNodeTypes(const char* fn) {
 	std::ofstream file;
 	std::map<int, Node*>::iterator mapit;
 	file.open(fn,std::ios::out);
+	file << "ID\tType\n";
 	if (not file.is_open()) return 0;
-	for (mapit = nodeMap.begin(); mapit != nodeMap.end() mapit++) {
+	for (mapit = nodeMap.begin(); mapit != nodeMap.end(); mapit++) {
 		// process the node
 		file << (*mapit).first << "\t";
 		if ((*mapit).second->isTerm) file << "Vertex\n";
 			else file << "Internal\n";
 	}
+	return 1;
 };
 
 

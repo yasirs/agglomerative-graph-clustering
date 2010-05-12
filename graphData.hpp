@@ -14,6 +14,7 @@ class graphData{
 		int numV;
 		char gtype;
 		float aveP;
+		float Etot;
 		typedef std::map<int, float> destList;
 		std::map<int, destList> edgeList;
 		bool readWeighted(const char* filename);
@@ -25,6 +26,7 @@ class graphData{
 bool graphData::readBinary(const char* fn) {
 	gtype = 'w'; //TODO:: has to be 'b'
 	numV = 0;
+	Etot = 0.0f;
 	std::string strline;
 	std::ifstream file;
 	std::vector<std::string> tok;
@@ -50,6 +52,7 @@ bool graphData::readBinary(const char* fn) {
 			}
 			edgeList[v][u] = 1.0f;
 			sum += 2;
+			Etot += 1.0f;
 		}
 	}
 	aveP = sum/(numV * numV);
