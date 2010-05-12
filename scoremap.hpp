@@ -5,6 +5,7 @@
 #include <set>
 #include <cmath>
 #include <cassert>
+#include <iostream>
 #include "graphData.hpp"
 #include "nodetree.hpp"
 
@@ -34,6 +35,10 @@ class scoremap{
 			int v;
 			twoScores s;
 		} pairScore;
+		scoremap() {
+			bestP = twoScorestruct(BIGNEG,BIGNEG);
+			bestK = -1;
+		}
 		int bestK;
 		twoScores bestP;
 		std::map<int, smap> scores;
@@ -48,7 +53,29 @@ class scoremap{
 		bool eraseAll(); //done
 		bool erase(int u,int v); //done
 		int has_u(int u);
+		std::set<int>* allPartners_u(int u);
 };
+
+bool scoremap::has_uv(int u, int v) {
+	if (scores.find(u)==scores.end()) {
+		return 0;
+	} else if (scores[u].scoreDest.find(v)==scores[u].scoreDest.end()) {
+		return 0;
+	} else return 1;
+};
+
+std::set<int>* scoremap::allPartners_u(int u) {
+	std::set<int>* ans;
+	ans = new std::set<int>;
+	std::map<int, twoScores>::iterator it;
+	if (scores.find(u)==scores.end()) {std::cout << "doesn't have primary key "<<u<<"\n"; return ans;}
+	for (it=scores[u].scoreDest.begin();it!=scores[u].scoreDest.end(); ++it) {
+		(*ans).insert((*it).first);
+	}
+	return ans;
+};
+
+
 
 int scoremap::has_u(int u) {
 	bool ans = 0;
@@ -61,7 +88,7 @@ int scoremap::has_u(int u) {
 		}
 	}
 	return -1;
-}
+};
 
 bool operator<(const scoremap::twoScores& s1, const scoremap::twoScores& s2) {
 	if (fabs(s1.joinScore-s2.joinScore)<EPS) {
@@ -193,6 +220,8 @@ int scoremap::AddPair(int u, int v, double scorej, double scorec) {
 			return 0;
 		} else {
 			scores[u].scoreDest[v] = score;
+			scores[u].bestP = twoScorestruct(BIGNEG,BIGNEG);
+			scores[u].bestK = -1;
 		}
 	} else {
 		smap stnew;
@@ -223,20 +252,6 @@ bool scoremap::hasPos() {
 		return 0;
 };
 
-bool scoremap::has_uv(int u, int v) {
-	std::map<int, scoremap::smap>::iterator it1;
-	std::map<int, twoScores>::iterator it2;
-	it1 = scores.find(u);
-	if (it1 != scores.end()) {
-		it2 = (*it1).second.scoreDest.find(v);
-		if (it2 != (*it1).second.scoreDest.end())
-			return 1;
-		else
-			return 0;
-	}
-	else
-		return 0;
-};
 
 scoremap::pairScore scoremap::getBestScore() {
 	pairScore ans;

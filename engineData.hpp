@@ -137,6 +137,7 @@ int Engine::run() {
 		set_difference_update(secondNeighbors[c],tempSet,firstNeighbors[c]);
 		for (d=0;d<dim;d++) {
 			for (intit = firstNeighbors[c].begin(); intit != firstNeighbors[c].end(); ++intit) {
+				x = (*intit);
 				w[d].AddPair(c,x,w[d].get_uv(a,x) + w[d].get_uv(b,x));
 				w[d].AddPair(x,c,w[d].get_uv(x,a) + w[d].get_uv(b,x));
 			}
@@ -177,10 +178,12 @@ int Engine::run() {
 			}
 		}
 		
-
+		//TODO:: debug check
+		assert(sm.has_u(c)<0);
 		// create new c,x scores
 		for (intit = firstNeighbors[c].begin(); intit != firstNeighbors[c].end(); ++intit) {
 			x = *intit;
+
 			firstNeighbors[x].insert(c);
 			if ((x!=a)and(x!=b)) {
 				cscore = 0;
@@ -193,6 +196,13 @@ int Engine::run() {
 						}
 					}
 					cscore += centerscore(d,c,x);
+				}
+				//TODO remove this
+				if ((85==x)and(101==c)) {
+					std::cout << "at 101, 85\n";
+				}
+				if (sm.has_uv(c,x)) {
+					std::cout << "bad stuff will happen\nc = "<<c<<", x = "<<x<<"\n";
 				}
 				assert(sm.AddPair(c,x,jscore,cscore));
 			}

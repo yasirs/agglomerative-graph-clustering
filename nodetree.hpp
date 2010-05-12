@@ -32,7 +32,13 @@ class TreeClass{
 		bool writeNodeTypes(const char* fn);
 		TreeClass() {
 			numNodes=0;
-		}
+		};
+		~TreeClass() {
+			std::map<int, Node*>::iterator nit;
+			for (nit=nodeMap.begin(); nit != nodeMap.end(); ++nit) {
+				delete (*nit).second;
+			}
+		};
 };		
 
 

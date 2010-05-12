@@ -46,5 +46,23 @@ Node* NfromMap(std::map<int, Node*>& nm, int i) {
 };
 
 
+void listintset(std::set<int>& a) {
+	std::set<int>::iterator it;
+	for (it=a.begin(); it!=a.end(); ++it) {
+		std::cout << (*it)<<", ";
+	}
+	std::cout << "\n";
+};
+
+
+void listintmap(std::map<int, std::set<int> >& a, int i) {
+	std::set<int>::iterator it;
+	for (it=a[i].begin(); it!=a[i].end(); ++it) {
+		std::cout << (*it)<<", ";
+	}
+	std::cout << "\n";
+};
+
+
 #endif
 
