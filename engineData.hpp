@@ -59,12 +59,29 @@ double Engine::centerscore(int d, int a, int b) {
 };
 
 double Engine::deltascore(int d, int a, int b, int x) {
+	assert((a!=b)and(a!=x)and(b!=x));
 	double ans;
 	if (D[d].gtype=='b') {
-		//compute the score for binary networks
-		std::cout << "not yet implemented for binary graphs\n";
-		throw 1;
-
+		float Eax, Ebx, Hax, Hbx, Tax, Tbx;
+		float Ebarax, Ebarbx, Tbarax, Tbarbx, Hbarax, Hbarbx;
+		Eax = w[d].get_uv(a,x);
+		Ebx = w[d].get_uv(b,x);
+		Tax = w[d].nV[a] * w[d].nV[x] ;
+		Tbx = w[d].nV[b] * w[d].nV[x] ;
+		Hax = Tax - Eax;
+		Hbx = Tbx - Ebx;
+		Ebarax = Tax * D[d].aveP;
+		Ebarbx = Tbx * D[d].aveP;
+		Hbarax = Tax - Ebarax;
+		Hbarbx = Tbx - Ebarbx;
+		ans =    (	gsl_sf_lnbeta(Eax+Ebx+1.0f,Hax+Hbx+1.0f)
+				-gsl_sf_lnbeta(Eax+1.0f,Hax+1.0f)
+				-gsl_sf_lnbeta(Ebx+1.0f,Hbx+1.0f)
+			 )
+			-(	gsl_sf_lnbeta(Ebarax+Ebarbx+1.0f,Hbarax+Hbarbx+1.0f)
+				-gsl_sf_lnbeta(Ebarax+1.0f,Hbarax+1.0f)
+				-gsl_sf_lnbeta(Ebarbx+1.0f,Hbarbx+1.0f)
+			 );
 	} else if (D[d].gtype=='w') {
 		float Eax, Ebx, Hax, Hbx;
 		float Ebarax, Ebarbx, Hbarax, Hbarbx;
@@ -76,7 +93,7 @@ double Engine::deltascore(int d, int a, int b, int x) {
 		Ebarbx = w[d].degrees[b] * w[d].degrees[x]/(2.0f*D[d].Etot);
 		Hbarax = w[d].degrees[a] * w[d].degrees[x] - Ebarax;
 		Hbarbx = w[d].degrees[b] * w[d].degrees[x] - Ebarbx;
-		return   (	gsl_sf_lnbeta(Eax+Ebx+1.0f,Hax+Hbx+1.0f)
+		ans =    (	gsl_sf_lnbeta(Eax+Ebx+1.0f,Hax+Hbx+1.0f)
 				-gsl_sf_lnbeta(Eax+1.0f,Hax+1.0f)
 				-gsl_sf_lnbeta(Ebx+1.0f,Hbx+1.0f)
 			 )
@@ -85,6 +102,7 @@ double Engine::deltascore(int d, int a, int b, int x) {
 				-gsl_sf_lnbeta(Ebarbx+1.0f,Hbarbx+1.0f)
 			 );
 	}
+	return ans;
 };
 
 
@@ -128,6 +146,7 @@ int Engine::run() {
 			assert(w[d].AddPair(c,c,wc));
 			w[d].degrees[c] = w[d].degrees[a] + w[d].degrees[b];
 			w[d].selfMissing[c] = w[d].selfMissing[a] + w[d].selfMissing[b] + (w[d].degrees[a] * w[d].degrees[b]) - w[d].get_uv(a,b);
+			w[d].nV[c] = w[d].nV[a] + w[d].nV[b];
 		}
 		firstNeighbors[c] = emptySet;
 		secondNeighbors[c] = emptySet;
@@ -285,6 +304,8 @@ int Engine::run() {
 			w[d].degrees.erase(b);
 			w[d].selfMissing.erase(a);
 			w[d].selfMissing.erase(b);
+			w[d].nV.erase(a);
+			w[d].nV.erase(b);
 			// now let us go through the neighbors of a
 			for (intit = firstNeighbors[a].begin(); intit != firstNeighbors[a].end(); ++intit) {
 				x = *intit;
@@ -361,16 +382,17 @@ bool Engine::initializeFirstLev() {
 		tree.numNodes = i+1;
 		tree.topLevel.insert(i);
 	}
-	// initialize weights, degrees, selfMissing and first neighbors
+	// initialize weights, degrees, selfMissing and first neighbors, and nV
 	for (d=0;d<dim;d++) {
 		for (it1 = D[d].edgeList.begin(); it1 != D[d].edgeList.end(); ++it1) {
 			u = (*it1).first;
+			w[d].nV[u]=1;
 			if (firstNeighbors.find(u)==firstNeighbors.end()) firstNeighbors[u] = emptySet;
 			if (w[d].degrees.find(u)==w[d].degrees.end()) w[d].degrees[u]=0;
 			if (w[d].selfMissing.find(u)==w[d].selfMissing.end()) w[d].selfMissing[u]=0;
 			for (it2 = (*it1).second->begin(); it2 != (*it1).second->end(); ++it2) {
 				v = (*it2).first;
-	
+				w[d].nV[v]=1;
 				w[d].AddPair(u,v,(*it2).second);
 				w[d].AddPair(v,u,(*it2).second);
 				if (w[d].degrees.find(u)==w[d].degrees.end()) w[d].degrees[u]=0;

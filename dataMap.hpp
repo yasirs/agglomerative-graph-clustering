@@ -12,6 +12,7 @@ class dataMap{
 	public:
 		std::map<int, std::map<int,float> > dat;
 		std::map<int, float> degrees;
+		std::map<int, float> nV;
 		std::map<int, float> selfMissing;
 		bool has_uv(int u, int v); //done
 		bool AddPair(int u, int v, float d); //done

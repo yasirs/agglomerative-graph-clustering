@@ -32,7 +32,7 @@ class graphData{
 };
 
 bool graphData::readBinary(const char* fn) {
-	gtype = 'w'; //TODO:: has to be 'b'
+	gtype = 'b';
 	numV = 0;
 	Etot = 0.0f;
 	std::string strline;
