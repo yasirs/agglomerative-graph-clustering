@@ -31,6 +31,54 @@ class graphData{
 		}
 };
 
+
+bool graphData::readWeighted(const char* fn) {
+	gtype = 'w';
+	numV = 0;
+	Etot = 0.0f;
+	std::string strline;
+	std::ifstream file;
+	std::vector<std::string> tok;
+	destList* pdl;
+	int u,v;
+	float sum = 0;
+	float weight;
+	file.open(fn,std::ios::in);
+	if (not file.is_open()) return 0;
+	while (!file.eof()) {
+		getline(file,strline);
+		tok.clear();
+		my_Tokenize(strline,tok," \t");
+		if (tok.size()>1) {
+			std::istringstream(tok[0]) >> u;
+			std::istringstream(tok[1]) >> v;
+			if (tok.size()>2) {
+				std::istringstream(tok[2]) >> weight;
+			} else weight = 0;
+			if (numV<(u+1)) numV = u+1;
+			if (numV<(v+1)) numV = v+1;
+			if (edgeList.find(u)==edgeList.end()) {
+				pdl = new destList;
+				edgeList[u] = pdl;
+			}
+			(*edgeList[u])[v] = weight;
+			if (edgeList.find(v)==edgeList.end()) {
+				pdl = new destList;
+				edgeList[v] = pdl;
+			}
+			(*edgeList[v])[u] = weight;
+			sum += 2; // NOTE : this shouldn't really matter as the sum isn't used for
+					// weighted graphs
+			Etot += weight;
+		}
+	}
+	aveP = sum/(numV * numV);
+	return 1;
+}
+
+
+
+
 bool graphData::readBinary(const char* fn) {
 	gtype = 'b';
 	numV = 0;

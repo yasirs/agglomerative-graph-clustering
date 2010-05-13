@@ -5,6 +5,7 @@
 #include <map>
 #include <stack>
 #include <fstream>
+#include <iostream>
 
 
 class Node{
@@ -28,6 +29,7 @@ class TreeClass{
 		std::set<int> topLevel;
 		int numNodes;
 		bool writeCompHierEdges(const char* fn);
+		bool writeCollapsedHierEdges(const char* fn);
 		bool writeHRG(const char* fn);
 		bool writeNodeTypes(const char* fn);
 		TreeClass() {
@@ -50,10 +52,52 @@ bool TreeClass::writeNodeTypes(const char* fn) {
 	if (not file.is_open()) return 0;
 	for (mapit = nodeMap.begin(); mapit != nodeMap.end(); mapit++) {
 		// process the node
-		file << (*mapit).first << "\t";
-		if ((*mapit).second->isTerm) file << "Vertex\n";
-			else file << "Internal\n";
+		if ((*mapit).second->isTerm) {
+			file << (*mapit).first << "\tVertex\n";
+			if (topLevel.find((*mapit).first)!=topLevel.end()) {
+				file << "T" << (*mapit).first << "\tInternal\n";
+			}
+		} else {
+			file << "T" << (*mapit).first << "\tInternal\n";
+		}
 	}
+	return 1;
+};
+
+
+
+bool TreeClass::writeCollapsedHierEdges(const char* fn) {
+	std::stack<int> st;
+	int n;
+	std::ofstream file;
+	std::set<int>::iterator intit,intit2;
+	file.open(fn,std::ios::out);
+	if (not file.is_open()) return 0;
+	for (intit = topLevel.begin(); intit != topLevel.end(); intit++) {
+		if (nodeMap[*intit]->isTerm) {
+			file << "T"<<(*intit) << "\t" << (*intit) << "\n";
+		} else {
+			st.push(*intit);
+			while ((st.size()>0)) {
+				n = st.top(); st.pop();
+				if (nodeMap[n]->collapsed) {
+					//TODO debug
+					std::cout << "collapsed " << n << " has " << nodeMap[n]->vertexSet.size()<<" children\n";
+					for (intit2 = nodeMap[n]->vertexSet.begin(); intit2 != nodeMap[n]->vertexSet.end(); intit2++) {
+						file << "T"<<n << "\t" << (*intit2) << "\n";
+						std::cout << n << " collapsed has vertex " << (*intit2) << "\n";
+					}
+				} else {
+					for (intit2 = nodeMap[n]->childSet.begin(); intit2 != nodeMap[n]->childSet.end(); ++intit2) {
+						st.push(*intit2);
+						// process the element
+						file << "T"<<n << "\t" <<"T" << (*intit2) << "\n";
+					}
+				}
+			}
+		}
+	}
+	file.close();
 	return 1;
 };
 

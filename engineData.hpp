@@ -184,7 +184,17 @@ int Engine::run() {
 		tree.topLevel.erase(a);
 		tree.topLevel.erase(b);
 		tree.topLevel.insert(c);
-		//TODO: collapsed
+		if ((tree.nodeMap[a]->collapsed)and(tree.nodeMap[b]->collapsed)and(pscore.s.centerMscore>0)) {
+			pnode->collapsed = 1;
+			for(intit= tree.nodeMap[a]->vertexSet.begin(); intit!= tree.nodeMap[a]->vertexSet.end(); ++intit) {
+				pnode->vertexSet.insert(*intit);
+			}
+			for(intit= tree.nodeMap[b]->vertexSet.begin(); intit!= tree.nodeMap[b]->vertexSet.end(); ++intit) {
+				pnode->vertexSet.insert(*intit);
+			}
+		} else {
+			pnode->collapsed = 0;
+		}
 		// compute d,w,n,m for c
 		for (d=0;d<dim;d++) {
 			wc = w[d].get_uv(a,a) + w[d].get_uv(b,b) + w[d].get_uv(a,b);
@@ -268,10 +278,6 @@ int Engine::run() {
 						}
 					}
 					cscore += centerscore(d,c,x);
-				}
-				//TODO remove this
-				if ((85==x)and(101==c)) {
-					std::cout << "at 101, 85\n";
 				}
 				if (sm.has_uv(c,x)) {
 					std::cout << "bad stuff will happen\nc = "<<c<<", x = "<<x<<"\n";
@@ -426,6 +432,8 @@ bool Engine::initializeFirstLev() {
 		tree.nodeMap[i] = pn;
 		tree.numNodes = i+1;
 		tree.topLevel.insert(i);
+		pn->vertexSet.insert(i);
+		pn->collapsed = 1;
 	}
 	// initialize weights, degrees, selfMissing and first neighbors, and nV
 	for (d=0;d<dim;d++) {
