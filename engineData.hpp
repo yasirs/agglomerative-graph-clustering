@@ -52,10 +52,55 @@ Engine::~Engine() {
 };
 
 double Engine::centerscore(int d, int a, int b) {
-	return 1;
-	//TODO
-
-
+	assert(a!=b);
+	double ans;
+	if (D[d].gtype=='b') {
+		float Tab, Eab, Eaa, Ebb, Haa, Hbb, Taa, Tbb, Tcc;
+		Tab = w[d].nV[a] * w[d].nV[b];
+		Taa = w[d].nV[a] * (w[d].nV[a] - 1)/2.0;
+		Tbb = w[d].nV[b] * (w[d].nV[b] - 1)/2.0;
+		Tcc = Taa + Tbb + Tab;
+		Eab = w[d].get_uv(a,b);
+		Eaa = w[d].get_uv(a,a);
+		Ebb = w[d].get_uv(b,b);
+		Haa = Taa - Eaa;
+		Hbb = Tbb - Ebb;
+		ans =   gsl_sf_lnbeta(Eaa + Eab + Ebb + 1,Haa + Hbb + Tab - Eab + 1)
+			- gsl_sf_lnbeta(Eaa + 1, Haa +1)
+			- gsl_sf_lnbeta(Ebb + 1, Hbb +1)
+			- gsl_sf_lnbeta(Eab+1,Tab - Eab +1);
+		//for the random reference model
+		ans -=  gsl_sf_lnbeta(Tcc*D[d].aveP + 1, Tcc*(1 - D[d].aveP) + 1)
+			- gsl_sf_lnbeta(Taa*D[d].aveP + 1, Taa*(1 - D[d].aveP) + 1)
+			- gsl_sf_lnbeta(Tbb*D[d].aveP + 1, Tbb*(1 - D[d].aveP) + 1)
+			- gsl_sf_lnbeta(Tab*D[d].aveP + 1, Tab*(1 - D[d].aveP) + 1);
+	} else if (D[d].gtype=='w') {
+		float Tab, Eab, Eaa, Ebb, Haa, Hbb, Taa, Tbb, Tcc;
+		Eab = w[d].get_uv(a,b);
+		Eaa = w[d].get_uv(a,a);
+		Ebb = w[d].get_uv(b,b);
+		Haa = w[d].selfMissing[a];
+		Hbb = w[d].selfMissing[a];
+		Tab = w[d].degrees[a] * w[d].degrees[b];
+		Taa = Eaa + Haa;
+		Tbb = Ebb + Hbb;
+		Tcc = Taa + Tbb + Tab;
+		ans =   gsl_sf_lnbeta(Eaa + Eab + Ebb + 1,Haa + Hbb + Tab - Eab + 1)
+			- gsl_sf_lnbeta(Eaa + 1, Haa +1)
+			- gsl_sf_lnbeta(Ebb + 1, Hbb +1)
+			- gsl_sf_lnbeta(Eab+1,Tab - Eab +1);
+		//for the random reference model
+		float Ebaraa, Ebarbb, Ebarab, Ebarcc;
+		Ebarab = w[d].degrees[a] * w[d].degrees[b];
+		Ebaraa = Taa/(2.0f*D[d].Etot);
+		Ebarbb = Tbb/(2.0f*D[d].Etot);
+		Ebarcc = Ebaraa + Ebarbb + Ebarbb;
+		ans -=  gsl_sf_lnbeta(Ebarcc + 1, Tcc - Ebarcc + 1)
+			- gsl_sf_lnbeta(Ebaraa + 1, Taa - Ebaraa + 1)
+			- gsl_sf_lnbeta(Ebarbb + 1, Tbb - Ebarbb + 1)
+			- gsl_sf_lnbeta(Ebarab + 1, Tab - Ebarab + 1);	
+	}
+	return ans;
 };
 
 double Engine::deltascore(int d, int a, int b, int x) {

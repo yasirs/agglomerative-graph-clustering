@@ -11,9 +11,9 @@
 class dataMap{
 	public:
 		std::map<int, std::map<int,float> > dat;
-		std::map<int, float> degrees;
-		std::map<int, float> nV;
-		std::map<int, float> selfMissing;
+		std::map<int, float> degrees; // for weighted
+		std::map<int, float> nV; // for binomial model
+		std::map<int, float> selfMissing; // for weighted networks 
 		bool has_uv(int u, int v); //done
 		bool AddPair(int u, int v, float d); //done
 		bool Addto(int u, int v, float d); //done

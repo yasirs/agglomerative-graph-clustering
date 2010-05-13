@@ -46,7 +46,7 @@ class scoremap{
 		pairScore getBestScore(); //done
 		pairScore popBestScore(); //done
 		bool hasPos(); //done
-		bool isempty(); //done
+		bool isEmpty(); //done
 		int AddPair(int u, int v, double jscore, double cscore); //done
 		int AddPair(int u, int v, twoScores score); 
 		int AddTo(int u, int v, double scorej); // done
@@ -241,7 +241,7 @@ int scoremap::AddPair(int u, int v, double scorej, double scorec) {
 	}
 };
 
-bool scoremap::isempty() {
+bool scoremap::isEmpty() {
 	if (scores.empty()) 
 		return 1;
 	else
