@@ -110,6 +110,9 @@ bool operator>(const scoremap::twoScores& s1, const scoremap::twoScores& s2) {
 bool scoremap::erase(int u, int v) {
 	std::map<int, scoremap::smap>::iterator it1;
 	std::map<int, twoScores>::iterator it2;
+	//TODO
+	if (scores.find(u)==scores.end())
+		throw 1;
 	if (bestK==u) {
 		if (scores[u].bestK==v) {
 			scores[u].scoreDest.erase(v);

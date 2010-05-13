@@ -145,25 +145,33 @@ int Engine::run() {
 		// delete a,b scores
 		for (intit = firstNeighbors[a].begin(); intit != firstNeighbors[a].end(); ++intit) {
 			x = *intit;
-			sm.erase(a,x);
-			sm.erase(x,a);
+			if (b!=x) {
+				sm.erase(a,x);
+				sm.erase(x,a);
+			}
 		}
 		for (intit = secondNeighbors[a].begin(); intit != secondNeighbors[a].end(); ++intit) {
 			x = *intit;
-			sm.erase(a,x);
-			sm.erase(x,a);
+			if (b!=x) {
+				sm.erase(a,x);
+				sm.erase(x,a);
+			}
 		}
 
 		for (intit = firstNeighbors[b].begin(); intit != firstNeighbors[b].end(); ++intit) {
 			x = *intit;
-			sm.erase(b,x);
-			sm.erase(x,b);
+			if (a!=x) {
+				sm.erase(b,x);
+				sm.erase(x,b);
+			}
 		}
 		for (intit = secondNeighbors[b].begin(); intit != secondNeighbors[b].end(); ++intit) {
 			x = *intit;
-			sm.erase(b,x);
-			sm.erase(x,b);
-		}	
+			if (a!=x) {
+				sm.erase(b,x);
+				sm.erase(x,b);
+			}
+		}
 
 		// update all existing old scores
 		for (smOut = sm.scores.begin(); smOut != sm.scores.end(); ++smOut) {
@@ -205,6 +213,7 @@ int Engine::run() {
 					std::cout << "bad stuff will happen\nc = "<<c<<", x = "<<x<<"\n";
 				}
 				assert(sm.AddPair(c,x,jscore,cscore));
+				assert(sm.AddPair(x,c,jscore,cscore));
 			}
 		}
 		for (intit = secondNeighbors[c].begin(); intit != secondNeighbors[c].end(); ++intit) {
@@ -223,6 +232,7 @@ int Engine::run() {
 					cscore += centerscore(d,c,x);
 				}
 				assert(sm.AddPair(c,x,jscore,cscore));
+				assert(sm.AddPair(x,c,jscore,cscore));
 			}
 		}
 
