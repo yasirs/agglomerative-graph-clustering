@@ -353,7 +353,7 @@ bool Engine::initializeFirstLev() {
 	int i,d,u,v,x,y,z;
 	double jscore,cscore;
 	Node* pn;
-	std::map<int,graphData::destList>::iterator it1;
+	std::map<int, graphData::destList*>::iterator it1;
 	graphData::destList::iterator it2;
 	for (i=0;i<D[0].numV;i++) {
 		pn = new Node(i,-1,1);
@@ -368,7 +368,7 @@ bool Engine::initializeFirstLev() {
 			if (firstNeighbors.find(u)==firstNeighbors.end()) firstNeighbors[u] = emptySet;
 			if (w[d].degrees.find(u)==w[d].degrees.end()) w[d].degrees[u]=0;
 			if (w[d].selfMissing.find(u)==w[d].selfMissing.end()) w[d].selfMissing[u]=0;
-			for (it2 = (*it1).second.begin(); it2 != (*it1).second.end(); ++it2) {
+			for (it2 = (*it1).second->begin(); it2 != (*it1).second->end(); ++it2) {
 				v = (*it2).first;
 	
 				w[d].AddPair(u,v,(*it2).second);

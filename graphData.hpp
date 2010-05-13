@@ -16,11 +16,19 @@ class graphData{
 		float aveP;
 		float Etot;
 		typedef std::map<int, float> destList;
-		std::map<int, destList> edgeList;
+		std::map<int, destList*> edgeList;
 		bool readWeighted(const char* filename);
 		bool readBinary(const char* filename);
 		int degree(int i);
 		std::set<int> neighbors(int i);
+		~graphData() {
+			std::map<int, destList*>::iterator it;
+			for (it=edgeList.begin(); it!=edgeList.end(); ++it) {
+				(*it).second->clear();
+				delete (*it).second;
+			}
+			edgeList.clear();
+		}
 };
 
 bool graphData::readBinary(const char* fn) {
@@ -30,6 +38,7 @@ bool graphData::readBinary(const char* fn) {
 	std::string strline;
 	std::ifstream file;
 	std::vector<std::string> tok;
+	destList* pdl;
 	int u,v;
 	float sum = 0;
 	file.open(fn,std::ios::in);
@@ -44,13 +53,15 @@ bool graphData::readBinary(const char* fn) {
 			if (numV<(u+1)) numV = u+1;
 			if (numV<(v+1)) numV = v+1;
 			if (edgeList.find(u)==edgeList.end()) {
-				edgeList[u] = destList();
+				pdl = new destList;
+				edgeList[u] = pdl;
 			}
-			edgeList[u][v] = 1.0f;
+			(*edgeList[u])[v] = 1.0f;
 			if (edgeList.find(v)==edgeList.end()) {
-				edgeList[v] = destList();
+				pdl = new destList;
+				edgeList[v] = pdl;
 			}
-			edgeList[v][u] = 1.0f;
+			(*edgeList[v])[u] = 1.0f;
 			sum += 2;
 			Etot += 1.0f;
 		}
