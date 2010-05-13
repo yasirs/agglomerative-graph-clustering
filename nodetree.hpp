@@ -83,15 +83,22 @@ bool TreeClass::writeCollapsedHierEdges(const char* fn) {
 				if (nodeMap[n]->collapsed) {
 					//TODO debug
 					std::cout << "collapsed " << n << " has " << nodeMap[n]->vertexSet.size()<<" children\n";
-					for (intit2 = nodeMap[n]->vertexSet.begin(); intit2 != nodeMap[n]->vertexSet.end(); intit2++) {
-						file << "T"<<n << "\t" << (*intit2) << "\n";
-						std::cout << n << " collapsed has vertex " << (*intit2) << "\n";
+					if (nodeMap[n]->vertexSet.size()>1) {
+						for (intit2 = nodeMap[n]->vertexSet.begin(); intit2 != nodeMap[n]->vertexSet.end(); intit2++) {
+							file << "T"<<n << "\t" << (*intit2) << "\n";
+							std::cout << n << " collapsed has vertex " << (*intit2) << "\n";
+						}
 					}
 				} else {
 					for (intit2 = nodeMap[n]->childSet.begin(); intit2 != nodeMap[n]->childSet.end(); ++intit2) {
 						st.push(*intit2);
 						// process the element
-						file << "T"<<n << "\t" <<"T" << (*intit2) << "\n";
+						if (nodeMap[*intit2]->isTerm) {
+							file << "T"<<n << "\t" << (*intit2) << "\n";
+						} else {
+							file << "T"<<n << "\t" <<"T" << (*intit2) << "\n";
+						}
+							
 					}
 				}
 			}
