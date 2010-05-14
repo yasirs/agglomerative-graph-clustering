@@ -6,8 +6,17 @@
 #include <string>
 #include <vector>
 #include <sstream>
+#include <iostream>
 
 void my_Tokenize(const std::string& str,std::vector<std::string>& tokens,const std::string& delimiter);
+
+std::string getstvec(std::vector<std::string> a, int i) {
+	return a[i];
+}
+
+void putstvec(std::vector<std::string> a, int i, const char* st) {
+	a[i] = st;
+}
 
 class graphData{
 	public:
@@ -51,10 +60,10 @@ bool graphData::readWeighted(const char* fn) {
 		tok.clear();
 		my_Tokenize(strline,tok," \t");
 		if (tok.size()>1) {
-			temp.str(tok[0]); temp >> u;
-			temp.str(tok[1]); temp >> v;
+			std::istringstream(tok[0]) >> u;
+			std::istringstream(tok[1]) >> v;
 			if (tok.size()>2) {
-				temp.str(tok[2]); temp >> weight;
+				std::istringstream(tok[2]) >> weight;
 			} else weight = 0;
 			if (numV<(u+1)) numV = u+1;
 			if (numV<(v+1)) numV = v+1;
@@ -98,8 +107,8 @@ bool graphData::readBinary(const char* fn) {
 		tok.clear();
 		my_Tokenize(strline,tok," \t");
 		if (tok.size()>1) {
-			temp.str(tok[0]); temp >> u;
-			temp.str(tok[1]); temp >> v;
+			std::istringstream(tok[0]) >> u;
+			std::istringstream(tok[1]) >> v;
 			if (numV<(u+1)) numV = u+1;
 			if (numV<(v+1)) numV = v+1;
 			if (edgeList.find(u)==edgeList.end()) {

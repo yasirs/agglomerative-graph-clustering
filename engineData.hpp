@@ -11,16 +11,30 @@
 #include <iostream>
 #include <cassert>
 #include <cmath>
-#ifndef DEBUGMODE
+
+
+
+#if (NOGSL<1)
 #include "gsl/gsl_sf.h"
-#define DEBUGMODE 0
 #else
+
 double lgamma(double x) {
-	return x*log(x)-x;
-} 
+	double ans;
+	ans = x*log(x)-x;
+	return ans;
+};
+
+ 
 double gsl_sf_lnbeta(double a, double b) {
-	return lgamma(a)+lgamma(b) -lgamma(a+b);
-}
+	double ans;
+	ans = lgamma(a)+lgamma(b) -lgamma(a+b);
+	return ans;
+};
+
+#endif
+
+#ifndef DEBUGMODE
+#define DEBIGMODE
 #endif
 
 class Engine{
