@@ -10,10 +10,18 @@
 #include "mysetfuncs.hpp"
 #include <iostream>
 #include <cassert>
+#include <cmath>
+#ifndef DEBUGMODE
 #include "gsl/gsl_sf.h"
-
-
-#define DEBUGMODE 1
+#define DEBUGMODE 0
+#else
+double lgamma(double x) {
+	return x*log(x)-x;
+} 
+double gsl_sf_lnbeta(double a, double b) {
+	return lgamma(a)+lgamma(b) -lgamma(a+b);
+}
+#endif
 
 class Engine{
 	public:

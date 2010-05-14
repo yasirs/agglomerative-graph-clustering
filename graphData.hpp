@@ -43,6 +43,7 @@ bool graphData::readWeighted(const char* fn) {
 	int u,v;
 	float sum = 0;
 	float weight;
+	std::istringstream temp;
 	file.open(fn,std::ios::in);
 	if (not file.is_open()) return 0;
 	while (!file.eof()) {
@@ -50,10 +51,10 @@ bool graphData::readWeighted(const char* fn) {
 		tok.clear();
 		my_Tokenize(strline,tok," \t");
 		if (tok.size()>1) {
-			std::istringstream(tok[0]) >> u;
-			std::istringstream(tok[1]) >> v;
+			temp.str(tok[0]); temp >> u;
+			temp.str(tok[1]); temp >> v;
 			if (tok.size()>2) {
-				std::istringstream(tok[2]) >> weight;
+				temp.str(tok[2]); temp >> weight;
 			} else weight = 0;
 			if (numV<(u+1)) numV = u+1;
 			if (numV<(v+1)) numV = v+1;
@@ -87,6 +88,7 @@ bool graphData::readBinary(const char* fn) {
 	std::ifstream file;
 	std::vector<std::string> tok;
 	destList* pdl;
+	std::istringstream temp;
 	int u,v;
 	float sum = 0;
 	file.open(fn,std::ios::in);
@@ -96,8 +98,8 @@ bool graphData::readBinary(const char* fn) {
 		tok.clear();
 		my_Tokenize(strline,tok," \t");
 		if (tok.size()>1) {
-			std::istringstream(tok[0]) >> u;
-			std::istringstream(tok[1]) >> v;
+			temp.str(tok[0]); temp >> u;
+			temp.str(tok[1]); temp >> v;
 			if (numV<(u+1)) numV = u+1;
 			if (numV<(v+1)) numV = v+1;
 			if (edgeList.find(u)==edgeList.end()) {
