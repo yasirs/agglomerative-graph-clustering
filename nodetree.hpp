@@ -55,10 +55,10 @@ bool TreeClass::writeNodeTypes(const char* fn) {
 		if ((*mapit).second->isTerm) {
 			file << (*mapit).first << "\tVertex\n";
 			if (topLevel.find((*mapit).first)!=topLevel.end()) {
-				file << "T" << (*mapit).first << "\tInternal\n";
+				file << "I" << (*mapit).first << "\tInternal\n";
 			}
 		} else {
-			file << "T" << (*mapit).first << "\tInternal\n";
+			file << "I" << (*mapit).first << "\tInternal\n";
 		}
 	}
 	return 1;
@@ -75,7 +75,7 @@ bool TreeClass::writeCollapsedHierEdges(const char* fn) {
 	if (! file.is_open()) return 0;
 	for (intit = topLevel.begin(); intit != topLevel.end(); intit++) {
 		if (nodeMap[*intit]->isTerm) {
-			file << "T"<<(*intit) << "\t" << (*intit) << "\n";
+			file << "I"<<(*intit) << "\t" << (*intit) << "\n";
 		} else {
 			st.push(*intit);
 			while ((st.size()>0)) {
@@ -83,7 +83,7 @@ bool TreeClass::writeCollapsedHierEdges(const char* fn) {
 				if (nodeMap[n]->collapsed) {
 					if (nodeMap[n]->vertexSet.size()>1) {
 						for (intit2 = nodeMap[n]->vertexSet.begin(); intit2 != nodeMap[n]->vertexSet.end(); intit2++) {
-							file << "T"<<n << "\t" << (*intit2) << "\n";
+							file << "I"<<n << "\t" << (*intit2) << "\n";
 						}
 					}
 				} else {
@@ -91,9 +91,9 @@ bool TreeClass::writeCollapsedHierEdges(const char* fn) {
 						st.push(*intit2);
 						// process the element
 						if (nodeMap[*intit2]->isTerm) {
-							file << "T"<<n << "\t" << (*intit2) << "\n";
+							file << "I"<<n << "\t" << (*intit2) << "\n";
 						} else {
-							file << "T"<<n << "\t" <<"T" << (*intit2) << "\n";
+							file << "I"<<n << "\t" <<"I" << (*intit2) << "\n";
 						}
 							
 					}

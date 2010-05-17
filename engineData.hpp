@@ -14,7 +14,7 @@
 
 
 
-#if (NOGSL<1)
+#if (! NOGSL)
 #include "gsl/gsl_sf.h"
 #else
 double lgamma(double x) {
@@ -237,9 +237,11 @@ int Engine::run() {
 		firstNeighbors[c] = emptySet;
 		secondNeighbors[c] = emptySet;
 		set_union_update(firstNeighbors[c],firstNeighbors[a],firstNeighbors[b]);
+		firstNeighbors[c].erase(a); firstNeighbors[c].erase(b); 
 		tempSet = emptySet;
 		set_union_update(tempSet,secondNeighbors[a],secondNeighbors[b]);
 		set_difference_update(secondNeighbors[c],tempSet,firstNeighbors[c]);
+		secondNeighbors[c].erase(a); secondNeighbors[c].erase(b);
 		for (d=0;d<dim;d++) {
 			for (intit = firstNeighbors[c].begin(); intit != firstNeighbors[c].end(); ++intit) {
 				x = (*intit);

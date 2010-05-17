@@ -64,7 +64,7 @@ bool graphData::readWeighted(const char* fn) {
 			std::istringstream(tok[1]) >> v;
 			if (tok.size()>2) {
 				std::istringstream(tok[2]) >> weight;
-			} else weight = 0;
+			} else weight = 1;
 			if (numV<(u+1)) numV = u+1;
 			if (numV<(v+1)) numV = v+1;
 			if (edgeList.find(u)==edgeList.end()) {
