@@ -6,7 +6,7 @@
 #include <stack>
 #include <fstream>
 #include <iostream>
-
+#include "graphData.hpp"
 
 class Node{
 	public:
@@ -25,6 +25,7 @@ class Node{
 		
 class TreeClass{
 	public:
+		graphData* D;
 		std::map<int, Node*> nodeMap;
 		std::set<int> topLevel;
 		int numNodes;
@@ -32,7 +33,8 @@ class TreeClass{
 		bool writeCollapsedHierEdges(const char* fn);
 		bool writeHRG(const char* fn);
 		bool writeNodeTypes(const char* fn);
-		TreeClass() {
+		TreeClass(graphData* G) {
+			D = G;
 			numNodes=0;
 		};
 		~TreeClass() {
@@ -53,7 +55,7 @@ bool TreeClass::writeNodeTypes(const char* fn) {
 	for (mapit = nodeMap.begin(); mapit != nodeMap.end(); mapit++) {
 		// process the node
 		if ((*mapit).second->isTerm) {
-			file << (*mapit).first << "\tVertex\n";
+			file << D[0].int2Name[(*mapit).first] << "\tVertex\n";
 			if (topLevel.find((*mapit).first)!=topLevel.end()) {
 				file << "I" << (*mapit).first << "\tInternal\n";
 			}
@@ -75,7 +77,7 @@ bool TreeClass::writeCollapsedHierEdges(const char* fn) {
 	if (! file.is_open()) return 0;
 	for (intit = topLevel.begin(); intit != topLevel.end(); intit++) {
 		if (nodeMap[*intit]->isTerm) {
-			file << "I"<<(*intit) << "\t" << (*intit) << "\n";
+			file << "I"<<(*intit) << "\t" << D[0].int2Name[(*intit)] << "\n";
 		} else {
 			st.push(*intit);
 			while ((st.size()>0)) {
@@ -83,7 +85,7 @@ bool TreeClass::writeCollapsedHierEdges(const char* fn) {
 				if (nodeMap[n]->collapsed) {
 					if (nodeMap[n]->vertexSet.size()>1) {
 						for (intit2 = nodeMap[n]->vertexSet.begin(); intit2 != nodeMap[n]->vertexSet.end(); intit2++) {
-							file << "I"<<n << "\t" << (*intit2) << "\n";
+							file << "I"<<n << "\t" << D[0].int2Name[*intit2] << "\n";
 						}
 					}
 				} else {
@@ -91,7 +93,7 @@ bool TreeClass::writeCollapsedHierEdges(const char* fn) {
 						st.push(*intit2);
 						// process the element
 						if (nodeMap[*intit2]->isTerm) {
-							file << "I"<<n << "\t" << (*intit2) << "\n";
+							file << "I"<<n << "\t" << D[0].int2Name[*intit2] << "\n";
 						} else {
 							file << "I"<<n << "\t" <<"I" << (*intit2) << "\n";
 						}

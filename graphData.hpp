@@ -25,11 +25,14 @@ class graphData{
 		float aveP;
 		float Etot;
 		typedef std::map<int, float> destList;
+		std::map<int, std::string> int2Name;
+		std::map<std::string, int> name2Int;
 		std::map<int, destList*> edgeList;
+		float get_uv(int u, int v);
 		bool readWeighted(const char* filename);
 		bool readBinary(const char* filename);
 		int degree(int i);
-		std::set<int> neighbors(int i);
+		//std::set<int> neighbors(int i);
 		~graphData() {
 			std::map<int, destList*>::iterator it;
 			for (it=edgeList.begin(); it!=edgeList.end(); ++it) {
@@ -41,9 +44,17 @@ class graphData{
 };
 
 
+float graphData::get_uv(int u, int v) {
+	if (edgeList.find(u)!=edgeList.end()) {
+		if (edgeList[u]->find(v) != edgeList[u]->end()) {
+			return (*edgeList[u])[v];
+		}
+	}
+	return 0;
+};
+
 bool graphData::readWeighted(const char* fn) {
 	gtype = 'w';
-	numV = 0;
 	Etot = 0.0f;
 	std::string strline;
 	std::ifstream file;
@@ -52,6 +63,7 @@ bool graphData::readWeighted(const char* fn) {
 	int u,v;
 	float sum = 0;
 	float weight;
+	std::string St1, St2;
 	std::istringstream temp;
 	file.open(fn,std::ios::in);
 	if (! file.is_open()) return 0;
@@ -60,13 +72,23 @@ bool graphData::readWeighted(const char* fn) {
 		tok.clear();
 		my_Tokenize(strline,tok," \t");
 		if (tok.size()>1) {
-			std::istringstream(tok[0]) >> u;
-			std::istringstream(tok[1]) >> v;
+			if (name2Int.find(tok[0])==name2Int.end()) {
+				u = name2Int.size();
+				name2Int[tok[0]] = u;
+				int2Name[u] = tok[0];
+			} else {
+				u = name2Int[tok[0]];
+			}
+			if (name2Int.find(tok[1])==name2Int.end()) {
+				v = name2Int.size();
+				name2Int[tok[1]] = v;
+				int2Name[v] = tok[1];
+			} else {
+				v = name2Int[tok[1]];
+			}
 			if (tok.size()>2) {
 				std::istringstream(tok[2]) >> weight;
 			} else weight = 1;
-			if (numV<(u+1)) numV = u+1;
-			if (numV<(v+1)) numV = v+1;
 			if (edgeList.find(u)==edgeList.end()) {
 				pdl = new destList;
 				edgeList[u] = pdl;
@@ -82,7 +104,8 @@ bool graphData::readWeighted(const char* fn) {
 			Etot += weight;
 		}
 	}
-	aveP = sum/(numV * numV);
+	numV = name2Int.size();
+	aveP = sum/(numV * numV); // shouldn't matter because aveP is to be used for binary
 	return 1;
 }
 
@@ -91,7 +114,6 @@ bool graphData::readWeighted(const char* fn) {
 
 bool graphData::readBinary(const char* fn) {
 	gtype = 'b';
-	numV = 0;
 	Etot = 0.0f;
 	std::string strline;
 	std::ifstream file;
@@ -107,10 +129,20 @@ bool graphData::readBinary(const char* fn) {
 		tok.clear();
 		my_Tokenize(strline,tok," \t");
 		if (tok.size()>1) {
-			std::istringstream(tok[0]) >> u;
-			std::istringstream(tok[1]) >> v;
-			if (numV<(u+1)) numV = u+1;
-			if (numV<(v+1)) numV = v+1;
+			if (name2Int.find(tok[0])==name2Int.end()) {
+				u = name2Int.size();
+				name2Int[tok[0]] = u;
+				int2Name[u] = tok[0];
+			} else {
+				u = name2Int[tok[0]];
+			}
+			if (name2Int.find(tok[1])==name2Int.end()) {
+				v = name2Int.size();
+				name2Int[tok[1]] = v;
+				int2Name[v] = tok[1];
+			} else {
+				v = name2Int[tok[1]];
+			}
 			if (edgeList.find(u)==edgeList.end()) {
 				pdl = new destList;
 				edgeList[u] = pdl;
@@ -125,6 +157,7 @@ bool graphData::readBinary(const char* fn) {
 			Etot += 1.0f;
 		}
 	}
+	numV = name2Int.size();
 	aveP = sum/(numV * numV);
 	return 1;
 }

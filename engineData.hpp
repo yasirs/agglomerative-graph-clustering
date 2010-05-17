@@ -46,7 +46,7 @@ class Engine{
 		dataMap* w;
 		scoremap sm;
 		int* NodeMembership;
-		TreeClass tree;
+		TreeClass *tree;
 		std::map<int,std::set<int> > firstNeighbors;
 		std::map<int,std::set<int> > secondNeighbors;
 		//std::map<int, float> groupDegrees;
@@ -68,6 +68,7 @@ Engine::Engine(graphData* G, int d) {
 	D = G;
 	dim = d;
 	w = new dataMap[dim];
+	tree = new TreeClass(G);
 };
 
 Engine::~Engine() {
@@ -203,24 +204,24 @@ int Engine::run() {
 		a = pscore.u; b = pscore.v;
 		sm.erase(b,a);
 		// let us create new group c and create heirarchical relations
-		c = tree.numNodes;
+		c = tree->numNodes;
 		c++;
-		tree.numNodes = c;
+		tree->numNodes = c;
 		pnode = new Node(-1,c,0);
-		tree.nodeMap[c] = pnode;
-		tree.nodeMap[a]->parent = c;
-		tree.nodeMap[b]->parent = c;
-		tree.nodeMap[c]->childSet.insert(a);
-		tree.nodeMap[c]->childSet.insert(b);
-		tree.topLevel.erase(a);
-		tree.topLevel.erase(b);
-		tree.topLevel.insert(c);
-		if ((tree.nodeMap[a]->collapsed)&&(tree.nodeMap[b]->collapsed)&&(pscore.s.centerMscore>0)) {
+		tree->nodeMap[c] = pnode;
+		tree->nodeMap[a]->parent = c;
+		tree->nodeMap[b]->parent = c;
+		tree->nodeMap[c]->childSet.insert(a);
+		tree->nodeMap[c]->childSet.insert(b);
+		tree->topLevel.erase(a);
+		tree->topLevel.erase(b);
+		tree->topLevel.insert(c);
+		if ((tree->nodeMap[a]->collapsed)&&(tree->nodeMap[b]->collapsed)&&(pscore.s.centerMscore>0)) {
 			pnode->collapsed = 1;
-			for(intit= tree.nodeMap[a]->vertexSet.begin(); intit!= tree.nodeMap[a]->vertexSet.end(); ++intit) {
+			for(intit= tree->nodeMap[a]->vertexSet.begin(); intit!= tree->nodeMap[a]->vertexSet.end(); ++intit) {
 				pnode->vertexSet.insert(*intit);
 			}
-			for(intit= tree.nodeMap[b]->vertexSet.begin(); intit!= tree.nodeMap[b]->vertexSet.end(); ++intit) {
+			for(intit= tree->nodeMap[b]->vertexSet.begin(); intit!= tree->nodeMap[b]->vertexSet.end(); ++intit) {
 				pnode->vertexSet.insert(*intit);
 			}
 		} else {
@@ -304,7 +305,7 @@ int Engine::run() {
 				cscore = 0;
 				jscore = 0;
 				for (d=0;d<dim;d++) {
-					for (intit3 = tree.topLevel.begin(); intit3 != tree.topLevel.end(); ++intit3) {
+					for (intit3 = tree->topLevel.begin(); intit3 != tree->topLevel.end(); ++intit3) {
 						z = *intit3;
 						if ((z!=x)&&(z!=c)) {
 							jscore += deltascore(d,c,x,z);
@@ -326,7 +327,7 @@ int Engine::run() {
 				cscore = 0;
 				jscore = 0;
 				for (d=0;d<dim;d++) {
-					for (intit3 = tree.topLevel.begin(); intit3 != tree.topLevel.end(); ++intit3) {
+					for (intit3 = tree->topLevel.begin(); intit3 != tree->topLevel.end(); ++intit3) {
 						z = *intit3;
 						if ((z!=x)&&(z!=c)) {
 							jscore += deltascore(d,c,x,z);
@@ -352,7 +353,7 @@ int Engine::run() {
 							secondNeighbors[x].insert(y);
 							cscore = 0; jscore = 0;
 							for (d=0;d<dim;d++) {
-								for (intit3 = tree.topLevel.begin(); intit3 != tree.topLevel.end(); intit3++) {
+								for (intit3 = tree->topLevel.begin(); intit3 != tree->topLevel.end(); intit3++) {
 									z = *intit3;
 									if ((z!=x)&&(z!=y)) {
 										jscore = jscore + deltascore(d,x,y,z);
@@ -367,7 +368,7 @@ int Engine::run() {
 							secondNeighbors[y].insert(x);
 							cscore = 0; jscore = 0;
 							for (d=0;d<dim;d++) {
-								for (intit3 = tree.topLevel.begin(); intit3 != tree.topLevel.end(); intit3++) {
+								for (intit3 = tree->topLevel.begin(); intit3 != tree->topLevel.end(); intit3++) {
 									z = *intit3;
 									if ((z!=y)&&(z!=x)) {
 										jscore = jscore + deltascore(d,y,x,z);
@@ -460,11 +461,11 @@ bool Engine::initializeFirstLev() {
 	Node* pn;
 	std::map<int, graphData::destList*>::iterator it1;
 	graphData::destList::iterator it2;
-	for (i=0;i<D[0].numV;i++) {
+	for (i=0;i<D[0].numV;i++) { //TODO do the tree making inside the tree constructor
 		pn = new Node(i,-1,1);
-		tree.nodeMap[i] = pn;
-		tree.numNodes = i+1;
-		tree.topLevel.insert(i);
+		tree->nodeMap[i] = pn;
+		tree->numNodes = i+1;
+		tree->topLevel.insert(i);
 		pn->vertexSet.insert(i);
 		pn->collapsed = 1;
 	}
@@ -495,7 +496,7 @@ bool Engine::initializeFirstLev() {
 	std::map<int, Node*>::iterator itnode;
 	std::set<int>::iterator neighbit;
 	std::set<int>::iterator intsetit;
-	for (itnode = tree.nodeMap.begin(); itnode != tree.nodeMap.end(); ++itnode) {
+	for (itnode = tree->nodeMap.begin(); itnode != tree->nodeMap.end(); ++itnode) {
 		x = (*itnode).second->nid;
 		for (neighbit = firstNeighbors[x].begin(); neighbit != firstNeighbors[x].end(); ++neighbit) {
 			y = *neighbit;
@@ -505,7 +506,7 @@ bool Engine::initializeFirstLev() {
 		}
 	}
 	// initialize scores
-	for (itnode = tree.nodeMap.begin(); itnode != tree.nodeMap.end(); ++itnode) {
+	for (itnode = tree->nodeMap.begin(); itnode != tree->nodeMap.end(); ++itnode) {
 		x = (*itnode).second->nid;
 		for (neighbit = firstNeighbors[x].begin(); neighbit != firstNeighbors[x].end(); ++neighbit) {
 			y = *neighbit;
@@ -516,7 +517,7 @@ bool Engine::initializeFirstLev() {
 				// go through all dimensions
 				for (d=0;d<dim;d++) {
 					// go through all top level groups z != x,y
-					for (intsetit = tree.topLevel.begin(); intsetit != tree.topLevel.end(); ++intsetit) {
+					for (intsetit = tree->topLevel.begin(); intsetit != tree->topLevel.end(); ++intsetit) {
 						z = *intsetit;
 						if (! ((x==z)||(y==z)) ) {
 							jscore = jscore + deltascore(d,x,y,z);
@@ -536,7 +537,7 @@ bool Engine::initializeFirstLev() {
 				// go through all dimensions
 				for (d=0;d<dim;d++) {
 					// go through all top level groups z != x,y
-					for (intsetit = tree.topLevel.begin(); intsetit != tree.topLevel.end(); ++intsetit) {
+					for (intsetit = tree->topLevel.begin(); intsetit != tree->topLevel.end(); ++intsetit) {
 						z = *intsetit;
 						if (! ((x==z)||(y==z)) ) {
 							jscore = jscore + deltascore(d,x,y,z);

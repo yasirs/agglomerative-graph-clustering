@@ -63,6 +63,10 @@ void listintmap(std::map<int, std::set<int> >& a, int i) {
 	std::cout << "\n";
 };
 
+void i2smap(std::map<int, std::string >& a, int i) {
+	std::cout << a[i] << "\n";
+};
+
 
 #endif
 
