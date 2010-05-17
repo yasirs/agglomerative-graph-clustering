@@ -45,15 +45,25 @@ class scoremap{
 		bool has_uv(int u, int v); //done
 		pairScore getBestScore(); //done
 		pairScore popBestScore(); //done
+		twoScores get_uv(int u, int v);
+		smap get_u(int u) { return scores[u]; }
 		bool hasPos(); //done
 		bool isEmpty(); //done
 		int AddPair(int u, int v, double jscore, double cscore); //done
 		int AddPair(int u, int v, twoScores score); 
-		int AddTo(int u, int v, double scorej); // done
+		void AddTo(int u, int v, double scorej); // done
 		bool eraseAll(); //done
 		bool erase(int u,int v); //done
 		int has_u(int u);
 		std::set<int>* allPartners_u(int u);
+};
+
+scoremap::twoScores scoremap::get_uv(int u, int v) {
+	if (has_uv(u,v)) {
+		return scores[u].scoreDest[v];
+	} else {
+		std::cout << "Error!! doesnt have "<<u<<", "<<v<<"\n";
+	}
 };
 
 bool scoremap::has_uv(int u, int v) {
@@ -196,16 +206,18 @@ int scoremap::AddPair(int u, int v, twoScores score) {
 			return 2;
 		} else
 			return 1;
+	} else {
+		return 1;
 	}
 };
 
 
-int scoremap::AddTo(int u, int v, double scorej) {
+void scoremap::AddTo(int u, int v, double scorej) {
 	double nsj;
 	double nsc;
 	nsj = scores[u].scoreDest[v].joinScore + scorej;
 	nsc = scores[u].scoreDest[v].joinScore;
-	assert( not(this->AddPair(u,v,nsj,nsc)));
+	assert( !(this->AddPair(u,v,nsj,nsc)));
 }
 
 
@@ -213,32 +225,7 @@ int scoremap::AddTo(int u, int v, double scorej) {
 int scoremap::AddPair(int u, int v, double scorej, double scorec) {
 	if (u==v) throw 1; //TODO this was for debugging, possibly leave them in
 	twoScores score = twoScorestruct(scorej, scorec);
-	// to return 0 if the pair already existed, 1 if it didnt exist and is not the best, and 2 if it didnt exist and is the best
-	if (scores.find(u)!=scores.end()) {
-		if (scores[u].scoreDest.find(v)!=scores[u].scoreDest.end()) {
-			scores[u].scoreDest[v] =  score;
-			if (score>scores[u].bestP) {
-				scores[u].bestP = score; scores[u].bestK = v;
-			}
-			return 0;
-		} else {
-			scores[u].scoreDest[v] = score;
-			scores[u].bestP = twoScorestruct(BIGNEG,BIGNEG);
-			scores[u].bestK = -1;
-		}
-	} else {
-		smap stnew;
-		stnew.bestP = twoScorestruct(BIGNEG,BIGNEG); stnew.bestK = -1; stnew.scoreDest[v]=score;
-		scores[u] = stnew;
-	}
-	if (score>scores[u].bestP) {
-		scores[u].bestP = score; scores[u].bestK = v;
-		if (score>bestP) {
-			bestP = score; bestK = u;
-			return 2;
-		} else
-			return 1;
-	}
+	return (this->AddPair(u,v,score));
 };
 
 bool scoremap::isEmpty() {
@@ -249,7 +236,7 @@ bool scoremap::isEmpty() {
 };
 
 bool scoremap::hasPos() {
-	if ((not scores.empty())and(bestP>twoScorestruct(0,0)))
+	if ((! scores.empty())&&(bestP>twoScorestruct(0,0)))
 		return 1;
 	else
 		return 0;
@@ -265,7 +252,7 @@ scoremap::pairScore scoremap::getBestScore() {
 }
 
 scoremap::pairScore scoremap::popBestScore() {
-	twoScores nb; int nk,i;
+	twoScores nb; int nk;
 	pairScore ans;
 	ans.u = bestK;
 	ans.v = scores[bestK].bestK;

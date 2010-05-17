@@ -106,15 +106,14 @@ bool dataMap::erase(int u, int v) {
 	if (dat.find(u)!=dat.end()) {
 		if (dat[u].find(v) != dat[u].end()) {
 			dat[u].erase(v);
-			
+			if (dat[u].empty()) dat.erase(u);
+			return 1;			
 		} else {
+			if (dat[u].empty()) dat.erase(u);
 			return 0;
 		}
 	} else {
 		return 0;
-	}
-	if (dat[u].empty()) {
-		dat.erase(u);
 	}
 };
 

@@ -54,7 +54,7 @@ bool graphData::readWeighted(const char* fn) {
 	float weight;
 	std::istringstream temp;
 	file.open(fn,std::ios::in);
-	if (not file.is_open()) return 0;
+	if (! file.is_open()) return 0;
 	while (!file.eof()) {
 		getline(file,strline);
 		tok.clear();
@@ -101,7 +101,7 @@ bool graphData::readBinary(const char* fn) {
 	int u,v;
 	float sum = 0;
 	file.open(fn,std::ios::in);
-	if (not file.is_open()) return 0;
+	if (! file.is_open()) return 0;
 	while (!file.eof()) {
 		getline(file,strline);
 		tok.clear();

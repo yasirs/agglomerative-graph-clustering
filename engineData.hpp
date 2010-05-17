@@ -17,24 +17,25 @@
 #if (NOGSL<1)
 #include "gsl/gsl_sf.h"
 #else
-
 double lgamma(double x) {
 	double ans;
 	ans = x*log(x)-x;
 	return ans;
 };
-
- 
 double gsl_sf_lnbeta(double a, double b) {
 	double ans;
 	ans = lgamma(a)+lgamma(b) -lgamma(a+b);
 	return ans;
 };
-
 #endif
 
 #ifndef DEBUGMODE
-#define DEBIGMODE
+#define DEBUGMODE 0
+#endif
+
+
+#ifndef NOREFERENCE
+#define NOREFERENCE 0
 #endif
 
 class Engine{
@@ -79,8 +80,8 @@ double Engine::centerscore(int d, int a, int b) {
 	if (D[d].gtype=='b') {
 		float Tab, Eab, Eaa, Ebb, Haa, Hbb, Taa, Tbb, Tcc;
 		Tab = w[d].nV[a] * w[d].nV[b];
-		Taa = w[d].nV[a] * (w[d].nV[a] - 1)/2.0;
-		Tbb = w[d].nV[b] * (w[d].nV[b] - 1)/2.0;
+		Taa = w[d].nV[a] * (w[d].nV[a] - 1)/2.0f;
+		Tbb = w[d].nV[b] * (w[d].nV[b] - 1)/2.0f;
 		Tcc = Taa + Tbb + Tab;
 		Eab = w[d].get_uv(a,b);
 		Eaa = w[d].get_uv(a,a);
@@ -92,10 +93,12 @@ double Engine::centerscore(int d, int a, int b) {
 			- gsl_sf_lnbeta(Ebb + 1, Hbb +1)
 			- gsl_sf_lnbeta(Eab+1,Tab - Eab +1);
 		//for the random reference model
+#if (! NOREFERENCE)
 		ans -=  gsl_sf_lnbeta(Tcc*D[d].aveP + 1, Tcc*(1 - D[d].aveP) + 1)
 			- gsl_sf_lnbeta(Taa*D[d].aveP + 1, Taa*(1 - D[d].aveP) + 1)
 			- gsl_sf_lnbeta(Tbb*D[d].aveP + 1, Tbb*(1 - D[d].aveP) + 1)
 			- gsl_sf_lnbeta(Tab*D[d].aveP + 1, Tab*(1 - D[d].aveP) + 1);
+#endif
 	} else if (D[d].gtype=='w') {
 		float Tab, Eab, Eaa, Ebb, Haa, Hbb, Taa, Tbb, Tcc;
 		Eab = w[d].get_uv(a,b);
@@ -112,6 +115,7 @@ double Engine::centerscore(int d, int a, int b) {
 			- gsl_sf_lnbeta(Ebb + 1, Hbb +1)
 			- gsl_sf_lnbeta(Eab+1,Tab - Eab +1);
 		//for the random reference model
+#if (! NOREFERENCE)
 		float Ebaraa, Ebarbb, Ebarab, Ebarcc;
 		Ebarab = w[d].degrees[a] * w[d].degrees[b];
 		Ebaraa = Taa/(2.0f*D[d].Etot);
@@ -121,16 +125,17 @@ double Engine::centerscore(int d, int a, int b) {
 			- gsl_sf_lnbeta(Ebaraa + 1, Taa - Ebaraa + 1)
 			- gsl_sf_lnbeta(Ebarbb + 1, Tbb - Ebarbb + 1)
 			- gsl_sf_lnbeta(Ebarab + 1, Tab - Ebarab + 1);	
+#endif
 	}
 	return ans;
 };
 
 double Engine::deltascore(int d, int a, int b, int x) {
-	assert((a!=b)and(a!=x)and(b!=x));
+	assert((a!=b)&&(a!=x)&&(b!=x));
 	double ans;
 	if (D[d].gtype=='b') {
 		float Eax, Ebx, Hax, Hbx, Tax, Tbx;
-		float Ebarax, Ebarbx, Tbarax, Tbarbx, Hbarax, Hbarbx;
+		float Ebarax, Ebarbx, Hbarax, Hbarbx;
 		Eax = w[d].get_uv(a,x);
 		Ebx = w[d].get_uv(b,x);
 		Tax = w[d].nV[a] * w[d].nV[x] ;
@@ -144,11 +149,13 @@ double Engine::deltascore(int d, int a, int b, int x) {
 		ans =    (	gsl_sf_lnbeta(Eax+Ebx+1.0f,Hax+Hbx+1.0f)
 				-gsl_sf_lnbeta(Eax+1.0f,Hax+1.0f)
 				-gsl_sf_lnbeta(Ebx+1.0f,Hbx+1.0f)
-			 )
-			-(	gsl_sf_lnbeta(Ebarax+Ebarbx+1.0f,Hbarax+Hbarbx+1.0f)
+			 );
+#if (! NOREFERENCE)
+		ans -=   (	gsl_sf_lnbeta(Ebarax+Ebarbx+1.0f,Hbarax+Hbarbx+1.0f)
 				-gsl_sf_lnbeta(Ebarax+1.0f,Hbarax+1.0f)
 				-gsl_sf_lnbeta(Ebarbx+1.0f,Hbarbx+1.0f)
 			 );
+#endif
 	} else if (D[d].gtype=='w') {
 		float Eax, Ebx, Hax, Hbx;
 		float Ebarax, Ebarbx, Hbarax, Hbarbx;
@@ -163,11 +170,13 @@ double Engine::deltascore(int d, int a, int b, int x) {
 		ans =    (	gsl_sf_lnbeta(Eax+Ebx+1.0f,Hax+Hbx+1.0f)
 				-gsl_sf_lnbeta(Eax+1.0f,Hax+1.0f)
 				-gsl_sf_lnbeta(Ebx+1.0f,Hbx+1.0f)
-			 )
-			-(	gsl_sf_lnbeta(Ebarax+Ebarbx+1.0f,Hbarax+Hbarbx+1.0f)
+			 );
+#if (! NOREFERENCE)
+		ans -=	 (	gsl_sf_lnbeta(Ebarax+Ebarbx+1.0f,Hbarax+Hbarbx+1.0f)
 				-gsl_sf_lnbeta(Ebarax+1.0f,Hbarax+1.0f)
 				-gsl_sf_lnbeta(Ebarbx+1.0f,Hbarbx+1.0f)
 			 );
+#endif
 	}
 	return ans;
 };
@@ -179,7 +188,7 @@ int Engine::run() {
 	std::set<int>::iterator intit, intit2, intit3;
 	int numJoins = 0;
 	int a,b,c,x,y,z,d;
-	float wc,mc,dc;
+	float wc;
 	double cscore, jscore;
 	Node* pnode;
 	scoremap::pairScore pscore;
@@ -206,7 +215,7 @@ int Engine::run() {
 		tree.topLevel.erase(a);
 		tree.topLevel.erase(b);
 		tree.topLevel.insert(c);
-		if ((tree.nodeMap[a]->collapsed)and(tree.nodeMap[b]->collapsed)and(pscore.s.centerMscore>0)) {
+		if ((tree.nodeMap[a]->collapsed)&&(tree.nodeMap[b]->collapsed)&&(pscore.s.centerMscore>0)) {
 			pnode->collapsed = 1;
 			for(intit= tree.nodeMap[a]->vertexSet.begin(); intit!= tree.nodeMap[a]->vertexSet.end(); ++intit) {
 				pnode->vertexSet.insert(*intit);
@@ -289,13 +298,13 @@ int Engine::run() {
 			x = *intit;
 
 			firstNeighbors[x].insert(c);
-			if ((x!=a)and(x!=b)) {
+			if ((x!=a)&&(x!=b)) {
 				cscore = 0;
 				jscore = 0;
 				for (d=0;d<dim;d++) {
 					for (intit3 = tree.topLevel.begin(); intit3 != tree.topLevel.end(); ++intit3) {
 						z = *intit3;
-						if ((z!=x)and(z!=c)) {
+						if ((z!=x)&&(z!=c)) {
 							jscore += deltascore(d,c,x,z);
 						}
 					}
@@ -311,13 +320,13 @@ int Engine::run() {
 		for (intit = secondNeighbors[c].begin(); intit != secondNeighbors[c].end(); ++intit) {
 			x = *intit;
 			secondNeighbors[x].insert(c);
-			if ((x!=a)and(x!=b)) {
+			if ((x!=a)&&(x!=b)) {
 				cscore = 0;
 				jscore = 0;
 				for (d=0;d<dim;d++) {
 					for (intit3 = tree.topLevel.begin(); intit3 != tree.topLevel.end(); ++intit3) {
 						z = *intit3;
-						if ((z!=x)and(z!=c)) {
+						if ((z!=x)&&(z!=c)) {
 							jscore += deltascore(d,c,x,z);
 						}
 					}
@@ -335,15 +344,15 @@ int Engine::run() {
 				for (intit2 = firstNeighbors[b].begin(); intit2 != firstNeighbors[b].end(); ++intit2) {
 					y = *intit2;
 					if (y!=a) {
-						// x and y may have just become 2nd neighbors
-						if ((x!=y)and(secondNeighbors[x].find(y)==secondNeighbors[x].end())and(firstNeighbors[x].find(y)==firstNeighbors[x].end())) {
+						// x && y may have just become 2nd neighbors
+						if ((x!=y)&&(secondNeighbors[x].find(y)==secondNeighbors[x].end())&&(firstNeighbors[x].find(y)==firstNeighbors[x].end())) {
 							// make second neighbors and add the score
 							secondNeighbors[x].insert(y);
 							cscore = 0; jscore = 0;
 							for (d=0;d<dim;d++) {
 								for (intit3 = tree.topLevel.begin(); intit3 != tree.topLevel.end(); intit3++) {
 									z = *intit3;
-									if ((z!=x)and(z!=y)) {
+									if ((z!=x)&&(z!=y)) {
 										jscore = jscore + deltascore(d,x,y,z);
 									}
 								}
@@ -351,14 +360,14 @@ int Engine::run() {
 							}
 							assert(sm.AddPair(x,y,jscore,cscore));
 						}
-						if ((x!=y)and(secondNeighbors[y].find(x)==secondNeighbors[y].end())and(firstNeighbors[y].find(x)==firstNeighbors[y].end())) {
+						if ((x!=y)&&(secondNeighbors[y].find(x)==secondNeighbors[y].end())&&(firstNeighbors[y].find(x)==firstNeighbors[y].end())) {
 							// make second neighbors and add the score
 							secondNeighbors[y].insert(x);
 							cscore = 0; jscore = 0;
 							for (d=0;d<dim;d++) {
 								for (intit3 = tree.topLevel.begin(); intit3 != tree.topLevel.end(); intit3++) {
 									z = *intit3;
-									if ((z!=y)and(z!=x)) {
+									if ((z!=y)&&(z!=x)) {
 										jscore = jscore + deltascore(d,y,x,z);
 									}
 								}
@@ -433,8 +442,8 @@ int Engine::run() {
 		numJoins++;
 		if (DEBUGMODE) {
 			std::cout << "joined "<<a<<" and "<<b<<" to form "<<c<<"\n";
-			assert(not (1+sm.has_u(a)));
-			assert(not (1+sm.has_u(b)));
+			assert(! (1+sm.has_u(a)));
+			assert(! (1+sm.has_u(b)));
 		}
 	}
 	return numJoins;
@@ -499,7 +508,7 @@ bool Engine::initializeFirstLev() {
 		for (neighbit = firstNeighbors[x].begin(); neighbit != firstNeighbors[x].end(); ++neighbit) {
 			y = *neighbit;
 			// if score(x,y) doesnt exist, compute it
-			if (not sm.has_uv(x,y)) {
+			if (! sm.has_uv(x,y)) {
 				// add up score contributions
 				jscore = 0; cscore = 0;
 				// go through all dimensions
@@ -507,7 +516,7 @@ bool Engine::initializeFirstLev() {
 					// go through all top level groups z != x,y
 					for (intsetit = tree.topLevel.begin(); intsetit != tree.topLevel.end(); ++intsetit) {
 						z = *intsetit;
-						if (not ((x==z)or(y==z)) ) {
+						if (! ((x==z)||(y==z)) ) {
 							jscore = jscore + deltascore(d,x,y,z);
 						}
 					}
@@ -519,7 +528,7 @@ bool Engine::initializeFirstLev() {
 		for (neighbit = secondNeighbors[x].begin(); neighbit != secondNeighbors[x].end(); ++neighbit) {
 			y = *neighbit;
 			// if score(x,y) doesnt exist, compute it
-			if (not sm.has_uv(x,y)) {
+			if (! sm.has_uv(x,y)) {
 				// add up score contributions
 				jscore = 0; cscore = 0;
 				// go through all dimensions
@@ -527,7 +536,7 @@ bool Engine::initializeFirstLev() {
 					// go through all top level groups z != x,y
 					for (intsetit = tree.topLevel.begin(); intsetit != tree.topLevel.end(); ++intsetit) {
 						z = *intsetit;
-						if (not ((x==z)or(y==z)) ) {
+						if (! ((x==z)||(y==z)) ) {
 							jscore = jscore + deltascore(d,x,y,z);
 						}
 					}
@@ -571,7 +580,7 @@ bool Engine::doStage() {
 		}
 		for (setiter2 = bset.begin(); setiter2 != bset.end(); ++setiter2) {
 			b = *setiter2;
-			if (not sm.has_uv(a,b)) {
+			if (! sm.has_uv(a,b)) {
 				// calculate score for a,b
 				for (d=0;d<dim;d++) {
 					// run over x

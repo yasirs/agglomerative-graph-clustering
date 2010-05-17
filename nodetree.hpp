@@ -49,7 +49,7 @@ bool TreeClass::writeNodeTypes(const char* fn) {
 	std::map<int, Node*>::iterator mapit;
 	file.open(fn,std::ios::out);
 	file << "ID\tType\n";
-	if (not file.is_open()) return 0;
+	if (! file.is_open()) return 0;
 	for (mapit = nodeMap.begin(); mapit != nodeMap.end(); mapit++) {
 		// process the node
 		if ((*mapit).second->isTerm) {
@@ -72,7 +72,7 @@ bool TreeClass::writeCollapsedHierEdges(const char* fn) {
 	std::ofstream file;
 	std::set<int>::iterator intit,intit2;
 	file.open(fn,std::ios::out);
-	if (not file.is_open()) return 0;
+	if (! file.is_open()) return 0;
 	for (intit = topLevel.begin(); intit != topLevel.end(); intit++) {
 		if (nodeMap[*intit]->isTerm) {
 			file << "T"<<(*intit) << "\t" << (*intit) << "\n";
@@ -113,7 +113,7 @@ bool TreeClass::writeCompHierEdges(const char* fn) {
 	std::ofstream file;
 	std::set<int>::iterator intit,intit2;
 	file.open(fn,std::ios::out);
-	if (not file.is_open()) return 0;
+	if (! file.is_open()) return 0;
 	for (intit = topLevel.begin(); intit != topLevel.end(); intit++) {
 		st.push(*intit);
 		while ((st.size()>0)) {
