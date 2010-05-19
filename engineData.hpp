@@ -197,7 +197,6 @@ int Engine::run() {
 	std::map<int, scoremap::twoScores>::iterator smIn;
 	std::map<int, std::map<int,float> >::iterator datOut;
 	std::map<int, float>::iterator datIn;
-
 	while (sm.hasPos()) {
 		// join and do stuff
 		pscore = sm.popBestScore();
@@ -207,7 +206,8 @@ int Engine::run() {
 		c = tree->numNodes;
 		c++;
 		tree->numNodes = c;
-		pnode = new Node(-1,c,0);
+		pnode = new Node(c,-1,0);
+		pnode->theta = new float[dim];
 		tree->nodeMap[c] = pnode;
 		tree->nodeMap[a]->parent = c;
 		tree->nodeMap[b]->parent = c;
@@ -224,8 +224,10 @@ int Engine::run() {
 			for(intit= tree->nodeMap[b]->vertexSet.begin(); intit!= tree->nodeMap[b]->vertexSet.end(); ++intit) {
 				pnode->vertexSet.insert(*intit);
 			}
+			pnode->vertsComputed = 1;
 		} else {
 			pnode->collapsed = 0;
+			pnode->vertsComputed = 0;
 		}
 		// compute d,w,n,m for c
 		for (d=0;d<dim;d++) {
@@ -234,6 +236,7 @@ int Engine::run() {
 			w[d].degrees[c] = w[d].degrees[a] + w[d].degrees[b];
 			w[d].selfMissing[c] = w[d].selfMissing[a] + w[d].selfMissing[b] + (w[d].degrees[a] * w[d].degrees[b]) - w[d].get_uv(a,b);
 			w[d].nV[c] = w[d].nV[a] + w[d].nV[b];
+			tree->nodeMap[c]->theta[d] = wc/w[d].selfMissing[c];
 		}
 		firstNeighbors[c] = emptySet;
 		secondNeighbors[c] = emptySet;
@@ -265,7 +268,6 @@ int Engine::run() {
 				sm.erase(x,a);
 			}
 		}
-
 		for (intit = firstNeighbors[b].begin(); intit != firstNeighbors[b].end(); ++intit) {
 			x = *intit;
 			if (a!=x) {
@@ -463,11 +465,13 @@ bool Engine::initializeFirstLev() {
 	graphData::destList::iterator it2;
 	for (i=0;i<D[0].numV;i++) { //TODO do the tree making inside the tree constructor
 		pn = new Node(i,-1,1);
+		pn->theta = new float[dim];
 		tree->nodeMap[i] = pn;
 		tree->numNodes = i+1;
 		tree->topLevel.insert(i);
 		pn->vertexSet.insert(i);
 		pn->collapsed = 1;
+		pn->vertsComputed = 1;
 	}
 	// initialize weights, degrees, selfMissing and first neighbors, and nV
 	for (d=0;d<dim;d++) {

@@ -4,6 +4,7 @@
 #include <set>
 #include <map>
 #include <stack>
+#include <utility>
 #include <fstream>
 #include <iostream>
 #include "graphData.hpp"
@@ -16,13 +17,19 @@ class Node{
 		std::set<int> vertexSet;
 		bool isTerm;
 		bool collapsed;
+		bool vertsComputed;
+		float *theta;
+		std::set<int>* getAllVerts(std::map<int, Node*>& mp);
 		Node(int i, int j, bool ist) {
 			nid = i;
 			parent = j;
 			isTerm = ist;
 		}
 };
-		
+
+
+
+	
 class TreeClass{
 	public:
 		graphData* D;
@@ -33,6 +40,7 @@ class TreeClass{
 		bool writeCollapsedHierEdges(const char* fn);
 		bool writeHRG(const char* fn);
 		bool writeNodeTypes(const char* fn);
+		std::pair<int,int> getLCA(const int i, const int j);
 		TreeClass(graphData* G) {
 			D = G;
 			numNodes=0;
@@ -43,7 +51,34 @@ class TreeClass{
 				delete (*nit).second;
 			}
 		};
-};		
+};
+
+
+std::pair<int,int> TreeClass::getLCA(int i, int j) {
+	int u,v;
+	u = i; v = j;
+	int udone = 0; int vdone = 0;
+	while (1) {
+		if (u>v) {
+			if (! vdone) {
+				if (topLevel.find(v)==topLevel.end()) {
+					vdone = 1;
+				} else {
+					v = nodeMap[v]->parent;
+				}
+			}
+		} else {
+			if (! udone) {
+				if (topLevel.find(u)==topLevel.end()) {
+					udone = 1;
+				} else {
+					u = nodeMap[u]->parent;
+				}
+			}
+		}
+		if ((u==v)||((udone)&&(vdone))) return std::pair<int,int>(u,v);
+	}
+};
 
 
 bool TreeClass::writeNodeTypes(const char* fn) {

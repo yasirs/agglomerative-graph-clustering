@@ -24,6 +24,8 @@ class dataMap{
 		float get_uv(int u, int v);
 };
 
+
+
 float dataMap::get_uv(int u, int v) {
 	//NOTE: returns zero if not present
 	if (dat.find(u)!=dat.end()) {
