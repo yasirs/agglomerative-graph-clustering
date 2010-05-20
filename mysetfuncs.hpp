@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <iostream>
 #include "nodetree.hpp"
-
+#include <iterator>
 
 template<typename T> bool set_update(std::set<T>&  target, const std::set<T>&  source) {
 	typename std::set<T>::iterator it1;

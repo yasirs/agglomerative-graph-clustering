@@ -236,7 +236,15 @@ int Engine::run() {
 			w[d].degrees[c] = w[d].degrees[a] + w[d].degrees[b];
 			w[d].selfMissing[c] = w[d].selfMissing[a] + w[d].selfMissing[b] + (w[d].degrees[a] * w[d].degrees[b]) - w[d].get_uv(a,b);
 			w[d].nV[c] = w[d].nV[a] + w[d].nV[b];
-			tree->nodeMap[c]->theta[d] = wc/w[d].selfMissing[c];
+			if (D[d].gtype=='w') {
+				tree->nodeMap[c]->theta[d] = w[d].get_uv(a,b)/(w[d].degrees[a] * w[d].degrees[b]);
+			} else if (D[d].gtype=='b') {
+				tree->nodeMap[c]->theta[d] = w[d].get_uv(a,b)/(w[d].nV[a] * w[d].nV[b]);
+			} else {
+				std::cout << "graph type "<<D[d].gtype<<" not yet supported (during theta calculation).\n";
+				throw 1;
+			}
+
 		}
 		firstNeighbors[c] = emptySet;
 		secondNeighbors[c] = emptySet;
