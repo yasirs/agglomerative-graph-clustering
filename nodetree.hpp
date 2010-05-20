@@ -61,16 +61,32 @@ std::pair<int,int> TreeClass::getLCA(int i, int j) {
 	while (1) {
 		if (u>v) {
 			if (! vdone) {
-				if (topLevel.find(v)==topLevel.end()) {
+				if (topLevel.find(v)!=topLevel.end()) {
 					vdone = 1;
+					// v is done, so u has to go to topLevel also
+					while (! udone) {
+						if (topLevel.find(u) == topLevel.end()) {
+							u = nodeMap[u]->parent;
+						} else {
+							udone = 1;
+						}
+					}
 				} else {
 					v = nodeMap[v]->parent;
 				}
 			}
 		} else {
 			if (! udone) {
-				if (topLevel.find(u)==topLevel.end()) {
+				if (topLevel.find(u)!=topLevel.end()) {
 					udone = 1;
+					// u is done, so v has to go to topLevel also
+					while (! vdone) {
+						if (topLevel.find(v) == topLevel.end()) {
+							v = nodeMap[v]->parent;
+						} else {
+							vdone = 1;
+						}
+					}
 				} else {
 					u = nodeMap[u]->parent;
 				}

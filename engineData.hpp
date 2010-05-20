@@ -387,12 +387,16 @@ int Engine::run() {
 
 		// delete a,b from weights (and degrees) in all dimensions
 		for (d=0;d<dim;d++) {
-			w[d].degrees.erase(a);
-			w[d].degrees.erase(b);
-			w[d].selfMissing.erase(a);
-			w[d].selfMissing.erase(b);
-			w[d].nV.erase(a);
-			w[d].nV.erase(b);
+			if (D[d].numV<(a+1)) {
+				w[d].degrees.erase(a);
+				w[d].selfMissing.erase(a);
+				w[d].nV.erase(a);
+			}
+			if (D[d].numV<(b+1)) {
+				w[d].degrees.erase(b);
+				w[d].selfMissing.erase(b);
+				w[d].nV.erase(b);
+			}
 			// now let us go through the neighbors of a
 			for (intit = firstNeighbors[a].begin(); intit != firstNeighbors[a].end(); ++intit) {
 				x = *intit;
@@ -404,7 +408,6 @@ int Engine::run() {
 				w[d].dat[x].erase(a);
 				w[d].dat[a].erase(x);
 			}
-
 			w[d].dat.erase(a);
 			// now let us go through the neighbors of b
 			for (intit = firstNeighbors[b].begin(); intit != firstNeighbors[b].end(); ++intit) {
