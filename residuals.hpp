@@ -6,7 +6,7 @@ graphData* getResidual(graphData* D, TreeClass* tree, dataMap* w, const int dim)
 	int d;
 	int t,p,n,i,u,v;
 	std::stack<int> st;
-	graphData Dnew = new graphData[dim];
+	graphData *Dnew = new graphData[dim];
 	std::set<int>::iterator intit, intit2, intit3;
 	std::pair<int,int> ipair;
 	float theta;
