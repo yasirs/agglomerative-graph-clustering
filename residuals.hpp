@@ -68,5 +68,4 @@ graphData* getResidual(graphData* D, TreeClass* tree, dataMap* w, const int dim)
 		Dnew[d].aveP = NE/(Dnew[d].numV * Dnew[d].numV);
 	}
 	return Dnew;
-	
 };

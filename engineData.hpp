@@ -497,7 +497,7 @@ bool Engine::initializeFirstLev() {
 				w[d].nV[v]=1;
 				w[d].AddPair(u,v,(*it2).second);
 				w[d].AddPair(v,u,(*it2).second);
-				if (w[d].degrees.find(u)==w[d].degrees.end()) w[d].degrees[u]=0;
+				if (w[d].degrees.find(v)==w[d].degrees.end()) w[d].degrees[v]=0;
 				if (w[d].selfMissing.find(v)==w[d].selfMissing.end()) w[d].selfMissing[v]=0;
 				w[d].degrees[u] += (*it2).second;
 				w[d].degrees[v] += (*it2).second;
