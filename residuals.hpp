@@ -26,7 +26,7 @@ graphData* getResidual(graphData* D, TreeClass* tree, dataMap* w, const int dim)
 					theta = w[d].get_uv(n1,n2)/(w[d].nV[n1] * w[d].nV[n2]);
 					topThetas[n1][n2][d] = theta;
 				} else {
-					std::cout << "graph type "<<D[d].gtype<<" not yet supported for residuals.\n";
+					std::cerr << "graph type "<<D[d].gtype<<" not yet supported for residuals.\n";
 					throw 1;
 				}
 			}
@@ -57,7 +57,7 @@ graphData* getResidual(graphData* D, TreeClass* tree, dataMap* w, const int dim)
 				} else if (D[d].gtype=='b') {
 					wpredicted = w[d].nV[u] * w[d].nV[v] * theta;
 				} else {
-					std::cout << "graph type "<<D[d].gtype<<" not supported yet for computing residuals\n";
+					std::cerr << "graph type "<<D[d].gtype<<" not supported yet for computing residuals\n";
 					throw 1;
 				}
 				if ((wthis-wpredicted)>EPS) {

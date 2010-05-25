@@ -9,7 +9,8 @@ class linkPredictor {
 	dataMap* w;
 	TreeClass* tree;
 	graphData* D;
-	linkPredictor() {}
+	bool attached;
+	linkPredictor() {attach = 0;}
 	void attach(Engine* e);
 	float predictEdge(int u, int v, int d);
 };
@@ -46,15 +47,28 @@ void linkPredictor::attach(Engine* e) {
 					theta = w[d].get_uv(n1,n2)/(w[d].nV[n1] * w[d].nV[n2]);
 					topThetas[n1][n2][d] = theta;
 				} else {
-					std::cout << "graph type "<<D[d].gtype<<" not yet supported for residuals.\n";
+					std::cerr << "graph type "<<D[d].gtype<<" not yet supported for link prediction (top Thetas).\n";
 					throw 1;
 				}
 			}
 		}
 	}
+	attached = 1;
 };
 
 float linkPredictor::predictEdge(int u, int v, int d) {
+	if (!attached) {
+		std::cerr << "can't do link prediction, not attached\n";
+		throw 1;
+	}
+	if (u>=D[d].numV) {
+		std::cerr << "Only "<<D[d].numV<<" vertices in the graph, can't predict edges from vertex "<<u<<"\n";
+		throw 1;
+	}
+	if (v>=D[d].numV) {
+		std::cerr << "Only "<<D[d].numV<<" vertices in the graph, can't predict edges to vertex "<<v<<"\n";
+		throw 1;
+	}
 	std::pair<int,int> ipair = tree->getLCA(u,v);
 	float wpredicted, theta;
 	if (ipair.first==ipair.second) {
@@ -67,7 +81,7 @@ float linkPredictor::predictEdge(int u, int v, int d) {
 	} else if (D[d].gtype=='b') {
 		wpredicted = w[d].nV[u] * w[d].nV[v] * theta;
 	} else {
-		std::cout << "graph type "<<D[d].gtype<<" not supported yet for computing residuals\n";
+		std::cerr << "graph type "<<D[d].gtype<<" not supported yet for predicting edges.\n";
 		throw 1;
 	}
 	return wpredicted;

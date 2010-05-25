@@ -1,5 +1,5 @@
-#ifndef ENGINEDATA_HPP
-#define ENGINEDATA_HPP
+#ifndef ENGINE_HPP
+#define ENGINE_HPP
 #include <map>
 #include <list>
 #include <set>
@@ -241,7 +241,7 @@ int Engine::run() {
 			} else if (D[d].gtype=='b') {
 				tree->nodeMap[c]->theta[d] = w[d].get_uv(a,b)/(w[d].nV[a] * w[d].nV[b]);
 			} else {
-				std::cout << "graph type "<<D[d].gtype<<" not yet supported (during theta calculation).\n";
+				std::cerr << "graph type "<<D[d].gtype<<" not yet supported (during theta calculation).\n";
 				throw 1;
 			}
 
