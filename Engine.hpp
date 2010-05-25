@@ -134,13 +134,17 @@ double Engine::centerscore(int d, int a, int b) {
 double Engine::deltascore(int d, int a, int b, int x) {
 	assert((a!=b)&&(a!=x)&&(b!=x));
 	double ans;
+	float da, db, dx;
 	if (D[d].gtype=='b') {
 		float Eax, Ebx, Hax, Hbx, Tax, Tbx;
 		float Ebarax, Ebarbx, Hbarax, Hbarbx;
 		Eax = w[d].get_uv(a,x);
 		Ebx = w[d].get_uv(b,x);
-		Tax = w[d].nV[a] * w[d].nV[x] ;
-		Tbx = w[d].nV[b] * w[d].nV[x] ;
+		da = w[d].nV[a];
+		db = w[d].nV[b];
+		dx = w[d].nV[x];
+		Tax = da * dx;
+		Tbx = db * dx;
 		Hax = Tax - Eax;
 		Hbx = Tbx - Ebx;
 		Ebarax = Tax * D[d].aveP;
@@ -162,12 +166,15 @@ double Engine::deltascore(int d, int a, int b, int x) {
 		float Ebarax, Ebarbx, Hbarax, Hbarbx;
 		Eax = w[d].get_uv(a,x);
 		Ebx = w[d].get_uv(b,x);
-		Hax = w[d].degrees[a] * w[d].degrees[x] - Eax;
-		Hbx = w[d].degrees[b] * w[d].degrees[x] - Ebx;
-		Ebarax = w[d].degrees[a] * w[d].degrees[x]/(2.0f*D[d].Etot);
-		Ebarbx = w[d].degrees[b] * w[d].degrees[x]/(2.0f*D[d].Etot);
-		Hbarax = w[d].degrees[a] * w[d].degrees[x] - Ebarax;
-		Hbarbx = w[d].degrees[b] * w[d].degrees[x] - Ebarbx;
+		da = w[d].degrees[a];
+		db = w[d].degrees[b];
+		dx = w[d].degrees[x];
+		Hax = da * dx - Eax;
+		Hbx = db * dx - Ebx;
+		Ebarax = da * dx/(2.0f*D[d].Etot);
+		Ebarbx = db * dx/(2.0f*D[d].Etot);
+		Hbarax = da * dx - Ebarax;
+		Hbarbx = db * dx - Ebarbx;
 		ans =    (	gsl_sf_lnbeta(Eax+Ebx+1.0f,Hax+Hbx+1.0f)
 				-gsl_sf_lnbeta(Eax+1.0f,Hax+1.0f)
 				-gsl_sf_lnbeta(Ebx+1.0f,Hbx+1.0f)

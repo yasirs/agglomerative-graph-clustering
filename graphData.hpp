@@ -30,6 +30,8 @@ class graphData{
 		std::map<int, destList*> edgeList;
 		float get_uv(int u, int v);
 		void set_uv(int u, int v, float w);
+		bool has_uv(int u, int v);
+		int Add_uv(int u, int v, float w); 
 		bool readWeighted(const char* filename);
 		bool readBinary(const char* filename);
 		int degree(int i);
@@ -42,6 +44,16 @@ class graphData{
 			}
 			edgeList.clear();
 		}
+};
+
+
+bool graphData::has_uv(int u, int v) {
+	if (edgeList.find(u)!=edgeList.end()) {
+		if (edgeList[u]->find(v) != edgeList[u]->end()) {
+			return 1;
+		}
+	}
+	return 0;
 };
 
 
@@ -118,6 +130,25 @@ void graphData::set_uv(int u, int v, float w) {
 	}
 	(*edgeList[u])[v] = w;
 };
+
+int graphData::Add_uv(int u, int v, float w) {
+	if (edgeList.find(u)==edgeList.end()) {
+		edgeList[u] = new destList;
+		(*edgeList[u])[v] = w;
+		return 0;
+	} else {
+		if ((*edgeList[u]).find(v) != (*edgeList[u]).end()) {
+			(*edgeList[u])[v] += w;
+			return 1;
+		} else {
+			(*edgeList[u])[v] = w;
+			return 0;
+		}
+	}
+};
+
+
+	
 
 
 bool graphData::readBinary(const char* fn) {

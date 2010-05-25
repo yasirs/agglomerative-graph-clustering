@@ -1,3 +1,6 @@
+#ifndef RESIDUALS_HPP
+#define RESIDUALS_HPP
+
 #include "nodetree.hpp"
 #include "graphData.hpp"
 
@@ -57,7 +60,7 @@ graphData* getResidual(graphData* D, TreeClass* tree, dataMap* w, const int dim)
 				} else if (D[d].gtype=='b') {
 					wpredicted = w[d].nV[u] * w[d].nV[v] * theta;
 				} else {
-					std::cerr << "graph type "<<D[d].gtype<<" not supported yet for computing residuals\n";
+					std::cerr << "graph type "<< D[d].gtype <<" not supported yet for computing residuals\n";
 					throw 1;
 				}
 				if ((wthis-wpredicted)>EPS) {
@@ -71,3 +74,5 @@ graphData* getResidual(graphData* D, TreeClass* tree, dataMap* w, const int dim)
 	}
 	return Dnew;
 };
+
+#endif

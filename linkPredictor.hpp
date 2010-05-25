@@ -1,7 +1,10 @@
+#ifndef LINKPREDICTOR_HPP
+#define LINKPREDICTOR_HPP
+
 #include "nodetree.hpp"
 #include "graphData.hpp"
 #include "Engine.hpp"
-
+#include <cassert>
 
 class linkPredictor {
 	std::map<int,std::map<int, float*> > topThetas;
@@ -13,7 +16,59 @@ class linkPredictor {
 	linkPredictor() {attach = 0;}
 	void attach(Engine* e);
 	float predictEdge(int u, int v, int d);
+	graphData* makeNonEdgePred();
+	graphData* makeCompleteEdgePred();
+	void addPredstoGraph(graphData* PD);
+	
 };
+
+graphData* linkPredictor::makeNonEdgePred() {
+	assert (attached);
+	graphData* PD;
+	float w, NP;
+	PD = new graphData[dim];
+	for (d=0; d<dim;d++) {
+		NP = 0;
+		PD[d].Etot = 0;
+		PD[d].numV = D[d].numV;
+		PD[d].int2Name = D[d].int2Name;
+		PD[d].name2Int = D[d].name2Int;
+		for (u=0; u<D[d].numV; u++) {
+			for (v=0; v<D[d].numV; v++) {
+				if (! D[d].has_uv(u,v)) {
+					w = this->predictEdge(u,v,d);
+					assert(! PD[d].Add_uv(u,v,w));
+					PD[d].Etot += w;
+					NP += 1;
+				}
+			}
+		}
+		PD[d].aveP = NP/(D[d].numV * D[d].numV);
+	}
+	return PD;
+};
+
+void linkPredictor::addPredstoGraph(graphData* PD) {
+	int d;
+	graphData::destList::iterator eit;
+	std::map<int, graphData::destList*>::iterator dit;
+	for (d=0; d<dim; d++) {
+		for (dit = D[d].edgeList.begin(); dit != D[d].edgeList.end(); dit++) {
+			u = (*dit).first;
+			for (eit = D[d].edgeList[u]->begin(); eit != D[d].edgeList[u]->end(); eit++) {
+				v = (*eit).first;
+				w = this->predictEdge(u,v,d);
+				assert ( PD[d].Add_uv(u,v,w));
+			}
+		}
+	}
+};
+
+
+		
+};
+
+
 
 void linkPredictor::attach(Engine* e) {
 	// delete old topThetas, if any
@@ -87,3 +142,5 @@ float linkPredictor::predictEdge(int u, int v, int d) {
 	return wpredicted;
 };
 
+
+#endif

@@ -62,7 +62,8 @@ scoremap::twoScores scoremap::get_uv(int u, int v) {
 	if (has_uv(u,v)) {
 		return scores[u].scoreDest[v];
 	} else {
-		std::cout << "Error!! doesnt have "<<u<<", "<<v<<"\n";
+		std::cerr << "Error!! doesnt have "<<u<<", "<<v<<"\n";
+		throw 1;
 	}
 };
 
@@ -88,7 +89,6 @@ std::set<int>* scoremap::allPartners_u(int u) {
 
 
 int scoremap::has_u(int u) {
-	bool ans = 0;
 	std::map<int, smap>::iterator OutIt;
 	std::map<int, twoScores>::iterator InIt;
 	if (scores.find(u)!=scores.end()) return (*(scores[u].scoreDest.begin())).first;
