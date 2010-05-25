@@ -11,6 +11,7 @@ graphData* getResidual(graphData* D, TreeClass* tree, dataMap* w, const int dim)
 	float theta, wthis, wpredicted, NE;
 	std::map<int,std::map<int, float*> > topThetas;
 	graphData::destList::iterator eit;
+	std::map<int, graphData::destList*>::iterator dit;
 	for (intit1 = tree->topLevel.begin(); intit1 != tree->topLevel.end(); intit1++) {
 		n1 = (*intit1);
 		topThetas[n1] = std::map<int, float*>();
@@ -40,7 +41,8 @@ graphData* getResidual(graphData* D, TreeClass* tree, dataMap* w, const int dim)
 	for (d=0;d<dim;d++) {
 		Dnew[d].Etot = 0;
 		NE = 0;
-		for (u=0;u<D[0].numV; u++) {
+		for (dit = D[d].edgeList.begin(); dit != D[d].edgeList.end(); dit++) {
+			u = (*dit).first;
 			for (eit = D[d].edgeList[u]->begin(); eit != D[d].edgeList[u]->end(); eit++) {
 				v = (*eit).first;
 				wthis = (*eit).second;
