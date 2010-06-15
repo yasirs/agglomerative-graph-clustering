@@ -34,6 +34,8 @@ class graphData{
 		int Add_uv(int u, int v, float w); 
 		bool readWeighted(const char* filename);
 		bool readBinary(const char* filename);
+		void writeBoth(const char* filename);
+		void writeSingle(const char* filename);
 		int degree(int i);
 		//std::set<int> neighbors(int i);
 		~graphData() {
@@ -44,6 +46,61 @@ class graphData{
 			}
 			edgeList.clear();
 		}
+};
+
+
+void graphData::writeSingle(const char* fn) {
+	std::ofstream file;
+	file.open(fn,std::ios::out);
+	std::map<int, detsList*>::iterator outIt;
+	destList::iterator inIt;
+	for (outIt = edgeList.begin(); outIt != edgeList.end(); ++outIt) {
+		u = outIt.first;
+		for (inIt = edgeList[u]->begin(); inIt = edgeList[u]->end(); ++inIt) {
+			v = inIt.first;
+			weight = inIt.second;
+			if (u<=v) {
+				if (gtype=='w') {
+					file << int2Name[u] <<'\t' << int2Name[v] << '\t' << weight << '\n';
+				}
+				else if (gtype=='b') {
+					file << int2Name[u] <<'\t' << int2Name[v] << '\n';
+				}
+				else {
+					std::cerr << gtype << " type of graph not recognized in writing graphs\n";
+					throw 1;
+				}
+			}
+		}
+	}
+		
+};
+
+
+
+void graphData::writeBoth(const char* fn) {
+	std::ofstream file;
+	file.open(fn,std::ios::out);
+	std::map<int, detsList*>::iterator outIt;
+	destList::iterator inIt;
+	for (outIt = edgeList.begin(); outIt != edgeList.end(); ++outIt) {
+		u = outIt.first;
+		for (inIt = edgeList[u]->begin(); inIt = edgeList[u]->end(); ++inIt) {
+			v = inIt.first;
+			weight = inIt.second;
+			if (gtype=='w') {
+				file << int2Name[u] <<'\t' << int2Name[v] << '\t' << weight << '\n';
+			}
+			else if (gtype=='b') {
+				file << int2Name[u] <<'\t' << int2Name[v] << '\n';
+			}
+			else {
+				std::cerr << gtype << " type of graph not recognized in writing graphs\n";
+				throw 1;
+			}
+		}
+	}
+		
 };
 
 
