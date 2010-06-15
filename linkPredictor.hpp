@@ -13,7 +13,9 @@ class linkPredictor {
 	TreeClass* tree;
 	graphData* D;
 	bool attached;
-	linkPredictor() {attach = 0;}
+	linkPredictor() {
+		attached = 0;
+	}
 	void attach(Engine* e);
 	float predictEdge(int u, int v, int d);
 	graphData* makeNonEdgePred();
@@ -26,6 +28,7 @@ graphData* linkPredictor::makeNonEdgePred() {
 	assert (attached);
 	graphData* PD;
 	float w, NP;
+	int d,u,v;
 	PD = new graphData[dim];
 	for (d=0; d<dim;d++) {
 		NP = 0;
@@ -49,7 +52,8 @@ graphData* linkPredictor::makeNonEdgePred() {
 };
 
 void linkPredictor::addPredstoGraph(graphData* PD) {
-	int d;
+	int d,u,v;
+	float weight;
 	graphData::destList::iterator eit;
 	std::map<int, graphData::destList*>::iterator dit;
 	for (d=0; d<dim; d++) {
@@ -57,8 +61,8 @@ void linkPredictor::addPredstoGraph(graphData* PD) {
 			u = (*dit).first;
 			for (eit = D[d].edgeList[u]->begin(); eit != D[d].edgeList[u]->end(); eit++) {
 				v = (*eit).first;
-				w = this->predictEdge(u,v,d);
-				assert ( PD[d].Add_uv(u,v,w));
+				weight = this->predictEdge(u,v,d);
+				assert ( PD[d].Add_uv(u,v,weight));
 			}
 		}
 	}
@@ -66,7 +70,6 @@ void linkPredictor::addPredstoGraph(graphData* PD) {
 
 
 		
-};
 
 
 
