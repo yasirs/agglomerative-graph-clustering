@@ -50,15 +50,17 @@ class graphData{
 
 
 void graphData::writeSingle(const char* fn) {
+	int u,v;
+	float weight;
 	std::ofstream file;
 	file.open(fn,std::ios::out);
-	std::map<int, detsList*>::iterator outIt;
+	std::map<int, destList*>::iterator outIt;
 	destList::iterator inIt;
 	for (outIt = edgeList.begin(); outIt != edgeList.end(); ++outIt) {
-		u = outIt.first;
-		for (inIt = edgeList[u]->begin(); inIt = edgeList[u]->end(); ++inIt) {
-			v = inIt.first;
-			weight = inIt.second;
+		u = outIt->first;
+		for (inIt = edgeList[u]->begin(); inIt != edgeList[u]->end(); ++inIt) {
+			v = inIt->first;
+			weight = inIt->second;
 			if (u<=v) {
 				if (gtype=='w') {
 					file << int2Name[u] <<'\t' << int2Name[v] << '\t' << weight << '\n';
@@ -79,15 +81,17 @@ void graphData::writeSingle(const char* fn) {
 
 
 void graphData::writeBoth(const char* fn) {
+	int u,v;
+	float weight;
 	std::ofstream file;
 	file.open(fn,std::ios::out);
-	std::map<int, detsList*>::iterator outIt;
+	std::map<int, destList*>::iterator outIt;
 	destList::iterator inIt;
 	for (outIt = edgeList.begin(); outIt != edgeList.end(); ++outIt) {
-		u = outIt.first;
-		for (inIt = edgeList[u]->begin(); inIt = edgeList[u]->end(); ++inIt) {
-			v = inIt.first;
-			weight = inIt.second;
+		u = outIt->first;
+		for (inIt = edgeList[u]->begin(); inIt != edgeList[u]->end(); ++inIt) {
+			v = inIt->first;
+			weight = inIt->second;
 			if (gtype=='w') {
 				file << int2Name[u] <<'\t' << int2Name[v] << '\t' << weight << '\n';
 			}
