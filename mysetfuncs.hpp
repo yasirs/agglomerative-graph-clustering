@@ -6,6 +6,15 @@
 #include "nodetree.hpp"
 #include <iterator>
 
+
+template<typename T> int num_set_common(const std::set<T>& s1, const std::set<T>& s2) {
+	std::set<T> target;
+	set_intersection(s1.begin(), s1.end(), s2.begin(), s2.end(), std::insert_iterator<std::set<T> >(target, target.begin()));
+	return target.size();
+};
+
+
+
 template<typename T> bool set_update(std::set<T>&  target, const std::set<T>&  source) {
 	typename std::set<T>::iterator it1;
 	for (it1 = source.begin(); it1 != source.end(); ++it1) {

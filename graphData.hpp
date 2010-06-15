@@ -74,8 +74,7 @@ void graphData::writeSingle(const char* fn) {
 				}
 			}
 		}
-	}
-		
+	}	
 };
 
 
@@ -183,7 +182,7 @@ bool graphData::readWeighted(const char* fn) {
 	numV = name2Int.size();
 	aveP = sum/(numV * numV); // shouldn't matter because aveP is to be used for binary
 	return 1;
-}
+};
 
 void graphData::set_uv(int u, int v, float w) {
 	if (edgeList.find(u)==edgeList.end()) {
@@ -207,10 +206,6 @@ int graphData::Add_uv(int u, int v, float w) {
 		}
 	}
 };
-
-
-	
-
 
 bool graphData::readBinary(const char* fn) {
 	gtype = 'b';
@@ -260,7 +255,7 @@ bool graphData::readBinary(const char* fn) {
 	numV = name2Int.size();
 	aveP = sum/(numV * numV);
 	return 1;
-}
+};
 
 void my_Tokenize(const std::string& str,std::vector<std::string>& tokens,const std::string& delimiters = "")  // via http://www.geocities.com/eric6930/cplus.html unknown author presumed Eric.
 {

@@ -1,0 +1,16 @@
+plan for program for link prediction measurement
+
+1. read all edges
+2. randomly select p% of n edges by storing numbers in a set
+3. write remaining edges in a file
+4. write withheld edges in a separate file (gold positive)
+5. run agglo, and write all non-edge scores
+6. do so for susequent residuals
+7. compute other scores for all non-edges
+	jaccard coefficient
+	degree product
+	common neighbors
+	shortest neighbors?
+
+
+ 
