@@ -10,7 +10,11 @@ plan for program for link prediction measurement
 	jaccard coefficient
 	degree product
 	common neighbors
+	hypergeometric p value
 	shortest neighbors?
+
+
+need a C++ executable to take edges and return file containing jaccard, degree product etc. scores along with agglomerative, residual scores.
 
 
  

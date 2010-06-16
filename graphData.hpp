@@ -48,6 +48,10 @@ class graphData{
 		}
 };
 
+int graphData::degree(int i) {
+	return edgeList[i]->size();
+};
+
 
 void graphData::writeSingle(const char* fn) {
 	int u,v;
@@ -74,7 +78,8 @@ void graphData::writeSingle(const char* fn) {
 				}
 			}
 		}
-	}	
+	}
+	file.close();
 };
 
 
@@ -103,7 +108,7 @@ void graphData::writeBoth(const char* fn) {
 			}
 		}
 	}
-		
+	file.close();	
 };
 
 

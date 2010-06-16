@@ -14,6 +14,25 @@ template<typename T> int num_set_common(const std::set<T>& s1, const std::set<T>
 };
 
 
+template<class K, class V> int num_common_keys(const std::map<K,V>& m1, const std::map<K,V>& m2) {
+	std::set<K> s;
+	get_common_keys(m1,m2,s);
+	return s.size();
+};
+
+
+template<class K, class V> void get_common_keys(const std::map<K,V>& m1, const std::map<K,V>& m2, std::set<K>& s) {
+	typename std::map<K,V>::iterator it1;
+	typename std::map<K,V>::iterator it2;
+	K k1, k2;
+	for (it1 = m1.begin(); it1 != m1.end(); it1++) {
+		k1 = it1->first;
+		for (it2 = m2.begin(); it2 != m2.end(); it2++) {
+			k2 = it2->first;
+			if (k1==k2) s.insert(k1);
+		}
+	}
+};
 
 template<typename T> bool set_update(std::set<T>&  target, const std::set<T>&  source) {
 	typename std::set<T>::iterator it1;
