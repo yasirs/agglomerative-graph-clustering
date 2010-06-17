@@ -102,17 +102,6 @@ void i2fmap(std::map<int, float>& a, int i) {
 };
 
 
-//DEBUG *****
-int main() {
-	std::set<int> A, B;
-	A.insert(10);
-	set_update(B,A);
-	std::map<int,float> Am, Bm, Cm;
-	get_common_keys(Am,Bm,A);
-	num_common_keys(Am,Bm);
-};
-
-
 
 
 
