@@ -7,6 +7,8 @@
 #include <iterator>
 
 
+
+
 template<typename T> int num_set_common(const std::set<T>& s1, const std::set<T>& s2) {
 	std::set<T> target;
 	set_intersection(s1.begin(), s1.end(), s2.begin(), s2.end(), std::insert_iterator<std::set<T> >(target, target.begin()));
@@ -14,14 +16,14 @@ template<typename T> int num_set_common(const std::set<T>& s1, const std::set<T>
 };
 
 
-template<class K, class V> int num_common_keys(const std::map<K,V>& m1, const std::map<K,V>& m2) {
+template<class K, class V> int num_common_keys(std::map<K,V>& m1, std::map<K,V>& m2) {
 	std::set<K> s;
 	get_common_keys(m1,m2,s);
 	return s.size();
 };
 
 
-template<class K, class V> void get_common_keys(const std::map<K,V>& m1, const std::map<K,V>& m2, std::set<K>& s) {
+template<class K, class V> void get_common_keys(std::map<K,V>& m1, std::map<K,V>& m2, std::set<K>& s) {
 	typename std::map<K,V>::iterator it1;
 	typename std::map<K,V>::iterator it2;
 	K k1, k2;
@@ -98,6 +100,19 @@ void i2smap(std::map<int, std::string >& a, int i) {
 void i2fmap(std::map<int, float>& a, int i) {
 	std::cout << a[i] << "\n";
 };
+
+
+//DEBUG *****
+int main() {
+	std::set<int> A, B;
+	A.insert(10);
+	set_update(B,A);
+	std::map<int,float> Am, Bm, Cm;
+	get_common_keys(Am,Bm,A);
+	num_common_keys(Am,Bm);
+};
+
+
 
 
 
