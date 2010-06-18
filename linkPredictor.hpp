@@ -7,20 +7,21 @@
 #include <cassert>
 
 class linkPredictor {
-	std::map<int,std::map<int, float*> > topThetas;
-	int dim;
-	dataMap* w;
-	TreeClass* tree;
-	graphData* D;
-	bool attached;
-	linkPredictor() {
-		attached = 0;
-	}
-	void attach(Engine* e);
-	float predictEdge(int u, int v, int d);
-	graphData* makeNonEdgePred();
-	graphData* makeCompleteEdgePred();
-	void addPredstoGraph(graphData* PD);
+	public:
+		std::map<int,std::map<int, float*> > topThetas;
+		int dim;
+		dataMap* w;
+		TreeClass* tree;
+		graphData* D;
+		bool attached;
+		linkPredictor() {
+			attached = 0;
+		}
+		void attach(Engine* e);
+		float predictEdge(int u, int v, int d);
+		graphData* makeNonEdgePred();
+		graphData* makeCompleteEdgePred();
+		void addPredstoGraph(graphData* PD);
 	
 };
 
@@ -32,6 +33,7 @@ graphData* linkPredictor::makeNonEdgePred() {
 	PD = new graphData[dim];
 	for (d=0; d<dim;d++) {
 		NP = 0;
+		PD[d].gtype = 'w';
 		PD[d].Etot = 0;
 		PD[d].numV = D[d].numV;
 		PD[d].int2Name = D[d].int2Name;

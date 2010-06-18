@@ -11,6 +11,7 @@
 #include <iostream>
 #include <cassert>
 #include <cmath>
+#include <algorithm>
 
 
 
@@ -116,6 +117,7 @@ void Engine::printHyperGeomFile(const char* fn, int d, bool edges) {
 		for (v=0; v<u; v++) {
 			if ((edges)or(not D[d].has_uv(u,v))) {
 				m = D[d].degree(v);
+				dmin = std::min(m,n);
 				c = num_common_keys( *(D[d].edgeList[u]), *(D[d].edgeList[v]) );
 				s = 0;
 				for (x = c; x<= dmin; x++) {
