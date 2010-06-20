@@ -60,7 +60,7 @@ void linkPredictor::addPredstoGraph(graphData* PD) {
 	graphData::destList::iterator eit;
 	std::map<int, graphData::destList*>::iterator dit;
 	for (d=0; d<dim; d++) {
-		for (dit = PD[d].edgeList.begin(); dit != PD[d].edgeList.end(); dit++) {
+		for (dit = PD[d].edgeList.begin(); dit != PD[d].edgeList.end(); ++dit) {
 			u = (*dit).first;
 			for (eit = PD[d].edgeList[u]->begin(); eit != PD[d].edgeList[u]->end(); eit++) {
 				v = (*eit).first;
@@ -80,11 +80,16 @@ void linkPredictor::attach(Engine* e) {
 	// delete old topThetas, if any
 	std::map<int, std::map<int, float*> >::iterator outit;
 	std::map<int,float*>::iterator init;
-	for (outit = topThetas.begin(); outit != topThetas.end(); outit++) {
-		for (init = (*outit).second.begin(); init != (*outit).second.end(); ++init) {
+	for (outit = topThetas.begin(); outit != topThetas.end(); ++outit) {
+		for (init = (*outit).second.begin(); 
+			init != (*outit).second.end();
+			++init) {
 			delete[] (*init).second;
 		}
+		topThetas[(*outit).first].clear();
 	}
+	topThetas.clear();
+	
 	// assign new tree, w
 	tree = e->tree;
 	w = e->w;
@@ -94,10 +99,10 @@ void linkPredictor::attach(Engine* e) {
 	int n1, n2, d;
 	float theta;
 	std::set<int>::iterator intit1, intit2, intit3;
-	for (intit1 = tree->topLevel.begin(); intit1 != tree->topLevel.end(); intit1++) {
+	for (intit1 = tree->topLevel.begin(); intit1 != tree->topLevel.end(); ++intit1) {
 		n1 = (*intit1);
 		topThetas[n1] = std::map<int, float*>();
-		for (intit2 = tree->topLevel.begin(); intit2 != tree->topLevel.end(); intit2++) {
+		for (intit2 = tree->topLevel.begin(); intit2 != tree->topLevel.end(); ++intit2) {
 			n2 = (*intit2);
 			topThetas[n1][n2] = new float[dim];
 			for (d=0;d<dim;d++) {
