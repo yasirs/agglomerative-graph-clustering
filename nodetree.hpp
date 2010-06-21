@@ -19,6 +19,8 @@ class Node{
 		bool collapsed;
 		bool vertsComputed;
 		float *theta;
+		float *thDen;
+		float *thNum;
 		std::set<int>* getAllVerts(std::map<int, Node*>& mp);
 		Node(int i, int j, bool ist) {
 			nid = i;
@@ -51,7 +53,14 @@ class TreeClass{
 				delete (*nit).second;
 			}
 		};
+		Node* getNode(int n);
 };
+
+Node* TreeClass::getNode(int i) {
+	Node* n;
+	n = nodeMap[i];
+	return n;
+}
 
 
 std::pair<int,int> TreeClass::getLCA(int i, int j) {

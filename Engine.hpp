@@ -77,7 +77,7 @@ void Engine::printCommonNeighbFile(const char* fn, int d, bool edges) {
 	std::ofstream file;
 	file.open(fn,std::ios::out);
 	for (u=0; u<D[d].numV; u++) {
-		for (v=0; v<u; v++) {
+		for (v=u+1; v<D[d].numV; v++) {
 			if ((edges)or(not D[d].has_uv(u,v))) {
 				c = num_common_keys( *(D[d].edgeList[u]), *(D[d].edgeList[v]) );
 				file << D[d].int2Name[u] << '\t' << D[d].int2Name[v] << '\t' << c << '\n';
@@ -94,7 +94,7 @@ void Engine::printJaccardFile(const char* fn, int d, bool edges) {
 	file.open(fn,std::ios::out);
 	for (u=0; u<D[d].numV; u++) {
 		ad = D[d].degree(u);
-		for (v=0; v<u; v++) {
+		for (v=u+1; v<D[d].numV; v++) {
 			if ((edges)or(not D[d].has_uv(u,v))) {
 				aib = num_common_keys( *(D[d].edgeList[u]), *(D[d].edgeList[v]) );
 				aub = (ad * D[d].degree(v)) - aib;
@@ -114,7 +114,7 @@ void Engine::printHyperGeomFile(const char* fn, int d, bool edges) {
 	t = D[d].numV-2;
 	for (u=0; u<D[d].numV; u++) {
 		m = D[d].degree(u);
-		for (v=0; v<u; v++) {
+		for (v=u+1; v<D[d].numV; v++) {
 			if ((edges)or(not D[d].has_uv(u,v))) {
 				m = D[d].degree(v);
 				dmin = std::min(m,n);
@@ -139,7 +139,7 @@ void Engine::printDegreeProdFile(const char* fn, int d, bool edges) {
 	file.open(fn,std::ios::out);
 	for (u=0; u<D[d].numV; u++) {
 		ad = D[d].degree(u);
-		for (v=0; v<u; v++) {
+		for (v=u+1; v<D[d].numV; v++) {
 			if ((edges)or(not D[d].has_uv(u,v))) {
 				bd = D[d].degree(v);
 				file << D[d].int2Name[u] << '\t' << D[d].int2Name[v] << '\t' << ad*bd << '\n';
@@ -296,7 +296,7 @@ int Engine::run() {
 	std::set<int>::iterator intit, intit2, intit3;
 	int numJoins = 0;
 	int a,b,c,x,y,z,d;
-	float wc;
+	float wc, theta, wab;
 	double cscore, jscore;
 	Node* pnode;
 	scoremap::pairScore pscore;
@@ -315,6 +315,8 @@ int Engine::run() {
 		tree->numNodes = c;
 		pnode = new Node(c,-1,0);
 		pnode->theta = new float[dim];
+		pnode->thNum = new float[dim];
+		pnode->thDen = new float[dim];
 		tree->nodeMap[c] = pnode;
 		tree->nodeMap[a]->parent = c;
 		tree->nodeMap[b]->parent = c;
@@ -344,12 +346,26 @@ int Engine::run() {
 			w[d].selfMissing[c] = w[d].selfMissing[a] + w[d].selfMissing[b] + (w[d].degrees[a] * w[d].degrees[b]) - w[d].get_uv(a,b);
 			w[d].nV[c] = w[d].nV[a] + w[d].nV[b];
 			if (D[d].gtype=='w') {
-				tree->nodeMap[c]->theta[d] = w[d].get_uv(a,b)/(w[d].degrees[a] * w[d].degrees[b]);
+				wab = w[d].get_uv(a,b);
+				tree->nodeMap[c]->thNum[d] = wab;
+				tree->nodeMap[c]->thDen[d] = w[d].degrees[a] * w[d].degrees[b];
 			} else if (D[d].gtype=='b') {
-				tree->nodeMap[c]->theta[d] = w[d].get_uv(a,b)/(w[d].nV[a] * w[d].nV[b]);
+				wab = w[d].get_uv(a,b);
+				tree->nodeMap[c]->thNum[d] = wab;
+				tree->nodeMap[c]->thDen[d] = w[d].nV[a] * w[d].nV[b];
 			} else {
 				std::cerr << "graph type "<<D[d].gtype<<" not yet supported (during theta calculation).\n";
 				throw 1;
+			}
+			if (pnode->collapsed) {
+				pnode->thNum[d] += tree->nodeMap[a]->thNum[d] + tree->nodeMap[b]->thNum[d];
+				pnode->thDen[d] += tree->nodeMap[a]->thDen[d] + tree->nodeMap[b]->thDen[d];
+			}
+			theta = pnode->thNum[d] / pnode->thDen[d];
+			tree->nodeMap[c]->theta[d] = theta;
+			//TODO:: delete the following, only for debugging
+			if (theta<0) {
+				std::cerr << "bad theta being written!\n";
 			}
 
 		}
@@ -584,6 +600,13 @@ bool Engine::initializeFirstLev() {
 	for (i=0;i<D[0].numV;i++) { //TODO do the tree making inside the tree constructor
 		pn = new Node(i,-1,1);
 		pn->theta = new float[dim];
+		pn->thNum = new float[dim];
+		pn->thDen = new float[dim];
+		for (d=0;d<dim;d++) {
+			pn->theta[d] = 0;
+			pn->thDen[d] = 0;
+			pn->thNum[d] = 0;
+		}
 		tree->nodeMap[i] = pn;
 		tree->numNodes = i+1;
 		tree->topLevel.insert(i);

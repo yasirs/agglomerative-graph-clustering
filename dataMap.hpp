@@ -22,9 +22,12 @@ class dataMap{
 		std::set<int>* neighbors(int i); //done
 		float getuv_ifhas(int u, int v);
 		float get_uv(int u, int v);
+		float getDegree(int i);
 };
 
-
+float dataMap::getDegree(int i) {
+	return degrees[i];
+};
 
 float dataMap::get_uv(int u, int v) {
 	//NOTE: returns zero if not present

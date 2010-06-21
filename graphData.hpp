@@ -65,7 +65,7 @@ void graphData::writeSingle(const char* fn) {
 		for (inIt = edgeList[u]->begin(); inIt != edgeList[u]->end(); ++inIt) {
 			v = inIt->first;
 			weight = inIt->second;
-			if (u<=v) {
+			if (u<v) {
 				if (gtype=='w') {
 					file << int2Name[u] <<'\t' << int2Name[v] << '\t' << weight << '\n';
 				}

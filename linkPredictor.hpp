@@ -19,13 +19,12 @@ class linkPredictor {
 		}
 		void attach(Engine* e);
 		float predictEdge(int u, int v, int d);
-		graphData* makeNonEdgePred();
+		graphData* makeNonEdgePred(graphData* Dref);
 		graphData* makeCompleteEdgePred();
 		void addPredstoGraph(graphData* PD);
-	
 };
 
-graphData* linkPredictor::makeNonEdgePred() {
+graphData* linkPredictor::makeNonEdgePred(graphData* Dref) {
 	assert (attached);
 	graphData* PD;
 	float w, NP;
@@ -40,7 +39,7 @@ graphData* linkPredictor::makeNonEdgePred() {
 		PD[d].name2Int = D[d].name2Int;
 		for (u=0; u<D[d].numV; u++) {
 			for (v=0; v<D[d].numV; v++) {
-				if (! D[d].has_uv(u,v)) {
+				if (! Dref[d].has_uv(u,v)) {
 					w = this->predictEdge(u,v,d);
 					assert(! PD[d].Add_uv(u,v,w));
 					PD[d].Etot += w;
@@ -123,6 +122,7 @@ void linkPredictor::attach(Engine* e) {
 };
 
 float linkPredictor::predictEdge(int u, int v, int d) {
+	float ma, mb;
 	if (!attached) {
 		std::cerr << "can't do link prediction, not attached\n";
 		throw 1;
@@ -143,12 +143,19 @@ float linkPredictor::predictEdge(int u, int v, int d) {
 		theta = topThetas[ipair.first][ipair.second][d];
 	}
 	if (D[d].gtype=='w') {
-		wpredicted = w[d].degrees[u] * w[d].degrees[v] * theta;
+		ma = w[d].degrees[u];
+		mb = w[d].degrees[v];
 	} else if (D[d].gtype=='b') {
-		wpredicted = w[d].nV[u] * w[d].nV[v] * theta;
+		ma = w[d].nV[u];
+		mb = w[d].nV[v];
 	} else {
 		std::cerr << "graph type "<<D[d].gtype<<" not supported yet for predicting edges.\n";
 		throw 1;
+	}
+	wpredicted = ma * theta * mb;
+	if ((wpredicted>1)or(wpredicted<0)) {
+		std::cerr << "bad weight predicted?\n";
+		// TODO:: erase this! only for debug
 	}
 	return wpredicted;
 };
