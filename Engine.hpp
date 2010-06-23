@@ -109,11 +109,12 @@ void Engine::printJaccardFile(const char* fn, int d, bool edges) {
 void Engine::printHyperGeomFile(const char* fn, int d, bool edges) {
 	int u, v, m, n, c, t, x, dmin;
 	double s;
+	double dummy;
 	std::ofstream file;
 	file.open(fn,std::ios::out);
 	t = D[d].numV-2;
 	for (u=0; u<D[d].numV; u++) {
-		m = D[d].degree(u);
+		n = D[d].degree(u);
 		for (v=u+1; v<D[d].numV; v++) {
 			if ((edges)or(not D[d].has_uv(u,v))) {
 				m = D[d].degree(v);
@@ -121,10 +122,20 @@ void Engine::printHyperGeomFile(const char* fn, int d, bool edges) {
 				c = num_common_keys( *(D[d].edgeList[u]), *(D[d].edgeList[v]) );
 				s = 0;
 				for (x = c; x<= dmin; x++) {
-					s = s + 1.0 / (gsl_sf_gamma(x)*gsl_sf_gamma(m-x)*gsl_sf_gamma(n-x)*gsl_sf_gamma(t-m-n+x));
+					dummy = 1.0;
+					dummy = dummy / gsl_sf_gamma(1+x);
+					dummy = dummy / gsl_sf_gamma(1+m-x);
+					dummy = dummy / gsl_sf_gamma(1+n-x);
+					dummy = dummy / gsl_sf_gamma(1+t-m-n+x);
+					s = s + dummy;
+					
+					/*s = s + 1.0 / (gsl_sf_gamma(x)*
+							gsl_sf_gamma(m-x)*
+							gsl_sf_gamma(n-x)*
+							gsl_sf_gamma(t-m-n+x));*/
 				}
-				s = s * gsl_sf_gamma(m) * gsl_sf_gamma(n) * gsl_sf_gamma(t-m) * gsl_sf_gamma(t-n) / gsl_sf_gamma(t);
-				s = log10(s);
+				s = s * gsl_sf_gamma(1+m) * gsl_sf_gamma(1+n) * gsl_sf_gamma(1+t-m) * gsl_sf_gamma(1+t-n) / gsl_sf_gamma(1+t);
+				s = -log10(s);
 				file << D[d].int2Name[u] << '\t' << D[d].int2Name[v] << '\t' << s << '\n';
 			}
 		}

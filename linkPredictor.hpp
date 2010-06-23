@@ -24,6 +24,8 @@ class linkPredictor {
 		void addPredstoGraph(graphData* PD);
 };
 
+
+
 graphData* linkPredictor::makeNonEdgePred(graphData* Dref) {
 	assert (attached);
 	graphData* PD;
@@ -39,11 +41,13 @@ graphData* linkPredictor::makeNonEdgePred(graphData* Dref) {
 		PD[d].name2Int = D[d].name2Int;
 		for (u=0; u<D[d].numV; u++) {
 			for (v=0; v<D[d].numV; v++) {
-				if (! Dref[d].has_uv(u,v)) {
-					w = this->predictEdge(u,v,d);
-					assert(! PD[d].Add_uv(u,v,w));
-					PD[d].Etot += w;
-					NP += 1;
+				if (u!=v) {
+					if (! Dref[d].has_uv(u,v)) {
+						w = this->predictEdge(u,v,d);
+						assert(! PD[d].Add_uv(u,v,w));
+						PD[d].Etot += w;
+						NP += 1;
+					}
 				}
 			}
 		}

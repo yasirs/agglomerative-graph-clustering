@@ -3,9 +3,46 @@
 
 #include "nodetree.hpp"
 #include "graphData.hpp"
+#include "linkPredictor.hpp"
 
+
+graphData* getResidual(graphData* D, linkPredictor& lp) {
+	graphData *Dnew = new graphData[lp.dim];
+	graphData::destList::iterator eit;
+	std::map<int, graphData::destList*>::iterator dit;
+	float NE = 0;
+	int u,v,d;
+	float wpredicted, wthis;
+	for (d=0;d<lp.dim;d++) {
+		Dnew[d].int2Name = D[d].int2Name;
+		Dnew[d].name2Int = D[d].name2Int;
+		Dnew[d].gtype = 'w';
+		Dnew[d].numV = D[d].numV;
+	}
+	for (d=0;d<lp.dim;d++) {
+		Dnew[d].Etot = 0;
+		NE = 0;
+		for (dit = D[d].edgeList.begin(); dit != D[d].edgeList.end(); dit++) {
+			u = (*dit).first;
+			for (eit = D[d].edgeList[u]->begin(); eit != D[d].edgeList[u]->end(); eit++) {
+				v = (*eit).first;
+				wthis = (*eit).second;
+				wpredicted = lp.predictEdge(u,v,d);
+				if ((wthis-wpredicted)>EPS) {
+					Dnew[d].set_uv(u,v,wthis-wpredicted);
+					Dnew[d].Etot += wthis-wpredicted;
+					NE += 1;
+				}
+			}
+		}
+		Dnew[d].aveP = NE/(Dnew[d].numV * (Dnew[d].numV-1));
+	}
+	return Dnew;
+};
 
 graphData* getResidual(graphData* D, TreeClass* tree, dataMap* w, const int dim) {
+	// should use the other form
+	// this has some errors
 	int d,u,v,n1,n2;
 	std::stack<int> st;
 	graphData *Dnew = new graphData[dim];
