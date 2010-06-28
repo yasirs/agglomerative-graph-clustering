@@ -1,12 +1,12 @@
-#define DEBUGMODE 1
-#define NOGSL 1
+#define DEBUGMODE 0
+#define NOGSL 0
 #define NOREFERENCE 0
 #include "Engine.hpp"
 #include "graphData.hpp"
 #include "residuals.hpp"
 #include <iostream>
 #include <string> 
-
+#include <sstream>
 
 
 int main(int argc, char* argv[]) {
@@ -16,7 +16,7 @@ int main(int argc, char* argv[]) {
 		std::cout << "Need filename for input graph\n";
 		throw 1;
 	}
-	std::cin >> dummy;
+	// std::cin >> dummy;
 	fnstem = argv[1];
 	//fnstem = "grassland";
 	fnin = fnstem+".txt";
@@ -36,6 +36,8 @@ int main(int argc, char* argv[]) {
 	en->tree->writeNodeTypes(fnout.c_str());
 	std::cout << "getting the residual graph\n";
 	Gnew = getResidual(G, en->tree, en->w, 1);
+	fnout = fnstem + ".residual";
+	Gnew->writeSingle(fnout.c_str());
 	std::cout << "Etot = "<< Gnew->Etot << "\n";
 	int residint = 1;
 	while(Gnew->Etot > .1f) {
@@ -53,6 +55,13 @@ int main(int argc, char* argv[]) {
 		G = Gnew;
 		std::cout << "getting the residual graph\n";
 		Gnew = getResidual(G, en->tree, en->w, 1);
+		std::stringstream dummy;
+		dummy << residint+1;
+		std::string sres;
+		dummy >> sres;
+		std::cout << "sres = "<<sres<<"\n";
+		fnout = fnstem + sres + ".residual";
+		Gnew->writeSingle(fnout.c_str());
 		std::cout << "Etot = "<< Gnew->Etot << "\n";
 	}
 	std::cout << "done!\n";

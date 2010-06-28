@@ -157,7 +157,7 @@ float linkPredictor::predictEdge(int u, int v, int d) {
 		throw 1;
 	}
 	wpredicted = ma * theta * mb;
-	if ((wpredicted>1)or(wpredicted<0)) {
+	if ((wpredicted>1)||(wpredicted<0)) {
 		std::cerr << "bad weight predicted?\n";
 		// TODO:: erase this! only for debug
 	}

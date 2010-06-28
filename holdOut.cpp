@@ -8,6 +8,7 @@
 
 int main(int argc, char* argv[]) {
 	float holdout;
+	unsigned long long int tstamp;
 	std::string fnstem, fnin, fnout, line;
 	if (argc<2) {
 		std::cerr << "Need name for input graph (.txt will be appended)\n";
@@ -22,7 +23,8 @@ int main(int argc, char* argv[]) {
 		std::cerr << "fraction needs to be <1!\n";
 		throw(1);
 	}
-	srand( time(NULL) );
+	tstamp = time(NULL);
+	srand( tstamp );
 	std::set<int> eset;
 	int nlines, i, n, nhold;
 	fnstem = argv[1];
@@ -40,9 +42,11 @@ int main(int argc, char* argv[]) {
 	nhold = holdout * nlines;
 	nhold = std::max(nhold,1);
 	nhold = std::min(nhold,nlines-1);
-	std::cout << "nlines = "<< nlines << "\n";
-	std::cout << "nhold = "<< nhold << "\n";
-	std::cout << "holdout = "<< holdout << "\n";
+	//std::cout << "nlines = "<< nlines << "\n";
+	//std::cout << "nhold = "<< nhold << "\n";
+	//std::cout << "holdout = "<< holdout << "\n";
+	std::cout << tstamp;
+	std::cout.flush();
 	n=0;
 	while (eset.size()<nhold) {
 		i = rand() % nlines;
@@ -60,7 +64,6 @@ int main(int argc, char* argv[]) {
 	std::vector<int>::iterator nit = evec.begin();
 	while (!file.eof()) {
 		getline(file,line);
-		std::cout << "*nit = " << *nit << ", i = " <<i <<"\n";
 		if ((*nit)==i) {
 			++nit;
 			// this is a hold out edge

@@ -78,7 +78,7 @@ void Engine::printCommonNeighbFile(const char* fn, int d, bool edges) {
 	file.open(fn,std::ios::out);
 	for (u=0; u<D[d].numV; u++) {
 		for (v=u+1; v<D[d].numV; v++) {
-			if ((edges)or(not D[d].has_uv(u,v))) {
+			if ((edges)||(! D[d].has_uv(u,v))) {
 				c = num_common_keys( *(D[d].edgeList[u]), *(D[d].edgeList[v]) );
 				file << D[d].int2Name[u] << '\t' << D[d].int2Name[v] << '\t' << c << '\n';
 			}
@@ -95,7 +95,7 @@ void Engine::printJaccardFile(const char* fn, int d, bool edges) {
 	for (u=0; u<D[d].numV; u++) {
 		ad = D[d].degree(u);
 		for (v=u+1; v<D[d].numV; v++) {
-			if ((edges)or(not D[d].has_uv(u,v))) {
+			if ((edges)||(! D[d].has_uv(u,v))) {
 				aib = num_common_keys( *(D[d].edgeList[u]), *(D[d].edgeList[v]) );
 				aub = (ad * D[d].degree(v)) - aib;
 				file << D[d].int2Name[u] << '\t' << D[d].int2Name[v] << '\t' << (aib+0.0f)/aub << '\n';
@@ -116,7 +116,7 @@ void Engine::printHyperGeomFile(const char* fn, int d, bool edges) {
 	for (u=0; u<D[d].numV; u++) {
 		n = D[d].degree(u);
 		for (v=u+1; v<D[d].numV; v++) {
-			if ((edges)or(not D[d].has_uv(u,v))) {
+			if ((edges)||(! D[d].has_uv(u,v))) {
 				m = D[d].degree(v);
 				dmin = std::min(m,n);
 				c = num_common_keys( *(D[d].edgeList[u]), *(D[d].edgeList[v]) );
@@ -151,7 +151,7 @@ void Engine::printDegreeProdFile(const char* fn, int d, bool edges) {
 	for (u=0; u<D[d].numV; u++) {
 		ad = D[d].degree(u);
 		for (v=u+1; v<D[d].numV; v++) {
-			if ((edges)or(not D[d].has_uv(u,v))) {
+			if ((edges)||(! D[d].has_uv(u,v))) {
 				bd = D[d].degree(v);
 				file << D[d].int2Name[u] << '\t' << D[d].int2Name[v] << '\t' << ad*bd << '\n';
 			}
