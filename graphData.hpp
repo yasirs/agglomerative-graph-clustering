@@ -36,6 +36,7 @@ class graphData{
 		bool readBinary(const char* filename);
 		void writeBoth(const char* filename);
 		void writeSingle(const char* filename);
+		void writeSingle_noname(const char* filename);
 		int degree(int i);
 		//std::set<int> neighbors(int i);
 		~graphData() {
@@ -50,6 +51,38 @@ class graphData{
 
 int graphData::degree(int i) {
 	return edgeList[i]->size();
+};
+
+
+
+
+void graphData::writeSingle_noname(const char* fn) {
+	int u,v;
+	float weight;
+	std::ofstream file;
+	file.open(fn,std::ios::out);
+	std::map<int, destList*>::iterator outIt;
+	destList::iterator inIt;
+	for (outIt = edgeList.begin(); outIt != edgeList.end(); ++outIt) {
+		u = outIt->first;
+		for (inIt = edgeList[u]->begin(); inIt != edgeList[u]->end(); ++inIt) {
+			v = inIt->first;
+			weight = inIt->second;
+			if (u<v) {
+				if (gtype=='w') {
+					file << u <<'\t' << v  << '\t' << weight << '\n';
+				}
+				else if (gtype=='b') {
+					file << u <<'\t' <<  v << '\n';
+				}
+				else {
+					std::cerr << gtype << " type of graph not recognized in writing graphs\n";
+					throw 1;
+				}
+			}
+		}
+	}
+	file.close();
 };
 
 

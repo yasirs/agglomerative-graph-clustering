@@ -111,9 +111,11 @@ void linkPredictor::attach(Engine* e) {
 			for (d=0;d<dim;d++) {
 				if (D[d].gtype=='w') {
 					theta = w[d].get_uv(n1,n2)/(w[d].degrees[n1] * w[d].degrees[n2]);
+					if (std::isnan(theta)) theta=0;
 					topThetas[n1][n2][d] = theta;
 				} else if (D[d].gtype=='b') {
 					theta = w[d].get_uv(n1,n2)/(w[d].nV[n1] * w[d].nV[n2]);
+					if (std::isnan(theta)) theta=0;
 					topThetas[n1][n2][d] = theta;
 				} else {
 					std::cerr << "graph type "<<D[d].gtype<<" not yet supported for link prediction (top Thetas).\n";

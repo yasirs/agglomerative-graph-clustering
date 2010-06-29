@@ -373,6 +373,7 @@ int Engine::run() {
 				pnode->thDen[d] += tree->nodeMap[a]->thDen[d] + tree->nodeMap[b]->thDen[d];
 			}
 			theta = pnode->thNum[d] / pnode->thDen[d];
+			if (std::isnan(theta)) theta = 0;
 			tree->nodeMap[c]->theta[d] = theta;
 			//TODO:: delete the following, only for debugging
 			if (theta<0) {
