@@ -6,6 +6,81 @@
 #include "linkPredictor.hpp"
 
 
+void updateSoFar(graphData* Doriginal, linkPredictor& lp, graphData* GsoFar) {
+	float NE = 0;
+	int u,v,d;
+	float wpredicted, wthis, thisweight, w_old;
+	graphData::destList::iterator eit;
+	std::map<int, graphData::destList*>::iterator dit;
+	for (d=0;d<lp.dim;d++) {
+		NE = 0;
+		for (dit = Doriginal[d].edgeList.begin(); dit != Doriginal[d].edgeList.end(); dit++) {
+			u = (*dit).first;
+			for (eit = Doriginal[d].edgeList[u]->begin(); eit != Doriginal[d].edgeList[u]->end(); eit++) {
+				v = (*eit).first;
+				wpredicted = lp.predictEdge(u,v,d);
+				if (wpredicted > EPS) {
+					w_old = GsoFar[d].get_uv(u,v);
+					wpredicted = 1.0 - (1.0 - w_old)*(1.0 - wpredicted);
+					GsoFar[d].set_uv(u, v, wpredicted);
+					GsoFar[d].Etot += wpredicted;
+					GsoFar[d].Etot -= w_old;
+					NE += 1;
+				}
+			}
+		}
+		GsoFar[d].aveP = NE/(GsoFar[d].numV * (GsoFar[d].numV-1));
+	}
+};
+
+			
+
+
+
+
+
+graphData* getORResidual(graphData* Doriginal, linkPredictor& lp, graphData* GsoFar) {
+	// for now, this is necessary
+	assert(Doriginal->gtype=='b');
+	graphData *Dnew = new graphData[lp.dim];
+	graphData::destList::iterator eit;
+	std::map<int, graphData::destList*>::iterator dit;
+	float NE = 0;
+	int u,v,d;
+	float wpredicted, wthis, thisweight, w_old;
+	for (d=0;d<lp.dim;d++) {
+		Dnew[d].int2Name = Doriginal[d].int2Name;
+		Dnew[d].name2Int = Doriginal[d].name2Int;
+		Dnew[d].gtype = 'b';
+		Dnew[d].numV = Doriginal[d].numV;
+	}
+	for (d=0;d<lp.dim;d++) {
+		Dnew[d].Etot = 0;
+		NE = 0;
+		for (dit = Doriginal[d].edgeList.begin(); dit != Doriginal[d].edgeList.end(); dit++) {
+			u = (*dit).first;
+			for (eit = Doriginal[d].edgeList[u]->begin(); eit != Doriginal[d].edgeList[u]->end(); eit++) {
+				v = (*eit).first;
+				wthis = (*eit).second;
+				wpredicted = lp.predictEdge(u,v,d);
+				// correct wpredicted
+				w_old = GsoFar[d].get_uv(u,v);
+				wpredicted = 1.0 - (1.0 - w_old)*(1.0 - wpredicted);
+				if ((wthis-wpredicted)>EPS) {
+					thisweight = (wthis-wpredicted)/(1-wpredicted);
+					Dnew[d].set_uv(u,v,thisweight);
+					Dnew[d].Etot += thisweight;
+					NE += 1;
+				}
+			}
+		}
+		Dnew[d].aveP = NE/(Dnew[d].numV * (Dnew[d].numV-1));
+	}
+	return Dnew;
+};
+	
+
+
 graphData* getResidual(graphData* D, linkPredictor& lp) {
 	graphData *Dnew = new graphData[lp.dim];
 	graphData::destList::iterator eit;
@@ -40,76 +115,5 @@ graphData* getResidual(graphData* D, linkPredictor& lp) {
 	return Dnew;
 };
 
-graphData* getResidual(graphData* D, TreeClass* tree, dataMap* w, const int dim) {
-	// should use the other form
-	// this has some errors
-	int d,u,v,n1,n2;
-	std::stack<int> st;
-	graphData *Dnew = new graphData[dim];
-	std::set<int>::iterator intit1, intit2, intit3;
-	std::pair<int,int> ipair;
-	float theta, wthis, wpredicted, NE;
-	std::map<int,std::map<int, float*> > topThetas;
-	graphData::destList::iterator eit;
-	std::map<int, graphData::destList*>::iterator dit;
-	for (intit1 = tree->topLevel.begin(); intit1 != tree->topLevel.end(); intit1++) {
-		n1 = (*intit1);
-		topThetas[n1] = std::map<int, float*>();
-		for (intit2 = tree->topLevel.begin(); intit2 != tree->topLevel.end(); intit2++) {
-			n2 = (*intit2);
-			topThetas[n1][n2] = new float[dim];
-			for (d=0;d<dim;d++) {
-				if (D[d].gtype=='w') {
-					theta = w[d].get_uv(n1,n2)/(w[d].degrees[n1] * w[d].degrees[n2]);
-					topThetas[n1][n2][d] = theta;
-				} else if (D[d].gtype=='b') {
-					theta = w[d].get_uv(n1,n2)/(w[d].nV[n1] * w[d].nV[n2]);
-					topThetas[n1][n2][d] = theta;
-				} else {
-					std::cerr << "graph type "<<D[d].gtype<<" not yet supported for residuals.\n";
-					throw 1;
-				}
-			}
-		}
-	}
-	for (d=0;d<dim;d++) {
-		Dnew[d].int2Name = D[d].int2Name;
-		Dnew[d].name2Int = D[d].name2Int;
-		Dnew[d].gtype = 'w';
-		Dnew[d].numV = D[d].numV;
-	}
-	for (d=0;d<dim;d++) {
-		Dnew[d].Etot = 0;
-		NE = 0;
-		for (dit = D[d].edgeList.begin(); dit != D[d].edgeList.end(); dit++) {
-			u = (*dit).first;
-			for (eit = D[d].edgeList[u]->begin(); eit != D[d].edgeList[u]->end(); eit++) {
-				v = (*eit).first;
-				wthis = (*eit).second;
-				ipair = tree->getLCA(u,v);
-				if (ipair.first==ipair.second) {
-					theta = tree->nodeMap[ipair.first]->theta[d];
-				} else {
-					theta = topThetas[ipair.first][ipair.second][d];
-				}
-				if (D[d].gtype=='w') {
-					wpredicted = w[d].degrees[u] * w[d].degrees[v] * theta;
-				} else if (D[d].gtype=='b') {
-					wpredicted = w[d].nV[u] * w[d].nV[v] * theta;
-				} else {
-					std::cerr << "graph type "<< D[d].gtype <<" not supported yet for computing residuals\n";
-					throw 1;
-				}
-				if ((wthis-wpredicted)>EPS) {
-					Dnew[d].set_uv(u,v,wthis-wpredicted);
-					Dnew[d].Etot += wthis-wpredicted;
-					NE += 1;
-				}
-			}
-		}
-		Dnew[d].aveP = NE/(Dnew[d].numV * Dnew[d].numV);
-	}
-	return Dnew;
-};
 
 #endif

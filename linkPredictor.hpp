@@ -21,8 +21,24 @@ class linkPredictor {
 		float predictEdge(int u, int v, int d);
 		graphData* makeNonEdgePred(graphData* Dref);
 		graphData* makeCompleteEdgePred();
+		graphData* copyNoEdges(graphData* Dold);
 		void addPredstoGraph(graphData* PD);
 };
+
+
+graphData* linkPredictor::copyNoEdges(graphData* Dold) {
+	int d;
+	graphData* Dnew = new graphData[dim];
+	for (d=0;d<dim;d++) {
+		Dnew[d].int2Name = Dold[d].int2Name;
+		Dnew[d].name2Int = Dold[d].name2Int;
+		Dnew[d].gtype = 'b';
+		Dnew[d].numV = Dold[d].numV;
+	}
+	return Dnew;
+};
+
+
 
 
 
