@@ -5,6 +5,8 @@
 #include "graphData.hpp"
 #include "Engine.hpp"
 #include <cassert>
+#include <cmath>
+#include <math.h>
 
 class linkPredictor {
 	public:

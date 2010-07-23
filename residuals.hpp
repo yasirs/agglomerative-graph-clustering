@@ -9,7 +9,7 @@
 void updateSoFar(graphData* Doriginal, linkPredictor& lp, graphData* GsoFar) {
 	float NE = 0;
 	int u,v,d;
-	float wpredicted, wthis, thisweight, w_old;
+	float wpredicted, w_old;
 	graphData::destList::iterator eit;
 	std::map<int, graphData::destList*>::iterator dit;
 	for (d=0;d<lp.dim;d++) {

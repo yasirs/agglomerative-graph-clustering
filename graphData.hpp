@@ -32,6 +32,7 @@ class graphData{
 		void set_uv(int u, int v, float w);
 		bool has_uv(int u, int v);
 		int Add_uv(int u, int v, float w); 
+		bool readBinaryBasedOnOld(graphData* Gorginal, const char* filename);
 		bool readWeighted(const char* filename);
 		bool readBinary(const char* filename);
 		void writeBoth(const char* filename);
@@ -162,6 +163,60 @@ float graphData::get_uv(int u, int v) {
 		}
 	}
 	return 0;
+};
+
+
+bool graphData::readBinaryBasedOnOld(graphData* Goriginal, const char* filename) {
+	gtype = 'b';
+	Etot = 0.0f;
+	std::string strline;
+	std::ifstream file;
+	std::vector<std::string> tok;
+	destList* pdl;
+	int u,v;
+	float sum = 0;
+	float weight;
+	std::string St1, St2;
+	std::istringstream temp;
+	file.open(filename,std::ios::in);
+	if (! file.is_open()) return 0;
+	int2Name = Goriginal->int2Name;
+	name2Int = Goriginal->name2Int;
+	numV = Goriginal->numV;
+	while (! file.eof()) {
+		getline(file,strline);
+		tok.clear();
+		my_Tokenize(strline,tok," \t");
+		if (tok.size()>1) {
+			if (name2Int.find(tok[0])==name2Int.end()) {
+				return 0;
+			} else {
+				u = name2Int[tok[0]];
+			}
+			if (name2Int.find(tok[1])==name2Int.end()) {
+				return 0;
+			} else {
+				v = name2Int[tok[1]];
+			}
+			weight = 1;
+			if (edgeList.find(u)==edgeList.end()) {
+				pdl = new destList;
+				edgeList[u] = pdl;
+			}
+			(*edgeList[u])[v] = weight;
+			if (edgeList.find(v)==edgeList.end()) {
+				pdl = new destList;
+				edgeList[v] = pdl;
+			}
+			(*edgeList[v])[u] = weight;
+			sum += 2; // NOTE : this shouldn't really matter as the sum isn't used for
+					// weighted graphs
+			Etot += weight;
+		}
+	}
+	numV = name2Int.size();
+	aveP = sum/(numV * numV); // shouldn't matter because aveP is to be used for binary
+	return 1;
 };
 
 

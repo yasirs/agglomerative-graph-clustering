@@ -1,5 +1,5 @@
 #ifndef DATAMAP_HPP
-
+#include <tr1/unordered_map>
 #include <map>
 #include <list>
 #include <set>
@@ -10,10 +10,10 @@
 
 class dataMap{
 	public:
-		std::map<int, std::map<int,float> > dat;
-		std::map<int, float> degrees; // for weighted
-		std::map<int, float> nV; // for binomial model
-		std::map<int, float> selfMissing; // for weighted networks 
+		std::tr1::unordered_map<int, std::tr1::unordered_map<int,float> > dat;
+		std::tr1::unordered_map<int, float> degrees; // for weighted
+		std::tr1::unordered_map<int, float> nV; // for binomial model
+		std::tr1::unordered_map<int, float> selfMissing; // for weighted networks 
 		bool has_uv(int u, int v); //done
 		bool AddPair(int u, int v, float d); //done
 		bool Addto(int u, int v, float d); //done
@@ -31,9 +31,11 @@ float dataMap::getDegree(int i) {
 
 float dataMap::get_uv(int u, int v) {
 	//NOTE: returns zero if not present
-	if (dat.find(u)!=dat.end()) {
-		if (dat[u].find(v)!=dat[u].end()) {
-			return dat[u][v];
+	std::tr1::unordered_map<int, std::tr1::unordered_map<int, float> >::iterator outIt(dat.find(u));
+	if (outIt!=dat.end()) {
+		std::tr1::unordered_map<int,float>::iterator inIt ( (*outIt).second.find(v));
+		if ( inIt !=(*outIt).second.end()) {
+			return (*inIt).second;
 		} else {
 			return 0;
 		}
@@ -45,19 +47,22 @@ float dataMap::get_uv(int u, int v) {
 
 std::set<int>* dataMap::neighbors(int i) {
 	std::set<int>* pans = new std::set<int>;
-	if (dat.find(i)!=dat.end()) {
+	std::tr1::unordered_map<int, std::tr1::unordered_map<int,float> >::iterator outIt (dat.find(i));
+	if (outIt==dat.end()) {
 		return pans;
 	}
-	std::map<int,float>::iterator it;
-	for(it = dat[i].begin();it != dat[i].end(); ++it) {
+	std::tr1::unordered_map<int,float>::iterator it ((*outIt).second.begin());
+	for(it = (*outIt).second.begin();it != (*outIt).second.end(); ++it) {
 		(*pans).insert( (*it).first);
 	}
 	return pans;
 };
 
 bool dataMap::has_uv(int u, int v) {
-	if (dat.find(u)!= dat.end()) {
-		if (dat[u].find(v) != dat[u].end()) {
+	std::tr1::unordered_map<int, std::tr1::unordered_map<int, float> >::iterator outIt(dat.find(u));
+	if (outIt != dat.end()) {
+		std::tr1::unordered_map<int,float>::iterator inIt ( (*outIt).second.find(v));
+		if ( inIt != (*outIt).second.end()) {
 			return 1;
 		}
 	}
@@ -65,15 +70,17 @@ bool dataMap::has_uv(int u, int v) {
 };
 
 bool dataMap::AddPair(int u, int v, float d) {
-	if (dat.find(u) != dat.end()) {
-		if (dat[u].find(v) != dat[u].end()) {
-			dat[u][v] = d;
+	std::tr1::unordered_map<int, std::tr1::unordered_map<int, float> >::iterator outIt(dat.find(u));
+	if ( outIt != dat.end()) {
+		std::tr1::unordered_map<int,float>::iterator inIt ( (*outIt).second.find(v));
+		if ( inIt != (*outIt).second.end()) {
+			(*inIt).second = d;
 			return 0;
 		} else {
-			dat[u][v]=d;
+			(*outIt).second[v]=d;
 		}
 	} else {
-		std::map<int,float> mnew;
+		std::tr1::unordered_map<int,float> mnew;
 		mnew[v] = d;
 		dat[u] = mnew;
 	}
@@ -90,7 +97,7 @@ bool dataMap::Addto(int u, int v, float d) {
 			dat[u][v]=d;
 		}
 	} else {
-		std::map<int,float> mnew;
+		std::tr1::unordered_map<int,float> mnew;
 		mnew[v] = d;
 		dat[u] = mnew;
 	}

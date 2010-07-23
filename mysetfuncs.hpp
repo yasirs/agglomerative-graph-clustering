@@ -7,6 +7,17 @@
 #include <iterator>
 
 
+/*
+#include <float.h>
+namespace std {
+	int isnan(double x);
+}
+
+int std::isnan(double x) {
+	return _isnan(x);
+}*/
+
+
 
 
 template<typename T> int num_set_common(const std::set<T>& s1, const std::set<T>& s2) {

@@ -1,6 +1,7 @@
 #ifndef ENGINE_HPP
 #define ENGINE_HPP
 #include <map>
+#include <tr1/unordered_map>
 #include <list>
 #include <set>
 #include "graphData.hpp"
@@ -13,6 +14,52 @@
 #include <cmath>
 #include <algorithm>
 
+
+/*namespace std {	namespace tr1 {
+	template <> 
+		struct hash<std::pair<double, double> >
+		{	 
+			std::size_t operator()(std::pair<double,double>& p) const
+			{
+				return hash<double >() (p.first * p.second + p.first + p.second);
+			} 
+		};
+} }*/
+
+
+struct DPairHash {
+  std::size_t operator() (const std::pair<double,double>& p) const {
+    return std::tr1::hash<double>() (p.first * p.second + p.first + p.second);
+  }
+};
+
+struct DPairEqual {
+  bool operator() (const std::pair<double,double>& a, const std::pair<double,double>& b) const {
+    return a.first == b.first 
+      && a.second == b.second;
+  }
+};
+
+
+
+/*
+namespace std
+{
+ using namespace __gnu_cxx;
+}
+
+
+namespace __gnu_cxx
+{
+        template<> struct hash< std::string >
+        {
+                size_t operator()( const std::string& x ) const
+                {
+                        return hash< const char* >()( x.c_str() );
+                }
+        };
+}
+*/
 
 
 #if (! NOGSL)
@@ -33,6 +80,48 @@ double gsl_sf_gamma(double a) {
 };
 
 #endif
+
+double lnBetaFunction(double a, double b) {
+	static int numSoFar = 0;
+	static std::list<std::pair<double,double> > q;
+	static std::tr1::unordered_map<std::pair<double,double>, double, DPairHash, DPairEqual> LUT;
+	static int buildN = 500;
+	static int qN = 30;
+	std::tr1::unordered_map<std::pair<double,double>,double, DPairHash, DPairEqual>::iterator Lit(LUT.begin());
+	std::pair<double,double> p(a,b);
+	if (a==1) {
+		return -log(b);
+	} else if (b==1) {
+		return -log(a);
+	}
+	if (numSoFar<buildN) {
+		numSoFar++;
+		if (q.size()>qN) {
+			q.pop_back();
+		}
+		if (LUT.find(p)!=LUT.end()) {
+			return LUT[p];
+		}
+		if (std::find(q.begin(), q.end(), p)!=q.end()) {
+			LUT[p] = gsl_sf_lnbeta(a,b);
+			return LUT[p];
+		} else {
+			// q does not have it, neither does LUT
+			q.push_front(p);
+			return gsl_sf_lnbeta(a,b);
+		}
+	}
+	Lit = LUT.find(p);
+	if (Lit!=LUT.end()) {
+		return (*Lit).second;
+	} else return gsl_sf_lnbeta(a,b);
+};
+
+double gammaFunction(double a) {
+	if (a==1) return 1;
+	else return gsl_sf_gamma(a);
+};
+
 
 #ifndef DEBUGMODE
 #define DEBUGMODE 0
@@ -123,10 +212,10 @@ void Engine::printHyperGeomFile(const char* fn, int d, bool edges) {
 				s = 0;
 				for (x = c; x<= dmin; x++) {
 					dummy = 1.0;
-					dummy = dummy / gsl_sf_gamma(1+x);
-					dummy = dummy / gsl_sf_gamma(1+m-x);
-					dummy = dummy / gsl_sf_gamma(1+n-x);
-					dummy = dummy / gsl_sf_gamma(1+t-m-n+x);
+					dummy = dummy / gammaFunction(1+x);
+					dummy = dummy / gammaFunction(1+m-x);
+					dummy = dummy / gammaFunction(1+n-x);
+					dummy = dummy / gammaFunction(1+t-m-n+x);
 					s = s + dummy;
 					
 					/*s = s + 1.0 / (gsl_sf_gamma(x)*
@@ -134,7 +223,7 @@ void Engine::printHyperGeomFile(const char* fn, int d, bool edges) {
 							gsl_sf_gamma(n-x)*
 							gsl_sf_gamma(t-m-n+x));*/
 				}
-				s = s * gsl_sf_gamma(1+m) * gsl_sf_gamma(1+n) * gsl_sf_gamma(1+t-m) * gsl_sf_gamma(1+t-n) / gsl_sf_gamma(1+t);
+				s = s * gammaFunction(1+m) * gammaFunction(1+n) * gammaFunction(1+t-m) * gammaFunction(1+t-n) / gammaFunction(1+t);
 				s = -log10(s);
 				file << D[d].int2Name[u] << '\t' << D[d].int2Name[v] << '\t' << s << '\n';
 			}
@@ -262,14 +351,14 @@ double Engine::deltascore(int d, int a, int b, int x) {
 		Ebarbx = Tbx * D[d].aveP;
 		Hbarax = Tax - Ebarax;
 		Hbarbx = Tbx - Ebarbx;
-		ans =    (	gsl_sf_lnbeta(Eax+Ebx+1.0f,Hax+Hbx+1.0f)
-				-gsl_sf_lnbeta(Eax+1.0f,Hax+1.0f)
-				-gsl_sf_lnbeta(Ebx+1.0f,Hbx+1.0f)
+		ans =    (	lnBetaFunction(Eax+Ebx+1.0f,Hax+Hbx+1.0f)
+				-lnBetaFunction(Eax+1.0f,Hax+1.0f)
+				-lnBetaFunction(Ebx+1.0f,Hbx+1.0f)
 			 );
 #if (! NOREFERENCE)
-		ans -=   (	gsl_sf_lnbeta(Ebarax+Ebarbx+1.0f,Hbarax+Hbarbx+1.0f)
-				-gsl_sf_lnbeta(Ebarax+1.0f,Hbarax+1.0f)
-				-gsl_sf_lnbeta(Ebarbx+1.0f,Hbarbx+1.0f)
+		ans -=   (	lnBetaFunction(Ebarax+Ebarbx+1.0f,Hbarax+Hbarbx+1.0f)
+				-lnBetaFunction(Ebarax+1.0f,Hbarax+1.0f)
+				-lnBetaFunction(Ebarbx+1.0f,Hbarbx+1.0f)
 			 );
 #endif
 	} else if (D[d].gtype=='w') {
@@ -286,14 +375,14 @@ double Engine::deltascore(int d, int a, int b, int x) {
 		Ebarbx = db * dx/(2.0f*D[d].Etot);
 		Hbarax = da * dx - Ebarax;
 		Hbarbx = db * dx - Ebarbx;
-		ans =    (	gsl_sf_lnbeta(Eax+Ebx+1.0f,Hax+Hbx+1.0f)
-				-gsl_sf_lnbeta(Eax+1.0f,Hax+1.0f)
-				-gsl_sf_lnbeta(Ebx+1.0f,Hbx+1.0f)
+		ans =    (	lnBetaFunction(Eax+Ebx+1.0f,Hax+Hbx+1.0f)
+				-lnBetaFunction(Eax+1.0f,Hax+1.0f)
+				-lnBetaFunction(Ebx+1.0f,Hbx+1.0f)
 			 );
 #if (! NOREFERENCE)
-		ans -=	 (	gsl_sf_lnbeta(Ebarax+Ebarbx+1.0f,Hbarax+Hbarbx+1.0f)
-				-gsl_sf_lnbeta(Ebarax+1.0f,Hbarax+1.0f)
-				-gsl_sf_lnbeta(Ebarbx+1.0f,Hbarbx+1.0f)
+		ans -=	 (	lnBetaFunction(Ebarax+Ebarbx+1.0f,Hbarax+Hbarbx+1.0f)
+				-lnBetaFunction(Ebarax+1.0f,Hbarax+1.0f)
+				-lnBetaFunction(Ebarbx+1.0f,Hbarbx+1.0f)
 			 );
 #endif
 	}
