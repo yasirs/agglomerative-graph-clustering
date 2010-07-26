@@ -27,16 +27,17 @@
 } }*/
 
 
-struct DPairHash {
-  std::size_t operator() (const std::pair<double,double>& p) const {
-    return std::tr1::hash<double>() (p.first * p.second + p.first + p.second);
+struct FPairHash {
+  std::size_t operator() (const std::pair<float,float>& p) const {
+    return ((int) (1000*p.first) + (int) (100*p.second) );
   }
 };
 
-struct DPairEqual {
-  bool operator() (const std::pair<double,double>& a, const std::pair<double,double>& b) const {
-    return a.first == b.first 
-      && a.second == b.second;
+struct FPairEqual {
+  bool operator() (const std::pair<float,float>& a, const std::pair<float,float>& b) const {
+	if (a.first != b.first) return 0;
+	else if (a.second != b.second) return 0;
+	else return 1;
   }
 };
 
@@ -81,23 +82,25 @@ double gsl_sf_gamma(double a) {
 
 #endif
 
-double lnBetaFunction(double a, double b) {
+float lnBetaFunction(float a, float b) {
 	static int numSoFar = 0;
-	static std::list<std::pair<double,double> > q;
-	static std::tr1::unordered_map<std::pair<double,double>, double, DPairHash, DPairEqual> LUT;
+	static std::list<std::pair<float,float> > q;
+	static std::tr1::unordered_map<std::pair<float,float>, float, FPairHash, FPairEqual> LUT;
 	static int buildN = 500;
 	static int qN = 30;
-	std::tr1::unordered_map<std::pair<double,double>,double, DPairHash, DPairEqual>::iterator Lit(LUT.begin());
-	std::pair<double,double> p(a,b);
 	if (a==1) {
 		return -log(b);
 	} else if (b==1) {
 		return -log(a);
 	}
+	std::pair<float,float> p(a,b);
 	if (numSoFar<buildN) {
 		numSoFar++;
 		if (q.size()>qN) {
 			q.pop_back();
+		}
+		if (numSoFar==buildN) {
+			std::cout << "DEBUG:: size of LUT is "<<LUT.size() << "\n";
 		}
 		if (LUT.find(p)!=LUT.end()) {
 			return LUT[p];
@@ -111,7 +114,7 @@ double lnBetaFunction(double a, double b) {
 			return gsl_sf_lnbeta(a,b);
 		}
 	}
-	Lit = LUT.find(p);
+	std::tr1::unordered_map<std::pair<float,float>,float, FPairHash, FPairEqual>::iterator Lit(LUT.find(p));
 	if (Lit!=LUT.end()) {
 		return (*Lit).second;
 	} else return gsl_sf_lnbeta(a,b);
@@ -150,8 +153,8 @@ class Engine{
 		int run();
 		bool doStage();
 		bool cleanUp();
-		double deltascore(int d, int a, int b, int x);
-		double centerscore(int d, int a, int b);
+		float deltascore(int d, int a, int b, int x);
+		float centerscore(int d, int a, int b);
 		std::set<int> getNeighborsVertex(int i);
 		std::set<int> getNeighborsNode(int i);
 		void printJaccardFile(const char* filename, int d, bool edges);
@@ -197,8 +200,7 @@ void Engine::printJaccardFile(const char* fn, int d, bool edges) {
 
 void Engine::printHyperGeomFile(const char* fn, int d, bool edges) {
 	int u, v, m, n, c, t, x, dmin;
-	double s;
-	double dummy;
+	float s,dummy;
 	std::ofstream file;
 	file.open(fn,std::ios::out);
 	t = D[d].numV-2;
@@ -274,9 +276,9 @@ Engine::~Engine() {
 };
 
 
-double Engine::centerscore(int d, int a, int b) {
+float Engine::centerscore(int d, int a, int b) {
 	assert(a!=b);
-	double ans;
+	float ans;
 	if (D[d].gtype=='b') {
 		float Tab, Eab, Eaa, Ebb, Haa, Hbb, Taa, Tbb, Tcc;
 		Tab = w[d].nV[a] * w[d].nV[b];
@@ -331,9 +333,9 @@ double Engine::centerscore(int d, int a, int b) {
 };
 
 
-double Engine::deltascore(int d, int a, int b, int x) {
+float Engine::deltascore(int d, int a, int b, int x) {
 	assert((a!=b)&&(a!=x)&&(b!=x));
-	double ans;
+	float ans;
 	float da, db, dx;
 	if (D[d].gtype=='b') {
 		float Eax, Ebx, Hax, Hbx, Tax, Tbx;
@@ -397,7 +399,7 @@ int Engine::run() {
 	int numJoins = 0;
 	int a,b,c,x,y,z,d;
 	float wc, theta, wab;
-	double cscore, jscore;
+	float cscore, jscore;
 	Node* pnode;
 	scoremap::pairScore pscore;
 	std::map<int, scoremap::smap>::iterator smOut;
@@ -694,7 +696,7 @@ bool Engine::initializeFirstLev() {
 	std::set<int> emptySet;
 	curLev = 0;
 	int i,d,u,v,x,y,z;
-	double jscore,cscore;
+	float jscore,cscore;
 	Node* pn;
 	std::map<int, graphData::destList*>::iterator it1;
 	graphData::destList::iterator it2;

@@ -17,9 +17,9 @@
 class scoremap{
 	public:
 		typedef struct twoScorestruct{
-			double joinScore;
-			double centerMscore;
-			twoScorestruct (double j, double c) {
+			float joinScore;
+			float centerMscore;
+			twoScorestruct (float j, float c) {
 				joinScore = j;
 				centerMscore = c;
 			}
@@ -49,9 +49,9 @@ class scoremap{
 		smap get_u(int u) { return scores[u]; }
 		bool hasPos(); //done
 		bool isEmpty(); //done
-		int AddPair(int u, int v, double jscore, double cscore); //done
+		int AddPair(int u, int v, float jscore, float cscore); //done
 		int AddPair(int u, int v, twoScores score); 
-		void AddTo(int u, int v, double scorej); // done
+		void AddTo(int u, int v, float scorej); // done
 		bool eraseAll(); //done
 		bool erase(int u,int v); //done
 		int has_u(int u);
@@ -212,9 +212,9 @@ int scoremap::AddPair(int u, int v, twoScores score) {
 };
 
 
-void scoremap::AddTo(int u, int v, double scorej) {
-	double nsj;
-	double nsc;
+void scoremap::AddTo(int u, int v, float scorej) {
+	float nsj;
+	float nsc;
 	nsj = scores[u].scoreDest[v].joinScore + scorej;
 	nsc = scores[u].scoreDest[v].joinScore;
 	assert( !(this->AddPair(u,v,nsj,nsc)));
@@ -222,7 +222,7 @@ void scoremap::AddTo(int u, int v, double scorej) {
 
 
 
-int scoremap::AddPair(int u, int v, double scorej, double scorec) {
+int scoremap::AddPair(int u, int v, float scorej, float scorec) {
 	if (u==v) throw 1; //TODO this was for debugging, possibly leave them in
 	twoScores score = twoScorestruct(scorej, scorec);
 	return (this->AddPair(u,v,score));
