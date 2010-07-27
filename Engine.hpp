@@ -13,7 +13,7 @@
 #include <cassert>
 #include <cmath>
 #include <algorithm>
-#include <boost/math/special_functions/gamma.hpp>
+// #include <boost/math/special_functions/gamma.hpp>
 
 
 /*namespace std {	namespace tr1 {
@@ -123,12 +123,12 @@ float lnBetaFunction(float a, float b) {
 
 float gammaFunction(float a) {
 	if (a==1) return 1;
-	else return tgamma(a);
+	else return gamma(a);
 };
 
 float gammaFunction(int a) {
 	if (a==1) return 1;
-	else return tgamma(a);
+	else return gamma(a);
 };
 
 #ifndef DEBUGMODE
