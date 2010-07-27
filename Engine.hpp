@@ -13,7 +13,7 @@
 #include <cassert>
 #include <cmath>
 #include <algorithm>
-// #include <boost/math/special_functions/gamma.hpp>
+#include <boost/math/special_functions/gamma.hpp>
 
 
 /*namespace std {	namespace tr1 {
@@ -121,7 +121,6 @@ float lnBetaFunction(float a, float b) {
 	} else return gsl_sf_lnbeta(a,b);
 };
 
-/*
 float gammaFunction(float a) {
 	if (a==1) return 1;
 	else return tgamma(a);
@@ -131,7 +130,6 @@ float gammaFunction(int a) {
 	if (a==1) return 1;
 	else return tgamma(a);
 };
-*/
 
 #ifndef DEBUGMODE
 #define DEBUGMODE 0
@@ -204,7 +202,6 @@ void Engine::printJaccardFile(const char* fn, int d, bool edges) {
 	file.close();
 };
 
-/*
 void Engine::printHyperGeomFile(const char* fn, int d, bool edges) {
 	int u, v, m, n, c, t, x, dmin;
 	float s,dummy;
@@ -236,7 +233,6 @@ void Engine::printHyperGeomFile(const char* fn, int d, bool edges) {
 	}
 	file.close();
 };
-*/
 
 void Engine::printDegreeProdFile(const char* fn, int d, bool edges) {
 	int u,v, ad, bd;
