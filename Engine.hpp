@@ -84,20 +84,26 @@ double gsl_sf_gamma(double a) {
 #endif
 
 float lnBetaFunction(float a, float b) {
-	static int numSoFar = 0;
-	static std::tr1::unordered_map<std::pair<float,float>, float, FPairHash, FPairEqual> LUT;
+	static int nSoFar = 0;
+	static std::tr1::unordered_map<std::pair<float,float>, double, FPairHash, FPairEqual> LUT;
 	static const int nToDo = 300;
+	static bool keepAdding = 1;
 	if (a==1) {
 		return -log(b);
 	} else if (b==1) {
 		return -log(a);
 	}
 	std::pair<float,float> p(a,b);
-	std::tr1::unordered_map<std::pair<float,float>,float, FPairHash, FPairEqual>::iterator Lit(LUT.find(p));
+	std::tr1::unordered_map<std::pair<float,float>, double, FPairHash, FPairEqual>::iterator Lit(LUT.find(p));
 	if (Lit!=LUT.end()) {
+		// TODO::DEBUG
+		double ans = (*Lit).second;
+		double ans2 = gsl_sf_lnbeta(a,b);
+		assert(ans==ans2);
 		return (*Lit).second;
+
 	} else {
-		float ans = gsl_sf_lnbeta(a,b);
+		double ans = gsl_sf_lnbeta(a,b);
 		if (keepAdding) {
 			LUT[p] = ans;
 			nSoFar++;
@@ -107,6 +113,7 @@ float lnBetaFunction(float a, float b) {
 				std::cout << nSoFar << " entries in the LUT, stopping\n";
 			}
 		return ans;
+		}
 	}
 };
 
