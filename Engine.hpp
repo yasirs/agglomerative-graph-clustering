@@ -13,6 +13,7 @@
 #include <cassert>
 #include <cmath>
 #include <algorithm>
+// #include <boost/math/special_functions/gamma.hpp>
 
 
 /*namespace std {	namespace tr1 {
@@ -120,11 +121,17 @@ float lnBetaFunction(float a, float b) {
 	} else return gsl_sf_lnbeta(a,b);
 };
 
-double gammaFunction(double a) {
+/*
+float gammaFunction(float a) {
 	if (a==1) return 1;
-	else return gsl_sf_gamma(a);
+	else return tgamma(a);
 };
 
+float gammaFunction(int a) {
+	if (a==1) return 1;
+	else return tgamma(a);
+};
+*/
 
 #ifndef DEBUGMODE
 #define DEBUGMODE 0
@@ -197,7 +204,7 @@ void Engine::printJaccardFile(const char* fn, int d, bool edges) {
 	file.close();
 };
 
-
+/*
 void Engine::printHyperGeomFile(const char* fn, int d, bool edges) {
 	int u, v, m, n, c, t, x, dmin;
 	float s,dummy;
@@ -220,10 +227,6 @@ void Engine::printHyperGeomFile(const char* fn, int d, bool edges) {
 					dummy = dummy / gammaFunction(1+t-m-n+x);
 					s = s + dummy;
 					
-					/*s = s + 1.0 / (gsl_sf_gamma(x)*
-							gsl_sf_gamma(m-x)*
-							gsl_sf_gamma(n-x)*
-							gsl_sf_gamma(t-m-n+x));*/
 				}
 				s = s * gammaFunction(1+m) * gammaFunction(1+n) * gammaFunction(1+t-m) * gammaFunction(1+t-n) / gammaFunction(1+t);
 				s = -log10(s);
@@ -233,7 +236,7 @@ void Engine::printHyperGeomFile(const char* fn, int d, bool edges) {
 	}
 	file.close();
 };
-
+*/
 
 void Engine::printDegreeProdFile(const char* fn, int d, bool edges) {
 	int u,v, ad, bd;
@@ -290,16 +293,16 @@ float Engine::centerscore(int d, int a, int b) {
 		Ebb = w[d].get_uv(b,b);
 		Haa = Taa - Eaa;
 		Hbb = Tbb - Ebb;
-		ans =   gsl_sf_lnbeta(Eaa + Eab + Ebb + 1,Haa + Hbb + Tab - Eab + 1)
-			- gsl_sf_lnbeta(Eaa + 1, Haa +1)
-			- gsl_sf_lnbeta(Ebb + 1, Hbb +1)
-			- gsl_sf_lnbeta(Eab+1,Tab - Eab +1);
+		ans =   lnBetaFunction(Eaa + Eab + Ebb + 1,Haa + Hbb + Tab - Eab + 1)
+			- lnBetaFunction(Eaa + 1, Haa +1)
+			- lnBetaFunction(Ebb + 1, Hbb +1)
+			- lnBetaFunction(Eab+1,Tab - Eab +1);
 		//for the random reference model
 #if (! NOREFERENCE)
-		ans -=  gsl_sf_lnbeta(Tcc*D[d].aveP + 1, Tcc*(1 - D[d].aveP) + 1)
-			- gsl_sf_lnbeta(Taa*D[d].aveP + 1, Taa*(1 - D[d].aveP) + 1)
-			- gsl_sf_lnbeta(Tbb*D[d].aveP + 1, Tbb*(1 - D[d].aveP) + 1)
-			- gsl_sf_lnbeta(Tab*D[d].aveP + 1, Tab*(1 - D[d].aveP) + 1);
+		ans -=  lnBetaFunction(Tcc*D[d].aveP + 1, Tcc*(1 - D[d].aveP) + 1)
+			- lnBetaFunction(Taa*D[d].aveP + 1, Taa*(1 - D[d].aveP) + 1)
+			- lnBetaFunction(Tbb*D[d].aveP + 1, Tbb*(1 - D[d].aveP) + 1)
+			- lnBetaFunction(Tab*D[d].aveP + 1, Tab*(1 - D[d].aveP) + 1);
 #endif
 	} else if (D[d].gtype=='w') {
 		float Tab, Eab, Eaa, Ebb, Haa, Hbb, Taa, Tbb, Tcc;
@@ -312,10 +315,10 @@ float Engine::centerscore(int d, int a, int b) {
 		Taa = Eaa + Haa;
 		Tbb = Ebb + Hbb;
 		Tcc = Taa + Tbb + Tab;
-		ans =   gsl_sf_lnbeta(Eaa + Eab + Ebb + 1,Haa + Hbb + Tab - Eab + 1)
-			- gsl_sf_lnbeta(Eaa + 1, Haa +1)
-			- gsl_sf_lnbeta(Ebb + 1, Hbb +1)
-			- gsl_sf_lnbeta(Eab+1,Tab - Eab +1);
+		ans =   lnBetaFunction(Eaa + Eab + Ebb + 1,Haa + Hbb + Tab - Eab + 1)
+			- lnBetaFunction(Eaa + 1, Haa +1)
+			- lnBetaFunction(Ebb + 1, Hbb +1)
+			- lnBetaFunction(Eab+1,Tab - Eab +1);
 		//for the random reference model
 #if (! NOREFERENCE)
 		float Ebaraa, Ebarbb, Ebarab, Ebarcc;
@@ -323,10 +326,10 @@ float Engine::centerscore(int d, int a, int b) {
 		Ebaraa = Taa/(2.0f*D[d].Etot);
 		Ebarbb = Tbb/(2.0f*D[d].Etot);
 		Ebarcc = Ebaraa + Ebarbb + Ebarbb;
-		ans -=  gsl_sf_lnbeta(Ebarcc + 1, Tcc - Ebarcc + 1)
-			- gsl_sf_lnbeta(Ebaraa + 1, Taa - Ebaraa + 1)
-			- gsl_sf_lnbeta(Ebarbb + 1, Tbb - Ebarbb + 1)
-			- gsl_sf_lnbeta(Ebarab + 1, Tab - Ebarab + 1);	
+		ans -=  lnBetaFunction(Ebarcc + 1, Tcc - Ebarcc + 1)
+			- lnBetaFunction(Ebaraa + 1, Taa - Ebaraa + 1)
+			- lnBetaFunction(Ebarbb + 1, Tbb - Ebarbb + 1)
+			- lnBetaFunction(Ebarab + 1, Tab - Ebarab + 1);	
 #endif
 	}
 	return ans;
