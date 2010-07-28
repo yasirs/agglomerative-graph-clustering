@@ -16,18 +16,6 @@
 // #include <boost/math/special_functions/gamma.hpp>
 
 
-/*namespace std {	namespace tr1 {
-	template <> 
-		struct hash<std::pair<double, double> >
-		{	 
-			std::size_t operator()(std::pair<double,double>& p) const
-			{
-				return hash<double >() (p.first * p.second + p.first + p.second);
-			} 
-		};
-} }*/
-
-
 struct FPairHash {
   std::size_t operator() (const std::pair<float,float>& p) const {
     return ((int) (1000*p.first) + (int) (100*p.second) );
@@ -42,26 +30,11 @@ struct FPairEqual {
   }
 };
 
+float mySafeLog(float x) {
+	if (x<1e-8) return 1e10;
+	else return log(x);
+};
 
-
-/*
-namespace std
-{
- using namespace __gnu_cxx;
-}
-
-
-namespace __gnu_cxx
-{
-        template<> struct hash< std::string >
-        {
-                size_t operator()( const std::string& x ) const
-                {
-                        return hash< const char* >()( x.c_str() );
-                }
-        };
-}
-*/
 
 
 #if (! NOGSL)
@@ -83,39 +56,6 @@ double gsl_sf_gamma(double a) {
 
 #endif
 
-float lnBetaFunction(float a, float b) {
-	static int nSoFar = 0;
-	static std::tr1::unordered_map<std::pair<float,float>, double, FPairHash, FPairEqual> LUT;
-	static const int nToDo = 5000;
-	static bool keepAdding = 1;
-	if (a==1) {
-		return -log(b);
-	} else if (b==1) {
-		return -log(a);
-	}
-	std::pair<float,float> p(a,b);
-	std::tr1::unordered_map<std::pair<float,float>, double, FPairHash, FPairEqual>::iterator Lit(LUT.find(p));
-	if (Lit!=LUT.end()) {
-		// TODO::DEBUG
-		double ans = (*Lit).second;
-		double ans2 = gsl_sf_lnbeta(a,b);
-		assert(ans==ans2);
-		return (*Lit).second;
-
-	} else {
-		double ans = gsl_sf_lnbeta(a,b);
-		if (keepAdding) {
-			LUT[p] = ans;
-			nSoFar++;
-			if (nSoFar>nToDo) {
-				keepAdding = 0;
-				//TODO::DEBUG
-				std::cout << nSoFar << " entries in the LUT, stopping\n";
-			}
-		return ans;
-		}
-	}
-};
 
 float gammaFunction(float a) {
 	if (a==1) return 1;
@@ -275,7 +215,7 @@ float Engine::centerscore(int d, int a, int b) {
 	assert(a!=b);
 	float ans;
 	if (D[d].gtype=='b') {
-		float Tab, Eab, Eaa, Ebb, Haa, Hbb, Taa, Tbb, Tcc;
+		float Tab, Eab, Eaa, Ebb, Taa, Tbb, Tcc;
 		Tab = w[d].nV[a] * w[d].nV[b];
 		Taa = w[d].nV[a] * (w[d].nV[a] - 1)/2.0f;
 		Tbb = w[d].nV[b] * (w[d].nV[b] - 1)/2.0f;
@@ -283,9 +223,18 @@ float Engine::centerscore(int d, int a, int b) {
 		Eab = w[d].get_uv(a,b);
 		Eaa = w[d].get_uv(a,a);
 		Ebb = w[d].get_uv(b,b);
-		Haa = Taa - Eaa;
-		Hbb = Tbb - Ebb;
-		ans =   lnBetaFunction(Eaa + Eab + Ebb + 1,Haa + Hbb + Tab - Eab + 1)
+		float Etot = Eaa+Ebb+Eab;
+		float Ttot = Taa+Tbb+Tab;
+		float thetaTot = Etot/Ttot;
+		float thetaA = Eaa/Taa;
+		float thetaB = Ebb/Tbb;
+		float thetaAB = Eab/Tab;
+		ans = Etot * mySafeLog(thetaTot) + (Ttot - Etot) * mySafeLog(1-thetaTot)
+			- Eaa * mySafeLog(thetaA) - (Taa - Eaa) * mySafeLog(1-thetaA)
+			- Ebb * mySafeLog(thetaB) - (Tbb - Ebb) * mySafeLog(1-thetaB)
+			- Eab * mySafeLog(thetaAB) - (Tab - Eab) * mySafeLog(1-thetaAB);
+		
+	/*	ans =   lnBetaFunction(Eaa + Eab + Ebb + 1,Haa + Hbb + Tab - Eab + 1)
 			- lnBetaFunction(Eaa + 1, Haa +1)
 			- lnBetaFunction(Ebb + 1, Hbb +1)
 			- lnBetaFunction(Eab+1,Tab - Eab +1);
@@ -295,7 +244,7 @@ float Engine::centerscore(int d, int a, int b) {
 			- lnBetaFunction(Taa*D[d].aveP + 1, Taa*(1 - D[d].aveP) + 1)
 			- lnBetaFunction(Tbb*D[d].aveP + 1, Tbb*(1 - D[d].aveP) + 1)
 			- lnBetaFunction(Tab*D[d].aveP + 1, Tab*(1 - D[d].aveP) + 1);
-#endif
+#endif*/
 	} else if (D[d].gtype=='w') {
 		float Tab, Eab, Eaa, Ebb, Haa, Hbb, Taa, Tbb, Tcc;
 		Eab = w[d].get_uv(a,b);
@@ -306,13 +255,24 @@ float Engine::centerscore(int d, int a, int b) {
 		Tab = w[d].degrees[a] * w[d].degrees[b];
 		Taa = Eaa + Haa;
 		Tbb = Ebb + Hbb;
-		Tcc = Taa + Tbb + Tab;
+		float Etot = Eaa+Ebb+Eab;
+		float Ttot = Taa+Tbb+Tab;
+		float thetaTot = Etot/Ttot;
+		float thetaA = Eaa/Taa;
+		float thetaB = Ebb/Tbb;
+		float thetaAB = Eab/Tab;
+		ans = Etot * mySafeLog(thetaTot) + (Ttot - Etot) * mySafeLog(1-thetaTot)
+			- Eaa * mySafeLog(thetaA) - (Taa - Eaa) * mySafeLog(1-thetaA)
+			- Ebb * mySafeLog(thetaB) - (Tbb - Ebb) * mySafeLog(1-thetaB)
+			- Eab * mySafeLog(thetaAB) - (Tab - Eab) * mySafeLog(1-thetaAB);
+		/*
 		ans =   lnBetaFunction(Eaa + Eab + Ebb + 1,Haa + Hbb + Tab - Eab + 1)
 			- lnBetaFunction(Eaa + 1, Haa +1)
 			- lnBetaFunction(Ebb + 1, Hbb +1)
 			- lnBetaFunction(Eab+1,Tab - Eab +1);
 		//for the random reference model
 #if (! NOREFERENCE)
+		Tcc = Taa + Tbb + Tab;
 		float Ebaraa, Ebarbb, Ebarab, Ebarcc;
 		Ebarab = w[d].degrees[a] * w[d].degrees[b];
 		Ebaraa = Taa/(2.0f*D[d].Etot);
@@ -322,19 +282,19 @@ float Engine::centerscore(int d, int a, int b) {
 			- lnBetaFunction(Ebaraa + 1, Taa - Ebaraa + 1)
 			- lnBetaFunction(Ebarbb + 1, Tbb - Ebarbb + 1)
 			- lnBetaFunction(Ebarab + 1, Tab - Ebarab + 1);	
-#endif
+#endif*/
 	}
 	return ans;
 };
 
 
 float Engine::deltascore(int d, int a, int b, int x) {
+	// maximum likelihood version
 	assert((a!=b)&&(a!=x)&&(b!=x));
 	float ans;
 	float da, db, dx;
 	if (D[d].gtype=='b') {
-		float Eax, Ebx, Hax, Hbx, Tax, Tbx;
-		float Ebarax, Ebarbx, Hbarax, Hbarbx;
+		float Eax, Ebx, Tax, Tbx;
 		Eax = w[d].get_uv(a,x);
 		Ebx = w[d].get_uv(b,x);
 		da = w[d].nV[a];
@@ -342,46 +302,49 @@ float Engine::deltascore(int d, int a, int b, int x) {
 		dx = w[d].nV[x];
 		Tax = da * dx;
 		Tbx = db * dx;
-		Hax = Tax - Eax;
-		Hbx = Tbx - Ebx;
-		Ebarax = Tax * D[d].aveP;
-		Ebarbx = Tbx * D[d].aveP;
-		Hbarax = Tax - Ebarax;
-		Hbarbx = Tbx - Ebarbx;
-		ans =    (	lnBetaFunction(Eax+Ebx+1.0f,Hax+Hbx+1.0f)
-				-lnBetaFunction(Eax+1.0f,Hax+1.0f)
-				-lnBetaFunction(Ebx+1.0f,Hbx+1.0f)
-			 );
-#if (! NOREFERENCE)
-		ans -=   (	lnBetaFunction(Ebarax+Ebarbx+1.0f,Hbarax+Hbarbx+1.0f)
-				-lnBetaFunction(Ebarax+1.0f,Hbarax+1.0f)
-				-lnBetaFunction(Ebarbx+1.0f,Hbarbx+1.0f)
-			 );
-#endif
+		//Hax = Tax - Eax;
+		//Hbx = Tbx - Ebx;
+		float Etot = Eax+Ebx;
+		float Ttot = Tax+Tbx;
+		float thetaTot = Etot/Ttot;
+		float thetaA = Eax/Tax;
+		float thetaB = Ebx/Tbx;
+		ans = Etot * mySafeLog(thetaTot) + (Ttot - Etot) * mySafeLog(1-thetaTot)
+			- Eax * mySafeLog(thetaA) - (Tax - Eax) * mySafeLog(1-thetaA)
+			- Ebx * mySafeLog(thetaB) - (Tbx - Ebx) * mySafeLog(1-thetaB);
 	} else if (D[d].gtype=='w') {
-		float Eax, Ebx, Hax, Hbx;
-		float Ebarax, Ebarbx, Hbarax, Hbarbx;
+		std::cout << "max likelihood doesn't work for weighted graphs, I think\n";
+		float Eax, Ebx, Tax, Tbx;
 		Eax = w[d].get_uv(a,x);
 		Ebx = w[d].get_uv(b,x);
 		da = w[d].degrees[a];
 		db = w[d].degrees[b];
 		dx = w[d].degrees[x];
-		Hax = da * dx - Eax;
-		Hbx = db * dx - Ebx;
-		Ebarax = da * dx/(2.0f*D[d].Etot);
+		Tax = da * dx;
+		Tbx = db * dx;
+		/*Ebarax = da * dx/(2.0f*D[d].Etot);
 		Ebarbx = db * dx/(2.0f*D[d].Etot);
 		Hbarax = da * dx - Ebarax;
-		Hbarbx = db * dx - Ebarbx;
-		ans =    (	lnBetaFunction(Eax+Ebx+1.0f,Hax+Hbx+1.0f)
-				-lnBetaFunction(Eax+1.0f,Hax+1.0f)
-				-lnBetaFunction(Ebx+1.0f,Hbx+1.0f)
-			 );
+		Hbarbx = db * dx - Ebarbx;*/
+		float Etot = Eax+Ebx;
+		float Ttot = Tax+Tbx;
+		float thetaTot = Etot/Ttot;
+		float thetaA = Eax/Tax;
+		float thetaB = Ebx/Tbx;
+		ans = Etot * mySafeLog(thetaTot) + (Ttot - Etot) * mySafeLog(1-thetaTot)
+			- Eax * mySafeLog(thetaA) - (Tax - Eax) * mySafeLog(1-thetaA)
+			- Ebx * mySafeLog(thetaB) - (Tbx - Ebx) * mySafeLog(1-thetaB);
+/*
 #if (! NOREFERENCE)
 		ans -=	 (	lnBetaFunction(Ebarax+Ebarbx+1.0f,Hbarax+Hbarbx+1.0f)
 				-lnBetaFunction(Ebarax+1.0f,Hbarax+1.0f)
 				-lnBetaFunction(Ebarbx+1.0f,Hbarbx+1.0f)
 			 );
-#endif
+#endif*/
+	}
+	else {
+		std::cout << "graph type "<<D[d].gtype<<" not understood.\n";
+		throw 1;
 	}
 	return ans;
 };
@@ -401,7 +364,8 @@ int Engine::run() {
 	std::map<int, scoremap::twoScores>::iterator smIn;
 	std::map<int, std::map<int,float> >::iterator datOut;
 	std::map<int, float>::iterator datIn;
-	while (sm.hasPos()) {
+	//while (sm.hasPos()) {
+	while (! sm.isEmpty()) {
 		// join and do stuff
 		pscore = sm.popBestScore();
 		a = pscore.u; b = pscore.v;
