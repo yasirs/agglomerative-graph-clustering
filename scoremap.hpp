@@ -60,11 +60,11 @@ class scoremap{
 
 void scoremap::AddTo(int u, int v, float scorej) {
 	//TODO:: 
-	std::cout << "before:"<<scores[u].scoreDest[v].joinScore;
+	//std::cout << "before:"<<scores[u].scoreDest[v].joinScore;
 	std::map<int, smap>::iterator smOut = scores.find(u);
 	std::map<int, twoScores>::iterator smIn = (*smOut).second.scoreDest.find(v);
 	(*smIn).second.joinScore += scorej;
-	std::cout << "\tafter:"<<scores[u].scoreDest[v].joinScore<<"\n";
+	//std::cout << "\tafter:"<<scores[u].scoreDest[v].joinScore<<"\n";
 	/*float nsj;
 	float nsc;
 	nsj = scores[u].scoreDest[v].joinScore + scorej;

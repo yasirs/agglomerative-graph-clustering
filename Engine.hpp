@@ -86,7 +86,7 @@ double gsl_sf_gamma(double a) {
 float lnBetaFunction(float a, float b) {
 	static int nSoFar = 0;
 	static std::tr1::unordered_map<std::pair<float,float>, double, FPairHash, FPairEqual> LUT;
-	static const int nToDo = 300;
+	static const int nToDo = 5000;
 	static bool keepAdding = 1;
 	if (a==1) {
 		return -log(b);
