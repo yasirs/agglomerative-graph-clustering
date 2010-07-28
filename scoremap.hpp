@@ -58,6 +58,13 @@ class scoremap{
 		std::set<int>* allPartners_u(int u);
 };
 
+void scoremap::AddTo(int u, int v, float scorej) {
+	std::map<int, smap>::iterator smOut = scores.find(u);
+	std::map<int, twoScores>::iterator smIn = (*smOut).second.scoreDest.find(v);
+	(*smIn).second.joinScore += scorej;
+};
+
+
 scoremap::twoScores scoremap::get_uv(int u, int v) {
 	if (has_uv(u,v)) {
 		return scores[u].scoreDest[v];
@@ -181,7 +188,6 @@ bool scoremap::eraseAll() {
 	}
 };
 
-
 int scoremap::AddPair(int u, int v, twoScores score) {
 	// to return 0 if the pair already existed, 1 if it didnt exist and is not the best, and 2 if it didnt exist and is the best
 	if (scores.find(u)!=scores.end()) {
@@ -212,13 +218,7 @@ int scoremap::AddPair(int u, int v, twoScores score) {
 };
 
 
-void scoremap::AddTo(int u, int v, float scorej) {
-	float nsj;
-	float nsc;
-	nsj = scores[u].scoreDest[v].joinScore + scorej;
-	nsc = scores[u].scoreDest[v].joinScore;
-	assert( !(this->AddPair(u,v,nsj,nsc)));
-}
+
 
 
 
