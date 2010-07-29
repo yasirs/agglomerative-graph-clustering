@@ -51,7 +51,7 @@ class scoremap{
 		bool isEmpty(); //done
 		int AddPair(int u, int v, float jscore, float cscore); //done
 		int AddPair(int u, int v, twoScores score); 
-		void AddTo(int u, int v, float scorej); // done
+		bool AddTo(int u, int v, float scorej); // done
 		bool eraseAll(); //done
 		bool erase(int u,int v); //done
 		int has_u(int u);
@@ -63,18 +63,17 @@ int scoremap::size() {
 	return scores.size();
 }
 
-void scoremap::AddTo(int u, int v, float scorej) {
+bool scoremap::AddTo(int u, int v, float scorej) {
 	//TODO:: 
 	//std::cout << "before:"<<scores[u].scoreDest[v].joinScore;
 	std::map<int, smap>::iterator smOut = scores.find(u);
 	std::map<int, twoScores>::iterator smIn = (*smOut).second.scoreDest.find(v);
-	(*smIn).second.joinScore += scorej;
-	//std::cout << "\tafter:"<<scores[u].scoreDest[v].joinScore<<"\n";
-	/*float nsj;
-	float nsc;
-	nsj = scores[u].scoreDest[v].joinScore + scorej;
-	nsc = scores[u].scoreDest[v].joinScore;
-	assert( !(this->AddPair(u,v,nsj,nsc)));*/
+	if (smIn==(*smOut).second.scoreDest.end()) {
+		return 0;
+	} else {
+		(*smIn).second.joinScore += scorej;
+		return 1;
+	}
 };
 
 
