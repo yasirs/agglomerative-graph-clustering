@@ -1,7 +1,11 @@
 #ifndef ENGINE_HPP
 #define ENGINE_HPP
 #include <map>
+#if ISVC
+#include <unordered_map>
+#else
 #include <tr1/unordered_map>
+#endif
 #include <list>
 #include <set>
 #include "graphData.hpp"
@@ -485,17 +489,19 @@ int Engine::run() {
 		for (intit = firstNeighbors[c].begin(); intit != firstNeighbors[c].end(); ++intit) {
 			x = (*intit);
 			smOut = sm.scores.find(x);
-			for (smIn = (*smOut).second.scoreDest.begin(); smIn != (*smOut).second.scoreDest.end(); ++smIn) {
-				y = (*smIn).first;
-				if (y!=c) {
-					jscore =0;
-					for (d=0;d<dim;d++) {
-						jscore = jscore + deltascore(d,x,y,c)-deltascore(d,x,y,a)-deltascore(d,x,y,b);
-					}
-					if (firstNeighbors[c].count(y)) {
-						assert(sm.AddTo(x,y,jscore/2));
-					} else {
-						assert(sm.AddTo(x,y,jscore));
+			if (smOut != sm.scores.end()) {
+				for (smIn = (*smOut).second.scoreDest.begin(); smIn != (*smOut).second.scoreDest.end(); ++smIn) {
+					y = (*smIn).first;
+					if (y!=c) {
+						jscore =0;
+						for (d=0;d<dim;d++) {
+							jscore = jscore + deltascore(d,x,y,c)-deltascore(d,x,y,a)-deltascore(d,x,y,b);
+						}
+						if (firstNeighbors[c].count(y)) {
+							assert(sm.AddTo(x,y,jscore/2));
+						} else {
+							assert(sm.AddTo(x,y,jscore));
+						}
 					}
 				}
 			}

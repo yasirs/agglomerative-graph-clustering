@@ -1,6 +1,10 @@
 #define DEBUGMODE 0
-#define NOGSL 0
+#define NOGSL 1
 #define NOREFERENCE 0
+#define ISVC 0
+#if ISVC
+#include "C:\Users\Suhail\Documents\Visual Studio 2010\Projects\g\g\vchead.hpp"
+#endif
 #include "Engine.hpp"
 #include "graphData.hpp"
 #include "residuals.hpp"

@@ -1,5 +1,9 @@
 #ifndef DATAMAP_HPP
+#if ISVC
+#include <unordered_map>
+#else
 #include <tr1/unordered_map>
+#endif
 #include <map>
 #include <list>
 #include <set>
