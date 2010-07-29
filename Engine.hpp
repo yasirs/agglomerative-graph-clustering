@@ -312,6 +312,10 @@ float Engine::deltascore(int d, int a, int b, int x) {
 		ans = Etot * mySafeLog(thetaTot) + (Ttot - Etot) * mySafeLog(1-thetaTot)
 			- Eax * mySafeLog(thetaA) - (Tax - Eax) * mySafeLog(1-thetaA)
 			- Ebx * mySafeLog(thetaB) - (Tbx - Ebx) * mySafeLog(1-thetaB);
+		//TODO::
+		if (std::isnan(ans)) {
+			std::cout << "isnan answer!\n";
+		}
 	} else if (D[d].gtype=='w') {
 		std::cout << "max likelihood doesn't work for weighted graphs, I think\n";
 		float Eax, Ebx, Tax, Tbx;
@@ -723,8 +727,10 @@ bool Engine::initializeFirstLev() {
 				jscore = 0; cscore = 0;
 				// go through all dimensions
 				for (d=0;d<dim;d++) {
-					// go through all top level groups z != x,y
-					for (intsetit = tree->topLevel.begin(); intsetit != tree->topLevel.end(); ++intsetit) {
+					// go through the union set of neighbors
+					std::set<int> neighbUnion;
+					set_union_update(neighbUnion, firstNeighbors[x], firstNeighbors[y]);
+					for (intsetit = neighbUnion.begin(); intsetit != neighbUnion.end(); ++intsetit) {
 						z = *intsetit;
 						if (! ((x==z)||(y==z)) ) {
 							jscore = jscore + deltascore(d,x,y,z);
@@ -743,8 +749,10 @@ bool Engine::initializeFirstLev() {
 				jscore = 0; cscore = 0;
 				// go through all dimensions
 				for (d=0;d<dim;d++) {
-					// go through all top level groups z != x,y
-					for (intsetit = tree->topLevel.begin(); intsetit != tree->topLevel.end(); ++intsetit) {
+					// go through the union set of neighbors
+					std::set<int> neighbUnion;
+					set_union_update(neighbUnion, firstNeighbors[x], firstNeighbors[y]);
+					for (intsetit = neighbUnion.begin(); intsetit != neighbUnion.end(); ++intsetit) {
 						z = *intsetit;
 						if (! ((x==z)||(y==z)) ) {
 							jscore = jscore + deltascore(d,x,y,z);

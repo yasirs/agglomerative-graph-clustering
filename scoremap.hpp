@@ -55,8 +55,13 @@ class scoremap{
 		bool eraseAll(); //done
 		bool erase(int u,int v); //done
 		int has_u(int u);
+		int size();
 		std::set<int>* allPartners_u(int u);
 };
+
+int scoremap::size() {
+	return scores.size();
+}
 
 void scoremap::AddTo(int u, int v, float scorej) {
 	//TODO:: 
