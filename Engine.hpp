@@ -363,7 +363,7 @@ int Engine::run() {
 	std::set<int> possSet1, possSet2;
 	std::set<int>::iterator intit, intit2, intit3, intsetit;
 	int numJoins = 0;
-	int a,b,c,x,y,z,d;
+	int a,b,c,x,y,z,d, tint;
 	float wc, theta, wab;
 	float cscore, jscore;
 	Node* pnode;
@@ -483,8 +483,16 @@ int Engine::run() {
 				sm.erase(x,b);
 			}
 		}
+		// add the c to the relevent groups neighbors!
+		for (intit = firstNeighbors[c].begin(); intit != firstNeighbors[c].end(); ++intit) {
+			x = (*intit);
+			firstNeighbors[x].insert(c);
+		}
+		for (intit = secondNeighbors[c].begin(); intit != secondNeighbors[c].end(); ++intit) {
+			x = (*intit);
+			secondNeighbors[x].insert(c);
+		}
 
-		// update all existing old scores
 		// update all affected scores (at least one of nodes has to be a neighbor of c)
 		for (intit = firstNeighbors[c].begin(); intit != firstNeighbors[c].end(); ++intit) {
 			x = (*intit);
@@ -674,8 +682,17 @@ int Engine::run() {
 		numJoins++;
 		if (DEBUGMODE) {
 			std::cout << "joined "<<a<<" and "<<b<<" to form "<<c<<"\n";
-			assert(! (1+sm.has_u(a)));
-			assert(! (1+sm.has_u(b)));
+			tint = sm.has_u(a);
+			if (tint!=-1) {
+				std::cerr << "Error! deleted vertex "<<a<<" has score with "<<tint<<" !\n";
+				throw 1;
+			}
+			tint = sm.has_u(b);
+			if (tint!=-1) {
+				std::cerr << "Error! deleted vertex "<<b<<" has score with "<<tint<<" !\n";
+				throw 1;
+			
+			}
 		}
 	}
 	return numJoins;
@@ -736,12 +753,12 @@ bool Engine::initializeFirstLev() {
 	std::set<int>::iterator intsetit;
 	for (itnode = tree->nodeMap.begin(); itnode != tree->nodeMap.end(); ++itnode) {
 		x = (*itnode).second->nid;
+		if (secondNeighbors.find(x)==secondNeighbors.end()) secondNeighbors[x] = emptySet;
 		for (neighbit = firstNeighbors[x].begin(); neighbit != firstNeighbors[x].end(); ++neighbit) {
 			y = *neighbit;
-			if (secondNeighbors.find(x)==secondNeighbors.end()) secondNeighbors[u] = emptySet;
 			set_difference_update(secondNeighbors[x],firstNeighbors[y],firstNeighbors[x]);
-			secondNeighbors[x].erase(x);
 		}
+		secondNeighbors[x].erase(x);
 	}
 	// initialize scores
 	for (itnode = tree->nodeMap.begin(); itnode != tree->nodeMap.end(); ++itnode) {
