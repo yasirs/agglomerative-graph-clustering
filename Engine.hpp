@@ -16,18 +16,6 @@
 // #include <boost/math/special_functions/gamma.hpp>
 
 
-/*namespace std {	namespace tr1 {
-	template <> 
-		struct hash<std::pair<double, double> >
-		{	 
-			std::size_t operator()(std::pair<double,double>& p) const
-			{
-				return hash<double >() (p.first * p.second + p.first + p.second);
-			} 
-		};
-} }*/
-
-
 struct FPairHash {
   std::size_t operator() (const std::pair<float,float>& p) const {
     return ((int) (1000*p.first) + (int) (100*p.second) );
@@ -42,26 +30,6 @@ struct FPairEqual {
   }
 };
 
-
-
-/*
-namespace std
-{
- using namespace __gnu_cxx;
-}
-
-
-namespace __gnu_cxx
-{
-        template<> struct hash< std::string >
-        {
-                size_t operator()( const std::string& x ) const
-                {
-                        return hash< const char* >()( x.c_str() );
-                }
-        };
-}
-*/
 
 
 #if (! NOGSL)
@@ -511,6 +479,16 @@ int Engine::run() {
 				sm.erase(x,b);
 			}
 		}
+                // add the c to the relevent groups neighbors!
+                for (intit = firstNeighbors[c].begin(); intit != firstNeighbors[c].end(); ++intit) {
+                        x = (*intit);
+                        firstNeighbors[x].insert(c);
+                }
+                for (intit = secondNeighbors[c].begin(); intit != secondNeighbors[c].end(); ++intit) {
+                        x = (*intit);
+                        secondNeighbors[x].insert(c);
+                }
+
 
 		// update all existing old scores
 		for (smOut = sm.scores.begin(); smOut != sm.scores.end(); ++smOut) {
@@ -741,12 +719,12 @@ bool Engine::initializeFirstLev() {
 	std::set<int>::iterator intsetit;
 	for (itnode = tree->nodeMap.begin(); itnode != tree->nodeMap.end(); ++itnode) {
 		x = (*itnode).second->nid;
+		if (secondNeighbors.find(x)==secondNeighbors.end()) secondNeighbors[x] = emptySet;
 		for (neighbit = firstNeighbors[x].begin(); neighbit != firstNeighbors[x].end(); ++neighbit) {
 			y = *neighbit;
-			if (secondNeighbors.find(x)==secondNeighbors.end()) secondNeighbors[u] = emptySet;
 			set_difference_update(secondNeighbors[x],firstNeighbors[y],firstNeighbors[x]);
-			secondNeighbors[x].erase(x);
 		}
+		secondNeighbors[x].erase(x);
 	}
 	// initialize scores
 	for (itnode = tree->nodeMap.begin(); itnode != tree->nodeMap.end(); ++itnode) {
