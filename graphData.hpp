@@ -104,7 +104,7 @@ void graphData::writeSingle(const char* fn) {
 					file << int2Name[u] <<'\t' << int2Name[v] << '\t' << weight << '\n';
 				}
 				else if (gtype=='b') {
-					file << int2Name[u] <<'\t' << int2Name[v] << '\n';
+					file << int2Name[u] <<'\t' << int2Name[v] << '\t' << weight <<'\n';
 				}
 				else {
 					std::cerr << gtype << " type of graph not recognized in writing graphs\n";

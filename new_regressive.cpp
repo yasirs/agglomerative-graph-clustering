@@ -1,4 +1,4 @@
-#define DEBUGMODE 1
+#define DEBUGMODE 0
 #define NOGSL 1
 #define NOREFERENCE 0
 #define ISVC 0
@@ -60,12 +60,14 @@ int main(int argc, char* argv[]) {
 	fnout = fnstem + ".network";
 	en->tree->writeCollapsedHierEdges(fnout.c_str());
 	std::cout << "done running\n";
-	lp.attach(en); // attached the engine
-	GPred = lp.makeNonEdgePred(Goriginal);
-	GsoFar = lp.copyNoEdges(Goriginal);
+	lp.attach(en); // attached the enginea
+
+	/*GPred = lp.makeNonEdgePred(Goriginal);
 	fnout = fnstem + ".scores0";
 	GPred[0].writeSingle(fnout.c_str());
-	delete[] GPred;
+	delete[] GPred;*/
+
+	GsoFar = lp.copyNoEdges(Goriginal);
 	//fnout = fnstem + ".nodes";
 	//en->tree->writeNodeTypes(fnout.c_str());
 	std::cout << "getting the residual graph\n";
@@ -87,11 +89,14 @@ int main(int argc, char* argv[]) {
 		en->initializeFirstLev();
 		en->run();
 		lp.attach(en);
-		GPred = lp.makeNonEdgePred(Goriginal);
+
+		/*GPred = lp.makeNonEdgePred(Goriginal);
 		std::ostringstream os;
 		os << fnstem << ".scores" << residint;
 		fnout = os.str();
-		GPred[0].writeSingle(fnout.c_str());
+		GPred[0].writeSingle(fnout.c_str());*/
+
+
 		//fnout = fnout + "_noname";
 		//GPred[0].writeSingle_noname(fnout.c_str());
 		delete[] GPred;
