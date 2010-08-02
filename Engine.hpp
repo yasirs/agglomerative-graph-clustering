@@ -712,7 +712,7 @@ bool Engine::initializeFirstLev() {
 	Node* pn;
 	std::map<int, graphData::destList*>::iterator it1;
 	graphData::destList::iterator it2;
-	for (i=0;i<D[0].numV;i++) { //TODO do the tree making inside the tree constructor
+	/*for (i=0;i<D[0].numV;i++) { //TODO do the tree making inside the tree constructor
 		pn = new Node(i,-1,1);
 		pn->theta = new float[dim];
 		pn->thNum = new float[dim];
@@ -728,7 +728,7 @@ bool Engine::initializeFirstLev() {
 		pn->vertexSet.insert(i);
 		pn->collapsed = 1;
 		pn->vertsComputed = 1;
-	}
+	}*/
 	// initialize weights, degrees, selfMissing and first neighbors, and nV
 	for (d=0;d<dim;d++) {
 		for (it1 = D[d].edgeList.begin(); it1 != D[d].edgeList.end(); ++it1) {
