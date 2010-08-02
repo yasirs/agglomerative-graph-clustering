@@ -1,4 +1,5 @@
 #ifndef DATAMAP_HPP
+#define DATAMAP_HPP
 #include <tr1/unordered_map>
 #include <map>
 #include <list>
