@@ -94,12 +94,12 @@ int main(int argc, char* argv[]) {
 		std::ostringstream os;
 		os << fnstem << ".scores" << residint;
 		fnout = os.str();
-		GPred[0].writeSingle(fnout.c_str());*/
+		GPred[0].writeSingle(fnout.c_str());
+		delete[] GPred;*/
 
 
 		//fnout = fnout + "_noname";
 		//GPred[0].writeSingle_noname(fnout.c_str());
-		delete[] GPred;
 		std::cout << "done!\nPrinting out the " << residint <<"th heirarchical network\n";
 		std::stringstream dummy;
 		dummy << residint;

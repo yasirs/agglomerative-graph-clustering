@@ -1,4 +1,5 @@
 #ifndef DATAMAP_HPP
+#define DATAMAP_HPP
 #if ISVC
 #include <unordered_map>
 #else

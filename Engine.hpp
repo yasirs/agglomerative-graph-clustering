@@ -206,7 +206,7 @@ Engine::Engine(graphData* G, int d) {
 	D = G;
 	dim = d;
 	w = new dataMap[dim];
-	tree = new TreeClass(G);
+	tree = new TreeClass(G,d);
 };
 
 
@@ -379,7 +379,8 @@ int Engine::run() {
 		a = pscore.u; b = pscore.v;
 		sm.erase(b,a);
 		// let us create new group c and create heirarchical relations
-		c = tree->numNodes;
+                c = tree->makeMergeNode(a,b);
+		/*c = tree->numNodes;
 		c++;
 		tree->numNodes = c;
 		pnode = new Node(c,-1,0);
@@ -394,21 +395,25 @@ int Engine::run() {
 		tree->topLevel.erase(a);
 		tree->topLevel.erase(b);
 		tree->topLevel.insert(c);
+		*/
 		if ((tree->nodeMap[a]->collapsed)&&(tree->nodeMap[b]->collapsed)&&(pscore.s.centerMscore>0)) {
-			pnode->collapsed = 1;
+                        assert( tree->nodeMap[c]->collapseNode(tree->nodeMap) );
+			/*pnode->collapsed = 1;
 			for(intit= tree->nodeMap[a]->vertexSet.begin(); intit!= tree->nodeMap[a]->vertexSet.end(); ++intit) {
 				pnode->vertexSet.insert(*intit);
 			}
 			for(intit= tree->nodeMap[b]->vertexSet.begin(); intit!= tree->nodeMap[b]->vertexSet.end(); ++intit) {
 				pnode->vertexSet.insert(*intit);
 			}
-			pnode->vertsComputed = 1;
+			pnode->vertsComputed = 1;*/
 		} else {
-			pnode->collapsed = 0;
-			pnode->vertsComputed = 0;
+			tree->nodeMap[c]->collapsed = 0;
+			tree->nodeMap[c]->vertsComputed = 0;
+
 		}
 		// compute d,w,n,m for c
-		for (d=0;d<dim;d++) {
+                tree->nodeMap[c]->makeDataforMerged(a,b,w,tree,D);
+		/*for (d=0;d<dim;d++) {
 			wc = w[d].get_uv(a,a) + w[d].get_uv(b,b) + w[d].get_uv(a,b);
 			assert(w[d].AddPair(c,c,wc));
 			w[d].degrees[c] = w[d].degrees[a] + w[d].degrees[b];
@@ -438,7 +443,7 @@ int Engine::run() {
 				std::cerr << "bad theta being written!\n";
 			}
 
-		}
+		}*/
 		firstNeighbors[c] = emptySet;
 		secondNeighbors[c] = emptySet;
 		set_union_update(firstNeighbors[c],firstNeighbors[a],firstNeighbors[b]);
