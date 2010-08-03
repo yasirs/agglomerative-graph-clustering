@@ -1,7 +1,11 @@
 #ifndef ENGINE_HPP
 #define ENGINE_HPP
 #include <map>
+#if ISVC
+#include <unordered_map>
+#else
 #include <tr1/unordered_map>
+#endif
 #include <list>
 #include <set>
 #include "graphData.hpp"
@@ -30,6 +34,10 @@ struct FPairEqual {
   }
 };
 
+float mySafeLog(float x) {
+	if (x<1e-8) return 1e10;
+	else return log(x);
+};
 
 
 #if (! NOGSL)
@@ -360,7 +368,7 @@ int Engine::run() {
 	std::set<int> possSet1, possSet2;
 	std::set<int>::iterator intit, intit2, intit3;
 	int numJoins = 0;
-	int a,b,c,x,y,z,d;
+	int a,b,c,x,y,z,d, tint;
 	float wc, theta, wab;
 	float cscore, jscore;
 	Node* pnode;
@@ -661,8 +669,17 @@ int Engine::run() {
 		numJoins++;
 		if (DEBUGMODE) {
 			std::cout << "joined "<<a<<" and "<<b<<" to form "<<c<<"\n";
-			assert(! (1+sm.has_u(a)));
-			assert(! (1+sm.has_u(b)));
+			tint = sm.has_u(a);
+			if (tint!=-1) {
+				std::cerr << "Error! deleted vertex "<<a<<" has score with "<<tint<<" !\n";
+				throw 1;
+			}
+			tint = sm.has_u(b);
+			if (tint!=-1) {
+				std::cerr << "Error! deleted vertex "<<b<<" has score with "<<tint<<" !\n";
+				throw 1;
+			
+			}
 		}
 	}
 	return numJoins;
