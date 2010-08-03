@@ -664,7 +664,7 @@ int Engine::run() {
 
 		// delete a,b from weights (and degrees) in all dimensions
 		for (d=0; d<dim; d++) {
-			assert(w[d].allErase(a,b));
+			assert(w[d].allErase(a,b, D[d].numV));
 		}
 		/*for (d=0;d<dim;d++) {
 			if (D[d].numV<(a+1)) {

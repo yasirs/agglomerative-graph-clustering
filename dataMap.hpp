@@ -28,7 +28,7 @@ class dataMap{
 		float getuv_ifhas(int u, int v);
 		float get_uv(int u, int v);
 		float getDegree(int i);
-		bool allErase(int a, int b);
+		bool allErase(int a, int b, int numV);
 		void initialize(graphData& D, std::map<int,std::set<int> >& fNeighbors);
 		void addMergedData(int a, int b, int c, std::set<int>& fNeighbours);
 };
@@ -70,7 +70,7 @@ void dataMap::initialize(graphData& D, std::map<int,std::set<int> >& fNeighbours
 }
 
 
-bool dataMap::allErase(int a, int b) {
+bool dataMap::allErase(int a, int b, int numV) {
 	int x;
 	std::tr1::unordered_map<int, std::tr1::unordered_map<int,float> >::iterator outIt(this->dat.find(a));
 	if (outIt == this->dat.end()) {
@@ -96,9 +96,19 @@ bool dataMap::allErase(int a, int b) {
 		}
 	}
 	this->dat.erase(b);
-	this->degrees.erase(a); this->degrees.erase(b);
+	if (a>=numV) { // why check for this? I forgot
+		this->degrees.erase(a);
+		this->nV.erase(a);
+		this->selfMissing.erase(a);
+	}
+	if (b>=numV) {
+		this->degrees.erase(b);
+		this->nV.erase(b);
+		this->selfMissing.erase(b);
+	}
+	/*this->degrees.erase(a); this->degrees.erase(b);
 	this->nV.erase(a); this->nV.erase(b);
-	this->selfMissing.erase(a); this->selfMissing.erase(b);
+	this->selfMissing.erase(a); this->selfMissing.erase(b);*/
 	return 1;
 }
 
