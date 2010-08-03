@@ -30,7 +30,18 @@ class dataMap{
 		float getDegree(int i);
 		bool allErase(int a, int b);
 		void initialize(graphData& D, std::map<int,std::set<int> >& fNeighbors);
+		void addMergedData(int a, int b, int c, std::set<int>& fNeighbours);
 };
+
+void dataMap::addMergedData(int a, int b, int c, std::set<int>& fNeighbours) {
+	for (std::set<int>::iterator intit (fNeighbours.begin()) ; intit != fNeighbours.end(); ++intit) {
+		x = (*intit);
+		this->AddPair(c,x,this->get_uv(a,x) + this->get_uv(b,x));
+		this->AddPair(x,c,this->get_uv(x,a) + this->get_uv(b,x));
+	}
+}
+	
+
 
 void dataMap::initialize(graphData& D, std::map<int,std::set<int> >& fNeighbours) {
 	int u, v;

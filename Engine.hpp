@@ -492,11 +492,12 @@ int Engine::run() {
 		set_difference_update(secondNeighbors[c],tempSet,firstNeighbors[c]);
 		secondNeighbors[c].erase(a); secondNeighbors[c].erase(b);
 		for (d=0;d<dim;d++) {
-			for (intit = firstNeighbors[c].begin(); intit != firstNeighbors[c].end(); ++intit) {
+			w[d].addMergedData(a,b,c,firstNeighbors[c]);
+			/*for (intit = firstNeighbors[c].begin(); intit != firstNeighbors[c].end(); ++intit) {
 				x = (*intit);
 				w[d].AddPair(c,x,w[d].get_uv(a,x) + w[d].get_uv(b,x));
 				w[d].AddPair(x,c,w[d].get_uv(x,a) + w[d].get_uv(b,x));
-			}
+			}*/
 		}
 		// delete a,b scores
 		for (intit = firstNeighbors[a].begin(); intit != firstNeighbors[a].end(); ++intit) {
