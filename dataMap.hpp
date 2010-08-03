@@ -34,6 +34,7 @@ class dataMap{
 };
 
 void dataMap::addMergedData(int a, int b, int c, std::set<int>& fNeighbours) {
+	int x;
 	for (std::set<int>::iterator intit (fNeighbours.begin()) ; intit != fNeighbours.end(); ++intit) {
 		x = (*intit);
 		this->AddPair(c,x,this->get_uv(a,x) + this->get_uv(b,x));
