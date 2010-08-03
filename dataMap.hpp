@@ -28,7 +28,69 @@ class dataMap{
 		float getuv_ifhas(int u, int v);
 		float get_uv(int u, int v);
 		float getDegree(int i);
+		bool allErase(int a, int b);
+		void initialize(graphData& D, std::map<int,std::set<int> >& fNeighbors);
 };
+
+void dataMap::initialize(graphData& D, std::map<int,std::set<int> >& fNeighbours) {
+	int u, v;
+	std::set<int> emptySet;
+	for (std::map<int, graphData::destList*>::iterator it1 (D.edgeList.begin()); it1 != D.edgeList.end(); ++it1) {
+		u = (*it1).first;
+		this->nV[u]=1;
+		if (fNeighbours.find(u)==fNeighbours.end()) fNeighbours[u] = emptySet;
+		if (this->degrees.find(u)==this->degrees.end()) this->degrees[u]=0;
+		if (this->selfMissing.find(u)==this->selfMissing.end()) this->selfMissing[u]=0;
+		for (graphData::destList::iterator it2 ((*it1).second->begin()); it2 != (*it1).second->end(); ++it2) {
+			v = (*it2).first;
+			this->nV[v]=1;
+			this->AddPair(u,v,(*it2).second);
+			this->AddPair(v,u,(*it2).second);
+			if (this->degrees.find(v)==this->degrees.end()) this->degrees[v]=0;
+			if (this->selfMissing.find(v)==this->selfMissing.end()) this->selfMissing[v]=0;
+			this->degrees[u] += (*it2).second;
+			this->degrees[v] += (*it2).second;
+			if (fNeighbours.find(v)==fNeighbours.end()) fNeighbours[v] = emptySet;
+			fNeighbours[u].insert(v);
+			fNeighbours[v].insert(u);
+		}
+	}
+}
+
+
+bool dataMap::allErase(int a, int b) {
+	int x;
+	std::tr1::unordered_map<int, std::tr1::unordered_map<int,float> >::iterator outIt(this->dat.find(a));
+	if (outIt == this->dat.end()) {
+		return 0;
+	}
+	std::tr1::unordered_map<int,float>::iterator innerIt( (*outIt).second.begin() );
+	for (; innerIt != (*outIt).second.end(); ++innerIt) {
+		x = (*innerIt).first;
+		if ((x != b) and (x != a)) {
+			this->dat[x].erase(a);
+		}
+	}
+	this->dat.erase(a);
+	outIt = this->dat.find(b);
+	if (outIt == this->dat.end()) {
+		return 0;
+	}
+	innerIt=  (*outIt).second.begin();
+	for (; innerIt != (*outIt).second.end(); ++innerIt) {
+		x = (*innerIt).first;
+		if ((x != b) and (x != a)) {
+			this->dat[x].erase(b);
+		}
+	}
+	this->dat.erase(b);
+	this->degrees.erase(a); this->degrees.erase(b);
+	this->nV.erase(a); this->nV.erase(b);
+	this->selfMissing.erase(a); this->selfMissing.erase(b);
+	return 1;
+}
+
+
 
 float dataMap::getDegree(int i) {
 	return degrees[i];

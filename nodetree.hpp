@@ -98,6 +98,7 @@ bool Node::makeDataforMerged(int a, int b, dataMap* w, TreeClass* tree, graphDat
 			std::cerr << "bad theta being written!\n";
 		}
 	}
+	return 1;
 }
 
 bool Node::collapseNode(std::map<int,Node*> &nmap) {

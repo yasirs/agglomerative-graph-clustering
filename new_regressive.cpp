@@ -42,7 +42,7 @@ int main(int argc, char* argv[]) {
 	Goriginal[0].readBinary(fnin.c_str());
 	std::cout << "read file!\n";
 	en = new Engine(Goriginal,1);
-	en->initializeFirstLev();
+	en->initializeScores();
 	// let us write the competing scores
 	/*std::cout << "writing degree product\n";
 	fnout = fnstem + ".dprod"; en->printDegreeProdFile(fnout.c_str(), 0, 0);
@@ -86,7 +86,7 @@ int main(int argc, char* argv[]) {
 		delete en;
 		en = new Engine(Gnew,1);
 		std::cout << "running on the residual\n";
-		en->initializeFirstLev();
+		en->initializeScores();
 		en->run();
 		lp.attach(en);
 

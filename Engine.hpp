@@ -94,7 +94,7 @@ class Engine{
 		//std::map<int, float> groupDegrees;
 		~Engine();
 		Engine(graphData* G, int d);
-		bool initializeFirstLev();
+		bool initializeScores();
 		int run();
 		bool doStage();
 		bool cleanUp();
@@ -207,6 +207,47 @@ Engine::Engine(graphData* G, int d) {
 	dim = d;
 	w = new dataMap[dim];
 	tree = new TreeClass(G,d);
+	int x,y;
+	// initialize weights, degrees, selfMissing and first neighbors, and nV
+	for (d=0; d<dim; d++) {
+		w[d].initialize(D[d], firstNeighbors);
+	}
+	std::set<int> emptySet;
+	/*for (d=0;d<dim;d++) {
+		for (it1 = D[d].edgeList.begin(); it1 != D[d].edgeList.end(); ++it1) {
+			u = (*it1).first;
+			w[d].nV[u]=1;
+			if (firstNeighbors.find(u)==firstNeighbors.end()) firstNeighbors[u] = emptySet;
+			if (w[d].degrees.find(u)==w[d].degrees.end()) w[d].degrees[u]=0;
+			if (w[d].selfMissing.find(u)==w[d].selfMissing.end()) w[d].selfMissing[u]=0;
+			for (it2 = (*it1).second->begin(); it2 != (*it1).second->end(); ++it2) {
+				v = (*it2).first;
+				w[d].nV[v]=1;
+				w[d].AddPair(u,v,(*it2).second);
+				w[d].AddPair(v,u,(*it2).second);
+				if (w[d].degrees.find(v)==w[d].degrees.end()) w[d].degrees[v]=0;
+				if (w[d].selfMissing.find(v)==w[d].selfMissing.end()) w[d].selfMissing[v]=0;
+				w[d].degrees[u] += (*it2).second;
+				w[d].degrees[v] += (*it2).second;
+				if (firstNeighbors.find(v)==firstNeighbors.end()) firstNeighbors[v] = emptySet;
+				firstNeighbors[u].insert(v);
+				firstNeighbors[v].insert(u);
+			}
+		}
+	}*/
+	// initialize 2nd neighbors
+	std::map<int, Node*>::iterator itnode;
+	std::set<int>::iterator neighbit;
+	std::set<int>::iterator intsetit;
+	for (itnode = tree->nodeMap.begin(); itnode != tree->nodeMap.end(); ++itnode) {
+		x = (*itnode).second->nid;
+		if (secondNeighbors.find(x)==secondNeighbors.end()) secondNeighbors[x] = emptySet;
+		for (neighbit = firstNeighbors[x].begin(); neighbit != firstNeighbors[x].end(); ++neighbit) {
+			y = *neighbit;
+			set_difference_update(secondNeighbors[x],firstNeighbors[y],firstNeighbors[x]);
+		}
+		secondNeighbors[x].erase(x);
+	}
 };
 
 
@@ -364,9 +405,7 @@ int Engine::run() {
 	std::set<int>::iterator intit, intit2, intit3, intsetit;
 	int numJoins = 0;
 	int a,b,c,x,y,z,d, tint;
-	float wc, theta, wab;
 	float cscore, jscore;
-	Node* pnode;
 	scoremap::pairScore pscore;
 	std::map<int, scoremap::smap>::iterator smOut;
 	std::map<int, scoremap::twoScores>::iterator smIn;
@@ -623,7 +662,10 @@ int Engine::run() {
 		}
 
 		// delete a,b from weights (and degrees) in all dimensions
-		for (d=0;d<dim;d++) {
+		for (d=0; d<dim; d++) {
+			assert(w[d].allErase(a,b));
+		}
+		/*for (d=0;d<dim;d++) {
 			if (D[d].numV<(a+1)) {
 				w[d].degrees.erase(a);
 				w[d].selfMissing.erase(a);
@@ -658,7 +700,7 @@ int Engine::run() {
 				w[d].dat[b].erase(x);
 			}
 			w[d].dat.erase(b);
-		}
+		}*/
 		// delete a,b from neighbors
 		for (intit = firstNeighbors[a].begin(); intit != firstNeighbors[a].end(); ++intit) {
 			x = *intit;
@@ -704,14 +746,16 @@ int Engine::run() {
 };
 
 
-bool Engine::initializeFirstLev() {
+bool Engine::initializeScores() {
 	std::set<int> emptySet;
 	curLev = 0;
-	int i,d,u,v,x,y,z;
+	int d,x,y,z;
 	float jscore,cscore;
-	Node* pn;
 	std::map<int, graphData::destList*>::iterator it1;
 	graphData::destList::iterator it2;
+	std::map<int, Node*>::iterator itnode;
+	std::set<int>::iterator neighbit;
+	std::set<int>::iterator intsetit;
 	/*for (i=0;i<D[0].numV;i++) { //TODO do the tree making inside the tree constructor
 		pn = new Node(i,-1,1);
 		pn->theta = new float[dim];
@@ -729,42 +773,6 @@ bool Engine::initializeFirstLev() {
 		pn->collapsed = 1;
 		pn->vertsComputed = 1;
 	}*/
-	// initialize weights, degrees, selfMissing and first neighbors, and nV
-	for (d=0;d<dim;d++) {
-		for (it1 = D[d].edgeList.begin(); it1 != D[d].edgeList.end(); ++it1) {
-			u = (*it1).first;
-			w[d].nV[u]=1;
-			if (firstNeighbors.find(u)==firstNeighbors.end()) firstNeighbors[u] = emptySet;
-			if (w[d].degrees.find(u)==w[d].degrees.end()) w[d].degrees[u]=0;
-			if (w[d].selfMissing.find(u)==w[d].selfMissing.end()) w[d].selfMissing[u]=0;
-			for (it2 = (*it1).second->begin(); it2 != (*it1).second->end(); ++it2) {
-				v = (*it2).first;
-				w[d].nV[v]=1;
-				w[d].AddPair(u,v,(*it2).second);
-				w[d].AddPair(v,u,(*it2).second);
-				if (w[d].degrees.find(v)==w[d].degrees.end()) w[d].degrees[v]=0;
-				if (w[d].selfMissing.find(v)==w[d].selfMissing.end()) w[d].selfMissing[v]=0;
-				w[d].degrees[u] += (*it2).second;
-				w[d].degrees[v] += (*it2).second;
-				if (firstNeighbors.find(v)==firstNeighbors.end()) firstNeighbors[v] = emptySet;
-				firstNeighbors[u].insert(v);
-				firstNeighbors[v].insert(u);
-			}
-		}
-	}
-	// initialize 2nd neighbors
-	std::map<int, Node*>::iterator itnode;
-	std::set<int>::iterator neighbit;
-	std::set<int>::iterator intsetit;
-	for (itnode = tree->nodeMap.begin(); itnode != tree->nodeMap.end(); ++itnode) {
-		x = (*itnode).second->nid;
-		if (secondNeighbors.find(x)==secondNeighbors.end()) secondNeighbors[x] = emptySet;
-		for (neighbit = firstNeighbors[x].begin(); neighbit != firstNeighbors[x].end(); ++neighbit) {
-			y = *neighbit;
-			set_difference_update(secondNeighbors[x],firstNeighbors[y],firstNeighbors[x]);
-		}
-		secondNeighbors[x].erase(x);
-	}
 	// initialize scores
 	for (itnode = tree->nodeMap.begin(); itnode != tree->nodeMap.end(); ++itnode) {
 		x = (*itnode).second->nid;
