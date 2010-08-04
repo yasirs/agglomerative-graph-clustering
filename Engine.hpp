@@ -13,6 +13,8 @@
 #include "scoremap.hpp"
 #include "dataMap.hpp"
 #include "mysetfuncs.hpp"
+#include "dataMapOther.hpp"
+#include "nodetreeOther.hpp"
 #include <iostream>
 #include <cassert>
 #include <cmath>
@@ -94,6 +96,7 @@ class Engine{
 		//std::map<int, float> groupDegrees;
 		~Engine();
 		Engine(graphData* G, int d);
+		Engine(graphData* G, graphData* Gother, int d);
 		bool initializeScores();
 		int run();
 		bool doStage();
@@ -192,6 +195,32 @@ void Engine::printDegreeProdFile(const char* fn, int d, bool edges) {
 
 
 
+
+Engine::Engine(graphData* G, graphData* Gother, int d) {
+	D = G;
+	dim = d;
+	w = new dataMapOther[dim];
+	tree = new TreeClassOther(G,d);
+	int x,y;
+	// initialize weights, degrees, selfMissing and first neighbors, and nV
+	for (d=0; d<dim; d++) {
+		( (dataMapOther*)  &w[d]   )->initialize(D[d], Gother[d], firstNeighbors);
+	}
+	std::set<int> emptySet;
+	// initialize 2nd neighbors
+	std::map<int, Node*>::iterator itnode;
+	std::set<int>::iterator neighbit;
+	std::set<int>::iterator intsetit;
+	for (itnode = tree->nodeMap.begin(); itnode != tree->nodeMap.end(); ++itnode) {
+		x = (*itnode).second->nid;
+		if (secondNeighbors.find(x)==secondNeighbors.end()) secondNeighbors[x] = emptySet;
+		for (neighbit = firstNeighbors[x].begin(); neighbit != firstNeighbors[x].end(); ++neighbit) {
+			y = *neighbit;
+			set_difference_update(secondNeighbors[x],firstNeighbors[y],firstNeighbors[x]);
+		}
+		secondNeighbors[x].erase(x);
+	}
+};
 
 
 

@@ -35,7 +35,8 @@ class Node{
 		Node(int nodeID, int parentID, bool isTerminal, int vertID, int dimension);
 		Node(int nodeID, int parentID, bool isTerminal, int dimension);
 		bool collapseNode(std::map<int,Node*> &nmap);
-		bool makeDataforMerged(int a, int b, dataMap* w, TreeClass* tree, graphData* D);
+		virtual bool makeDataforMerged(int a, int b, dataMap* w, TreeClass* tree, graphData* D);
+		virtual ~Node();
 };
 
 class TreeClass{
@@ -55,13 +56,18 @@ class TreeClass{
 			numNodes=0;
 		};*/
 		TreeClass(graphData* G, int dimension);
+		TreeClass() {}
 		~TreeClass();
 		Node* getNode(int n);
-		int makeMergeNode(int a, int b);
+		virtual int makeMergeNode(int a, int b);
 };
 
 
-
+Node::~Node() {
+	delete[] theta;
+	delete[] thNum;
+	delete[] thDen;
+}
 
 
 

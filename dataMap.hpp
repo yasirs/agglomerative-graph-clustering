@@ -23,14 +23,14 @@ class dataMap{
 		bool AddPair(int u, int v, float d); //done
 		bool Addto(int u, int v, float d); //done
 		bool eraseAll(); //done
-		bool erase(int u, int v); //done
+		//bool erase(int u, int v); //done
 		std::set<int>* neighbors(int i); //done
 		float getuv_ifhas(int u, int v);
 		float get_uv(int u, int v);
 		float getDegree(int i);
-		bool allErase(int a, int b, int numV);
-		void initialize(graphData& D, std::map<int,std::set<int> >& fNeighbors);
-		void addMergedData(int a, int b, int c, std::set<int>& fNeighbours);
+		virtual bool allErase(int a, int b, int numV);
+		virtual void initialize(graphData& D, std::map<int,std::set<int> >& fNeighbors);
+		virtual void addMergedData(int a, int b, int c, std::set<int>& fNeighbours);
 };
 
 void dataMap::addMergedData(int a, int b, int c, std::set<int>& fNeighbours) {
@@ -202,7 +202,7 @@ bool dataMap::eraseAll() {
 		return 1;
 	}
 };
-
+/*
 bool dataMap::erase(int u, int v) {
 	if (dat.find(u)!=dat.end()) {
 		if (dat[u].find(v) != dat[u].end()) {
@@ -216,6 +216,6 @@ bool dataMap::erase(int u, int v) {
 	} else {
 		return 0;
 	}
-};
+};*/
 
 #endif
