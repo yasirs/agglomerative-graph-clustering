@@ -6,7 +6,7 @@
 #include "linkPredictor.hpp"
 
 
-void updateSoFar(graphData* Doriginal, linkPredictor& lp, graphData* GsoFar) {
+/*void updateSoFar(graphData* Doriginal, linkPredictor& lp, graphData* GsoFar) {
 	float NE = 0;
 	int u,v,d;
 	float wpredicted, w_old;
@@ -32,7 +32,7 @@ void updateSoFar(graphData* Doriginal, linkPredictor& lp, graphData* GsoFar) {
 		GsoFar[d].aveP = NE/(GsoFar[d].numV * (GsoFar[d].numV-1));
 	}
 };
-
+*/
 			
 graphData* residualDiff(graphData* Doriginal, graphData* GsoFar, int dim) {
 	graphData *Dnew = new graphData[dim];
@@ -71,7 +71,7 @@ graphData* residualDiff(graphData* Doriginal, graphData* GsoFar, int dim) {
 
 
 
-
+/*
 graphData* getORResidual(graphData* Doriginal, linkPredictor& lp, graphData* GsoFar) {
 	// for now, this is necessary
 	assert(Doriginal->gtype=='b');
@@ -111,7 +111,7 @@ graphData* getORResidual(graphData* Doriginal, linkPredictor& lp, graphData* Gso
 	}
 	return Dnew;
 };
-	
+*/	
 
 
 graphData* getResidual(graphData* D, linkPredictor& lp) {
