@@ -31,6 +31,14 @@ class dataMap{
 		virtual bool allErase(int a, int b, int numV);
 		virtual void initialize(graphData& D, std::map<int,std::set<int> >& fNeighbors);
 		virtual void addMergedData(int a, int b, int c, std::set<int>& fNeighbours);
+		virtual ~dataMap();
+};
+
+dataMap::~dataMap() {
+	dat.clear();
+	degrees.clear();
+	nV.clear();
+	selfMissing.clear();
 };
 
 void dataMap::addMergedData(int a, int b, int c, std::set<int>& fNeighbours) {

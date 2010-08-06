@@ -31,6 +31,7 @@ class graphData{
 		float get_uv(int u, int v);
 		void set_uv(int u, int v, float w);
 		bool has_uv(int u, int v);
+		bool delete_uv(int u, int v);
 		int Add_uv(int u, int v, float w); 
 		bool readBinaryBasedOnOld(graphData* Gorginal, const char* filename);
 		bool readWeighted(const char* filename);
@@ -48,7 +49,16 @@ class graphData{
 			}
 			edgeList.clear();
 		}
+		void copyNoEdges(graphData& Dnew);
 };
+
+void graphData::copyNoEdges(graphData& Dnew) {
+	Dnew.int2Name = this->int2Name;
+	Dnew.name2Int = this->name2Int;
+	Dnew.gtype = this->gtype;
+	Dnew.numV = this->numV;
+}
+
 
 int graphData::degree(int i) {
 	return edgeList[i]->size();
@@ -283,6 +293,15 @@ void graphData::set_uv(int u, int v, float w) {
 	}
 	(*edgeList[u])[v] = w;
 };
+
+bool graphData::delete_uv(int u, int v) {
+	if (edgeList.find(u)==edgeList.end()) {
+		return 0;
+	} else {
+		edgeList[u]->erase(v);
+		return 1;
+	}
+}
 
 int graphData::Add_uv(int u, int v, float w) {
 	if (edgeList.find(u)==edgeList.end()) {

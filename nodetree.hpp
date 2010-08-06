@@ -57,7 +57,7 @@ class TreeClass{
 		};*/
 		TreeClass(graphData* G, int dimension);
 		TreeClass() {}
-		~TreeClass();
+		virtual ~TreeClass();
 		Node* getNode(int n);
 		virtual int makeMergeNode(int a, int b);
 };
@@ -205,6 +205,8 @@ TreeClass::~TreeClass() {
 	for (nit=nodeMap.begin(); nit != nodeMap.end(); ++nit) {
 		delete (*nit).second;
 	}
+	nodeMap.clear();
+	topLevel.clear();
 };
 
 

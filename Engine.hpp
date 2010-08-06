@@ -96,7 +96,7 @@ class Engine{
 		//std::map<int, float> groupDegrees;
 		~Engine();
 		Engine(graphData* G, int d);
-		Engine(graphData* G, graphData* Gother, int d);
+		Engine(graphData* G, graphData* Goriginal, graphData* GsoFar, int d);
 		bool initializeScores();
 		int run();
 		bool doStage();
@@ -196,7 +196,7 @@ void Engine::printDegreeProdFile(const char* fn, int d, bool edges) {
 
 
 
-Engine::Engine(graphData* G, graphData* Gother, int d) {
+Engine::Engine(graphData* G, graphData* Goriginal, graphData* GsoFar, int d) {
 	D = G;
 	dim = d;
 	w = new dataMapOther[dim];
@@ -204,7 +204,7 @@ Engine::Engine(graphData* G, graphData* Gother, int d) {
 	int x,y;
 	// initialize weights, degrees, selfMissing and first neighbors, and nV
 	for (d=0; d<dim; d++) {
-		( (dataMapOther*)  &w[d]   )->initialize(D[d], Gother[d], firstNeighbors);
+		( (dataMapOther*)  &w[d]   )->initialize(D[d], Goriginal[d], GsoFar[d], firstNeighbors);
 	}
 	std::set<int> emptySet;
 	// initialize 2nd neighbors
@@ -282,6 +282,7 @@ Engine::Engine(graphData* G, int d) {
 
 Engine::~Engine() {
 	delete[] w;
+	delete tree;
 };
 
 
@@ -320,7 +321,7 @@ float Engine::centerscore(int d, int a, int b) {
 			- lnBetaFunction(Tab*D[d].aveP + 1, Tab*(1 - D[d].aveP) + 1);
 #endif*/
 	} else if (D[d].gtype=='w') {
-		float Tab, Eab, Eaa, Ebb, Haa, Hbb, Taa, Tbb, Tcc;
+		float Tab, Eab, Eaa, Ebb, Haa, Hbb, Taa, Tbb;
 		Eab = w[d].get_uv(a,b);
 		Eaa = w[d].get_uv(a,a);
 		Ebb = w[d].get_uv(b,b);

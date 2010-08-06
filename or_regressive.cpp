@@ -17,8 +17,7 @@
 
 int main(int argc, char* argv[]) {
 	std::string fnstem,fnin,fnout;
-	linkPredictor lp;
-	char dummy[100];
+	linkPredictorOther lp;
 	int numResids;
 	if (argc==1) {
 		std::cout << "Need filename for input graph\n";
@@ -32,7 +31,6 @@ int main(int argc, char* argv[]) {
 		ssss << argv[2];
 		ssss >> numResids;
 	}
-	// std::cin >> dummy;
 	fnstem = argv[1];
 	//fnstem = "grassland";
 	fnin = fnstem+".edges";
@@ -40,9 +38,11 @@ int main(int argc, char* argv[]) {
 	graphData *Goriginal, *Gnew, *GPred, *GOld, *GsoFar;
 	Engine *en;
 	Goriginal = new graphData[1];
+	GsoFar = new graphData[1];
 	Goriginal[0].readBinary(fnin.c_str());
 	std::cout << "read file!\n";
-	en = new Engine(Goriginal,1);
+	Goriginal[0].copyNoEdges(GsoFar[0]);
+	en = new Engine(Goriginal,Goriginal, GsoFar, 1);
 	en->initializeScores();
 	// let us write the competing scores
 	/*std::cout << "writing degree product\n";
@@ -58,9 +58,10 @@ int main(int argc, char* argv[]) {
 	// run the agglomerative algorithm
 	std::cout << "starting to run\n";
 	en->run();
-	fnout = fnstem + ".network";
-	en->tree->writeCollapsedHierEdges(fnout.c_str());
 	std::cout << "done running\n";
+	fnout = fnstem + ".network";
+	std::cout << "writing heirarchical network\n";
+	en->tree->writeCollapsedHierEdges(fnout.c_str());
 	lp.attach(en); // attached the enginea
 
 	/*GPred = lp.makeNonEdgePred(Goriginal);
@@ -68,24 +69,23 @@ int main(int argc, char* argv[]) {
 	GPred[0].writeSingle(fnout.c_str());
 	delete[] GPred;*/
 
-	GsoFar = lp.copyNoEdges(Goriginal);
 	//fnout = fnstem + ".nodes";
 	//en->tree->writeNodeTypes(fnout.c_str());
 	std::cout << "getting the residual graph\n";
 	//Gnew = getResidual(G, lp);
-	Gnew = getORResidual(Goriginal, lp, GsoFar);
+	Gnew = residualDiff(Goriginal, GsoFar, 1);
 	
 	fnout = fnstem + "0.residual";
 	Gnew->writeSingle(fnout.c_str());
 	fnout = fnstem + "0.clusters";
 	en->tree->writeCollapsedHierEdges(fnout.c_str());
-	updateSoFar(Goriginal, lp, GsoFar);
+	lp.updateSoFar(GsoFar);
 	std::cout << "Etot = "<< Gnew->Etot << "\n";
 	int residint = 1;
 	while(residint <= numResids) {
 		std::cout << "got the residual\n";
 		delete en;
-		en = new Engine(Gnew,1);
+		en = new Engine(Gnew,Goriginal,GsoFar,1);
 		std::cout << "running on the residual\n";
 		en->initializeScores();
 		en->run();
@@ -109,17 +109,19 @@ int main(int argc, char* argv[]) {
 		fnout = fnstem + sres + ".residual";
 		GOld = Gnew;
 		std::cout << "getting the residual graph\n";
-		Gnew = getORResidual(Goriginal, lp, GsoFar);
+		Gnew = residualDiff(Goriginal, GsoFar, 1);
 		Gnew->writeSingle(fnout.c_str());
 		fnout = fnstem + sres + ".clusters";
 		en->tree->writeCollapsedHierEdges(fnout.c_str());
-		updateSoFar(Goriginal, lp, GsoFar);
+		lp.updateSoFar(GsoFar);
 		delete[] GOld;
 		std::cout << "Etot = "<< Gnew->Etot << "\n";
 		residint++;
 	}
 	std::cout << "done!\n";
 	delete[] Goriginal;
+	delete[] GsoFar;
+	delete[] Gnew;
 	delete en;
 	//delete G;
 	return 1;
