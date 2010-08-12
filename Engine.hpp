@@ -38,6 +38,7 @@ struct FPairEqual {
 
 float mySafeLog(float x) {
 	if (x<1e-8) return 1e10;
+	else if (std::isnan(x)) return 0;
 	else return log(x);
 };
 
@@ -358,6 +359,9 @@ float Engine::centerscore(int d, int a, int b) {
 			- lnBetaFunction(Ebarbb + 1, Tbb - Ebarbb + 1)
 			- lnBetaFunction(Ebarab + 1, Tab - Ebarab + 1);	
 #endif*/
+	} else {
+		std::cerr << "error: graph type " << D[d].gtype << " not allowed here.!\n";
+		exit(1);
 	}
 	return ans;
 };
@@ -465,7 +469,7 @@ int Engine::run() {
 		tree->topLevel.erase(b);
 		tree->topLevel.insert(c);
 		*/
-		if ((tree->nodeMap[a]->collapsed)&&(tree->nodeMap[b]->collapsed)&&(pscore.s.centerMscore>0)) {
+		if ((tree->nodeMap[a]->collapsed)&&(tree->nodeMap[b]->collapsed)&&(pscore.s.centerMscore>=0)) {
                         assert( tree->nodeMap[c]->collapseNode(tree->nodeMap) );
 			/*pnode->collapsed = 1;
 			for(intit= tree->nodeMap[a]->vertexSet.begin(); intit!= tree->nodeMap[a]->vertexSet.end(); ++intit) {
@@ -481,7 +485,9 @@ int Engine::run() {
 
 		}
 		// compute d,w,n,m for c
-                tree->nodeMap[c]->makeDataforMerged(a,b,w,tree,D);
+		Node* tempNode = tree->nodeMap[c];
+		tempNode->makeDataforMerged(a,b,w,tree,D);
+                //tree->nodeMap[c]->makeDataforMerged(a,b,w,tree,D);
 		/*for (d=0;d<dim;d++) {
 			wc = w[d].get_uv(a,a) + w[d].get_uv(b,b) + w[d].get_uv(a,b);
 			assert(w[d].AddPair(c,c,wc));

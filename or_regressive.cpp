@@ -45,15 +45,15 @@ int main(int argc, char* argv[]) {
 	en = new Engine(Goriginal,Goriginal, GsoFar, 1);
 	en->initializeScores();
 	// let us write the competing scores
-	/*std::cout << "writing degree product\n";
+	std::cout << "writing degree product\n";
 	fnout = fnstem + ".dprod"; en->printDegreeProdFile(fnout.c_str(), 0, 0);
-	std::cout << "writing hyper geom\n";
-	fnout = fnstem + ".hyperg"; en->printHyperGeomFile(fnout.c_str(), 0, 0);
+	//std::cout << "writing hyper geom\n";
+	//fnout = fnstem + ".hyperg"; en->printHyperGeomFile(fnout.c_str(), 0, 0);
 	std::cout << "writing jaccard\n";
 	fnout = fnstem + ".jaccard"; en->printJaccardFile(fnout.c_str(), 0, 0);
 	std::cout << "writing comm neigh\n";
 	fnout = fnstem + ".cneighb"; en->printCommonNeighbFile(fnout.c_str(), 0, 0);
-	*/
+	
 
 	// run the agglomerative algorithm
 	std::cout << "starting to run\n";
@@ -64,13 +64,16 @@ int main(int argc, char* argv[]) {
 	en->tree->writeCollapsedHierEdges(fnout.c_str());
 	lp.attach(en); // attached the enginea
 
-	/*GPred = lp.makeNonEdgePred(Goriginal);
+	GPred = lp.makeNonEdgePred(Goriginal);
 	fnout = fnstem + ".scores0";
 	GPred[0].writeSingle(fnout.c_str());
-	delete[] GPred;*/
+	delete[] GPred;
 
-	//fnout = fnstem + ".nodes";
+	fnout = fnstem + ".nodes";
 	//en->tree->writeNodeTypes(fnout.c_str());
+	lp.updateSoFar(GsoFar);
+	fnout = fnstem + "0.soFar";
+	GsoFar->writeSingle(fnout.c_str());
 	std::cout << "getting the residual graph\n";
 	//Gnew = getResidual(G, lp);
 	Gnew = residualDiff(Goriginal, GsoFar, 1);
@@ -79,7 +82,6 @@ int main(int argc, char* argv[]) {
 	Gnew->writeSingle(fnout.c_str());
 	fnout = fnstem + "0.clusters";
 	en->tree->writeCollapsedHierEdges(fnout.c_str());
-	lp.updateSoFar(GsoFar);
 	std::cout << "Etot = "<< Gnew->Etot << "\n";
 	int residint = 1;
 	while(residint <= numResids) {
@@ -91,12 +93,12 @@ int main(int argc, char* argv[]) {
 		en->run();
 		lp.attach(en);
 
-		/*GPred = lp.makeNonEdgePred(Goriginal);
+		GPred = lp.makeNonEdgePred(Goriginal);
 		std::ostringstream os;
 		os << fnstem << ".scores" << residint;
 		fnout = os.str();
 		GPred[0].writeSingle(fnout.c_str());
-		delete[] GPred;*/
+		delete[] GPred;
 
 
 		//fnout = fnout + "_noname";
@@ -106,14 +108,16 @@ int main(int argc, char* argv[]) {
 		dummy << residint;
 		std::string sres;
 		dummy >> sres;
-		fnout = fnstem + sres + ".residual";
 		GOld = Gnew;
+		lp.updateSoFar(GsoFar);
+		fnout = fnstem + sres + ".soFar";
+		GsoFar->writeSingle(fnout.c_str());
 		std::cout << "getting the residual graph\n";
 		Gnew = residualDiff(Goriginal, GsoFar, 1);
+		fnout = fnstem + sres + ".residual";
 		Gnew->writeSingle(fnout.c_str());
 		fnout = fnstem + sres + ".clusters";
 		en->tree->writeCollapsedHierEdges(fnout.c_str());
-		lp.updateSoFar(GsoFar);
 		delete[] GOld;
 		std::cout << "Etot = "<< Gnew->Etot << "\n";
 		residint++;

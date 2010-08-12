@@ -60,6 +60,9 @@ class TreeClass{
 		virtual ~TreeClass();
 		Node* getNode(int n);
 		virtual int makeMergeNode(int a, int b);
+		virtual Node* returnNode(int i) {
+			return nodeMap[i];
+		}
 };
 
 

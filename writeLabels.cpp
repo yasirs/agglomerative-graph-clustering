@@ -33,7 +33,6 @@ class myEdge{
 	
 
 int main(int argc, char* argv[]) {
-	float holdout;
 	myEdge e;
 	std::vector<std::string> *words;
 	std::string fnstem, fnin, fnout, line;

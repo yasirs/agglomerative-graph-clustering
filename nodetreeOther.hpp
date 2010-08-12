@@ -14,7 +14,7 @@ class NodeOther: public Node {
 		float *thetaSoFar;
 		float *thDenSoFar;
 		float *thNumSoFar;
-		virtual bool makeDataforMerged(int a, int b, dataMapOther* w, TreeClassOther* tree, graphData* D);
+		virtual bool makeDataforMerged(int a, int b, dataMap* w, TreeClass* tree, graphData* D);
 		NodeOther(int nodeID, int parentID, bool isTerminal, int vertID, int dimension);
 		NodeOther(int nodeID, int parentID, bool isTerminal, int dimension);
 		virtual ~NodeOther();
@@ -27,6 +27,9 @@ class TreeClassOther: public TreeClass {
 		virtual int makeMergeNode(int a, int b);
 		TreeClassOther(graphData* G, int dimension);
 		virtual ~TreeClassOther();
+		NodeOther* returnNode(int i) {
+			return (NodeOther*) nodeMap[i];
+		}
 };
 
 TreeClassOther::~TreeClassOther() {
@@ -113,9 +116,11 @@ NodeOther::~NodeOther() {
 	delete[] thDenOriginal;
 }
 
-bool NodeOther::makeDataforMerged(int a, int b, dataMapOther* w, TreeClassOther* tree, graphData* D) {
+bool NodeOther::makeDataforMerged(int a, int b, dataMap* ww, TreeClass* tree, graphData* D) {
 	float wc, wab;
 	float x;
+	dataMapOther *w = (dataMapOther*) ww;
+
 	for (int d=0;d<(tree->dim);d++) {
 		wc = w[d].get_uv(a,a) + w[d].get_uv(b,b) + w[d].get_uv(a,b);
 		assert(w[d].AddPair(this->nid,this->nid,wc));

@@ -23,10 +23,10 @@ int main(int argc, char* argv[]) {
 		std::cerr << "fraction needs to be <1!\n";
 		throw(1);
 	}
-	tstamp = time(NULL);
+	tstamp = clock(); //time(NULL);
 	srand( tstamp );
 	std::set<int> eset;
-	int nlines, i, n, nhold;
+	unsigned int nlines, i, nhold;
 	fnstem = argv[1];
 	fnin = fnstem + ".txt";
 	std::ifstream file;
@@ -40,14 +40,13 @@ int main(int argc, char* argv[]) {
 	}
 	file.close();
 	nhold = holdout * nlines;
-	nhold = std::max(nhold,1);
+	nhold = std::max(nhold,(unsigned ) 1);
 	nhold = std::min(nhold,nlines-1);
 	//std::cout << "nlines = "<< nlines << "\n";
 	//std::cout << "nhold = "<< nhold << "\n";
 	//std::cout << "holdout = "<< holdout << "\n";
 	std::cout << tstamp;
 	std::cout.flush();
-	n=0;
 	while (eset.size()<nhold) {
 		i = rand() % nlines;
 		eset.insert(i);
