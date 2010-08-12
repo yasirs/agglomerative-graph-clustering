@@ -22,6 +22,7 @@ class linkPredictor {
 		void attach(Engine* e);
 		float predictEdge(int u, int v, int d);
 		graphData* makeNonEdgePred(graphData* Dref);
+		graphData* makeEdgePred(graphData* Dref);
 		graphData* makeCompleteEdgePred();
 		graphData* copyNoEdges(graphData* Dold);
 		void addPredstoGraph(graphData* PD);
@@ -41,7 +42,34 @@ graphData* linkPredictor::copyNoEdges(graphData* Dold) {
 };
 
 
-
+graphData* linkPredictor::makeEdgePred(graphData* Dref) {
+	assert (attached);
+	graphData* PD;
+	float NP, weight;
+	int d,u,v;
+	graphData::destList::iterator eit;
+	std::map<int, graphData::destList*>::iterator dit;
+	PD = new graphData[dim];
+	for (d=0; d<dim;d++) {
+		NP = 0;
+		PD[d].gtype = 'w';
+		PD[d].Etot = 0;
+		PD[d].numV = D[d].numV;
+		PD[d].int2Name = D[d].int2Name;
+		PD[d].name2Int = D[d].name2Int;
+		for (dit = Dref[d].edgeList.begin(); dit != Dref[d].edgeList.end(); ++dit) {
+			u = (*dit).first;
+			for (eit = (*dit).second->begin(); eit != (*dit).second->end(); eit++) {
+				v = (*eit).first;
+				weight = this->predictEdge(u,v,d);
+				PD[d].Add_uv(u,v,weight);
+				PD[d].Etot += weight;
+				NP += 1;
+			}
+		}
+	}
+	return PD;
+}
 
 
 graphData* linkPredictor::makeNonEdgePred(graphData* Dref) {

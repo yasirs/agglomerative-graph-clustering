@@ -190,9 +190,9 @@ bool graphData::readBinaryBasedOnOld(graphData* Goriginal, const char* filename)
 	std::istringstream temp;
 	file.open(filename,std::ios::in);
 	if (! file.is_open()) return 0;
-	int2Name = Goriginal->int2Name;
-	name2Int = Goriginal->name2Int;
-	numV = Goriginal->numV;
+	this->int2Name = Goriginal->int2Name;
+	this->name2Int = Goriginal->name2Int;
+	this->numV = Goriginal->numV;
 	while (! file.eof()) {
 		getline(file,strline);
 		tok.clear();
