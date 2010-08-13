@@ -597,7 +597,7 @@ int Engine::run() {
 		}
 		
 		//TODO:: debug check
-		assert(sm.has_u(c)<0);
+		//assert(sm.has_u(c)<0);
 		// create new c,x scores
 		for (intit = firstNeighbors[c].begin(); intit != firstNeighbors[c].end(); ++intit) {
 			x = *intit;
