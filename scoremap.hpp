@@ -82,7 +82,7 @@ scoremap::twoScores scoremap::get_uv(int u, int v) {
 		return scores[u].scoreDest[v];
 	} else {
 		std::cerr << "Error!! doesnt have "<<u<<", "<<v<<"\n";
-		throw 1;
+		//throw 1;
 	}
 };
 
@@ -139,18 +139,19 @@ bool operator>(const scoremap::twoScores& s1, const scoremap::twoScores& s2) {
 bool scoremap::erase(int u, int v) {
 	std::map<int, scoremap::smap>::iterator it1;
 	std::map<int, twoScores>::iterator it2;
+	std::map<int, scoremap::smap>::iterator outIt(scores.find(u));
 	//TODO
-	if (scores.find(u)==scores.end())
+	if (outIt==scores.end())
 		throw 1;
 	if (bestK==u) {
-		if (scores[u].bestK==v) {
-			scores[u].scoreDest.erase(v);
-			scores[u].bestP = twoScorestruct(BIGNEG,BIGNEG);
-			scores[u].bestK = -1;
-			for (it2=scores[u].scoreDest.begin(); it2 != scores[u].scoreDest.end(); ++it2) {
-				if ((*it2).second>scores[u].bestP) {
-					scores[u].bestP = (*it2).second;
-					scores[u].bestK = (*it2).first;
+		if ((*outIt).second.bestK==v) {
+			(*outIt).second.scoreDest.erase(v);
+			(*outIt).second.bestP = twoScorestruct(BIGNEG,BIGNEG);
+			(*outIt).second.bestK = -1;
+			for (it2=(*outIt).second.scoreDest.begin(); it2 != (*outIt).second.scoreDest.end(); ++it2) {
+				if ((*it2).second>(*outIt).second.bestP) {
+					(*outIt).second.bestP = (*it2).second;
+					(*outIt).second.bestK = (*it2).first;
 				}
 			}
 			bestP = twoScorestruct(BIGNEG,BIGNEG);
@@ -162,24 +163,24 @@ bool scoremap::erase(int u, int v) {
 				}
 			}
 		} else {
-			scores[u].scoreDest.erase(v);
+			(*outIt).second.scoreDest.erase(v);
 		}
 	} else {
-		if (scores[u].bestK==v) {
-			scores[u].scoreDest.erase(v);
-			scores[u].bestP =  twoScorestruct(BIGNEG,BIGNEG);
-			scores[u].bestK = -1;
-			for (it2=scores[u].scoreDest.begin(); it2 != scores[u].scoreDest.end(); ++it2) {
-				if ((*it2).second>scores[u].bestP) {
-					scores[u].bestP = (*it2).second;
-					scores[u].bestK = (*it2).first;
+		if ((*outIt).second.bestK==v) {
+			(*outIt).second.scoreDest.erase(v);
+			(*outIt).second.bestP =  twoScorestruct(BIGNEG,BIGNEG);
+			(*outIt).second.bestK = -1;
+			for (it2=(*outIt).second.scoreDest.begin(); it2 != (*outIt).second.scoreDest.end(); ++it2) {
+				if ((*it2).second>(*outIt).second.bestP) {
+					(*outIt).second.bestP = (*it2).second;
+					(*outIt).second.bestK = (*it2).first;
 				}
 			}
 		} else {
-			scores[u].scoreDest.erase(v);
+			(*outIt).second.scoreDest.erase(v);
 		}
 	}
-	if (scores[u].scoreDest.empty()) {
+	if ((*outIt).second.scoreDest.empty()) {
 		scores.erase(u);
 	}
 	if (scores.empty()) {

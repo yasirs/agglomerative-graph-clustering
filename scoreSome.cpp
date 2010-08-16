@@ -17,6 +17,7 @@
 
 int main(int argc, char* argv[]) {
 	std::string fnstem,fnin,fnout;
+	char temp[80];
 	linkPredictorOther lp;
 	int numResids;
 	if (argc==1) {
@@ -64,7 +65,7 @@ int main(int argc, char* argv[]) {
 	en->run();
 	std::cout << "done running\n";
 	lp.attach(en); // attached the engine
-
+	std::cout << "Attached!\n";
 	GPred = lp.makeEdgePred(Glabel);
 	fnout = fnstem + ".scores0";
 	GPred[0].writeSingle(fnout.c_str());
@@ -85,6 +86,7 @@ int main(int argc, char* argv[]) {
 		dummy << residint;
 		std::string sres;
 		dummy >> sres;
+		
 		lp.updateSoFar(GsoFar);
 		fnout = fnstem + sres + ".soFar";
 		GsoFar->writeSingle(fnout.c_str());
@@ -95,8 +97,8 @@ int main(int argc, char* argv[]) {
 		std::cout << "Etot = "<< Gnew->Etot << "\n";
 		delete en;
 		en = new Engine(Gnew,Goriginal,GsoFar,1);
-		std::cout << "running on the residual\n";
 		en->initializeScores();
+		std::cout << "running on the residual\n";
 		en->run();
 		lp.attach(en);
 

@@ -73,6 +73,36 @@ graphData* linkPredictorOther::makeEdgePred(graphData* Dref) {
 	return PD;
 }
 
+
+graphData* linkPredictorOther::makeCompleteEdgePred() {
+	assert (attached);
+	graphData* PD;
+	float w, NP;
+	int d,u,v;
+	PD = new graphData[dim];
+	for (d=0; d<dim;d++) {
+		NP = 0;
+		PD[d].gtype = 'w';
+		PD[d].Etot = 0;
+		PD[d].numV = D[d].numV;
+		PD[d].int2Name = D[d].int2Name;
+		PD[d].name2Int = D[d].name2Int;
+		for (u=0; u<D[d].numV; u++) {
+			for (v=0; v<D[d].numV; v++) {
+				if (u!=v) {
+					w = this->predictEdge(u,v,d);
+					assert(! PD[d].Add_uv(u,v,w));
+					PD[d].Etot += w;
+					NP += 1;
+				}
+			}
+		}
+		PD[d].aveP = NP/(D[d].numV * D[d].numV);
+	}
+	return PD;
+};
+
+
 graphData* linkPredictorOther::makeNonEdgePred(graphData* Dref) {
 	assert (attached);
 	graphData* PD;

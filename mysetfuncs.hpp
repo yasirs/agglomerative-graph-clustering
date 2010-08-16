@@ -5,6 +5,11 @@
 #include <iostream>
 #include "nodetree.hpp"
 #include <iterator>
+#if ISVC
+#include <unordered_set>
+#else
+#include <tr1/unordered_set>
+#endif
 
 
 /*
@@ -60,6 +65,14 @@ template<typename T> bool set_union_update(std::set<T>& target, const std::set<T
 	set_union(s1.begin(), s1.end(), s2.begin(), s2.end(), std::insert_iterator<std::set<T> >(target,target.begin()));
 	return 1;
 };
+
+
+template<typename T> bool set_union_update(std::tr1::unordered_set<T>& target, const std::set<T>& s1, const std::set<T>& s2) {
+	set_union(s1.begin(), s1.end(), s2.begin(), s2.end(), std::insert_iterator<std::tr1::unordered_set<T> >(target,target.begin()));
+	return 1;
+};
+
+
 
 
 template<typename T> bool set_difference_update(std::set<T>& target, const std::set<T>& s1, const std::set<T>& s2) {

@@ -3,8 +3,10 @@
 #include <map>
 #if ISVC
 #include <unordered_map>
+#include <unordered_set>
 #else
 #include <tr1/unordered_map>
+#include <tr1/unordered_set>
 #endif
 #include <list>
 #include <set>
@@ -103,6 +105,9 @@ class Engine{
 		bool doStage();
 		bool cleanUp();
 		float deltascore(int d, int a, int b, int x);
+		float deltascore1(int d, int a, int b, int x) {
+			return deltascore(d,a,b,x);
+		}
 		float centerscore(int d, int a, int b);
 		std::set<int> getNeighborsVertex(int i);
 		std::set<int> getNeighborsNode(int i);
@@ -588,8 +593,10 @@ int Engine::run() {
 						}
 						if (firstNeighbors[c].count(y)) {
 							assert(sm.AddTo(x,y,jscore/2));
+							assert(sm.AddTo(y,x,jscore/2));
 						} else {
 							assert(sm.AddTo(x,y,jscore));
+							assert(sm.AddTo(y,x,jscore));
 						}
 					}
 				}
@@ -610,7 +617,7 @@ int Engine::run() {
 					set_union_update(neighbUnion, firstNeighbors[x], firstNeighbors[c]);
 					for (intsetit = neighbUnion.begin(); intsetit != neighbUnion.end(); ++intsetit) {
 						z = *intsetit;
-						if (! ((x==z)||(c==z)) ) {
+						if (! ((x==z)||(c==z)||(a==z)||(b==z)) ) {
 							jscore = jscore + deltascore(d,c,x,z);
 						}
 					}
@@ -635,7 +642,7 @@ int Engine::run() {
 					set_union_update(neighbUnion, firstNeighbors[x], firstNeighbors[c]);
 					for (intsetit = neighbUnion.begin(); intsetit != neighbUnion.end(); ++intsetit) {
 						z = *intsetit;
-						if (! ((x==z)||(c==z)) ) {
+						if (! ((x==z)||(c==z)||(a==z)||(b==z)) ) {
 							jscore = jscore + deltascore(d,x,c,z);
 						}
 					}
@@ -686,7 +693,7 @@ int Engine::run() {
 								for (intsetit = neighbUnion.begin(); intsetit != neighbUnion.end(); ++intsetit) {
 									z = *intsetit;
 									if (! ((x==z)||(y==z)) ) {
-										jscore = jscore + deltascore(d,y,x,z);
+										jscore = jscore + deltascore1(d,y,x,z);
 									}
 								}
 								cscore = cscore + centerscore(d,y,x);
@@ -784,6 +791,10 @@ int Engine::run() {
 
 
 bool Engine::initializeScores() {
+	//std::tr1::unordered_set<int> neighbUnion;
+	//std::tr1::unordered_set<int>::iterator unsetit;
+	std::set<int> neighbUnion;
+	std::set<int>::iterator unsetit;
 	std::set<int> emptySet;
 	curLev = 0;
 	int d,x,y,z;
@@ -822,12 +833,12 @@ bool Engine::initializeScores() {
 				// go through all dimensions
 				for (d=0;d<dim;d++) {
 					// go through the union set of neighbors
-					std::set<int> neighbUnion;
+					neighbUnion.clear();
 					set_union_update(neighbUnion, firstNeighbors[x], firstNeighbors[y]);
-					for (intsetit = neighbUnion.begin(); intsetit != neighbUnion.end(); ++intsetit) {
-						z = *intsetit;
+					for (unsetit = neighbUnion.begin(); unsetit != neighbUnion.end(); ++unsetit) {
+						z = *unsetit;
 						if (! ((x==z)||(y==z)) ) {
-							jscore = jscore + deltascore(d,x,y,z);
+							jscore = jscore + deltascore1(d,x,y,z);
 						}
 					}
 					cscore = cscore + centerscore(d,x,y);
@@ -844,12 +855,12 @@ bool Engine::initializeScores() {
 				// go through all dimensions
 				for (d=0;d<dim;d++) {
 					// go through the union set of neighbors
-					std::set<int> neighbUnion;
+					neighbUnion.clear();
 					set_union_update(neighbUnion, firstNeighbors[x], firstNeighbors[y]);
-					for (intsetit = neighbUnion.begin(); intsetit != neighbUnion.end(); ++intsetit) {
-						z = *intsetit;
+					for (unsetit = neighbUnion.begin(); unsetit != neighbUnion.end(); ++unsetit) {
+						z = *unsetit;
 						if (! ((x==z)||(y==z)) ) {
-							jscore = jscore + deltascore(d,x,y,z);
+							jscore = jscore + deltascore1(d,x,y,z);
 						}
 					}
 					cscore = cscore + centerscore(d,x,y);
