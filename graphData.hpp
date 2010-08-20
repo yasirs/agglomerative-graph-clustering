@@ -186,6 +186,7 @@ bool graphData::readBinaryBasedOnOld(graphData* Goriginal, const char* filename)
 	int u,v;
 	float sum = 0;
 	float weight;
+	int linesread=0;
 	std::string St1, St2;
 	std::istringstream temp;
 	file.open(filename,std::ios::in);
@@ -198,6 +199,7 @@ bool graphData::readBinaryBasedOnOld(graphData* Goriginal, const char* filename)
 		tok.clear();
 		my_Tokenize(strline,tok," \t");
 		if (tok.size()>1) {
+			linesread++;
 			if (name2Int.find(tok[0])==name2Int.end()) {
 				return 0;
 			} else {
