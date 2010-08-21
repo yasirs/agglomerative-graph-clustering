@@ -86,7 +86,7 @@ int main(int argc, char* argv[]) {
 		std::string sres;
 		dummy >> sres;
 		
-		lp.updateSoFar(GsoFar);
+		lp.updateSoFarLazy(GsoFar);
 		fnout = fnstem + sres + ".soFar";
 		GsoFar->writeSingle(fnout.c_str());
 		std::cout << "getting the residual graph\n";

@@ -4,6 +4,7 @@
 #include "nodetree.hpp"
 #include "graphData.hpp"
 #include "Engine.hpp"
+#include "mygenerators.hpp"
 #include <cassert>
 #include <cmath>
 #include <math.h>
@@ -27,6 +28,7 @@ class linkPredictorOther {
 		graphData* copyNoEdges(graphData* Dold);
 		void addPredstoGraph(graphData* PD);
 		void updateSoFar(graphData* GsoFar);
+		void updateSoFarLazy(graphData* GsoFar);
 		~linkPredictorOther();
 };
 
@@ -150,6 +152,28 @@ void linkPredictorOther::addPredstoGraph(graphData* PD) {
 		}
 	}
 };
+
+
+
+void linkPredictorOther::updateSoFar2(graphData* GsoFar) {
+	// TODO:: lazy V^2 computation right now, need to update it to go over only the nonzero thetas
+	float wpredicted, wnew;
+	for (int d=0; d< this->dim;d++) {
+		for (int u= 0; u<GsoFar[d].numV; u++) {
+			for (int v= 0; v<GsoFar[d].numV; v++) {
+				wpredicted = this->predictEdge(u,v,d);
+				wnew = 1 - (1 - GsoFar[d].get_uv(u,v))*(1 - wpredicted);
+				if (wnew>EPS) {
+					GsoFar[d].set_uv(u,v,wnew);
+				} else {
+					GsoFar[d].delete_uv(u,v);
+				}
+			}
+		}
+	}
+}
+
+
 
 
 void linkPredictorOther::updateSoFar(graphData* GsoFar) {
@@ -286,4 +310,138 @@ float linkPredictorOther::predictEdge(int u, int v, int d) {
 };
 
 
-#endif
+void linkPredictorOther::updateSoFarLazy(graphData* GsoFar) {
+	std::map<int, std::map<int, float*> >::iterator outit;
+	std::map<int,float*>::iterator init;
+	for (int d; d<this->dim;d++) {
+		for (outit = topThetas.begin(); outit != topThetas.end(); ++outit) {
+			int n1 = (*outit).first;
+			for (init = (*outit).second.begin(); init != (*outit).second.end(); init++) {
+				if ((*init).second[d] != 0) {
+					// need to process this
+					int n2 = (*init).first;
+					float theta = (*init).second[d];
+					AllChildVertGenerator G1(tree, n1); 
+					AllChildVertGenerator G2(tree, n2);
+					int u;
+					for (; (! G1.isDone()); ) {
+						u = G1.goNext();
+						if (D[d].gtype=='w') {
+							mu = w[d].degrees[u];
+						} else if (D[d].gtype=='b') {
+							mu = w[d].nV[u];
+						} else {
+							std::cerr << "graph type "<<D[d].gtype<<" not supported yet for predicting edges.\n";
+							throw 1;
+						}
+						int v;
+						for (; (! G2.isDone()); ) {
+							v = G2.goNext();
+							if (D[d].gtype=='w') {
+								mv = w[d].degrees[v];
+							} else if (D[d].gtype=='b') {
+								mv = w[d].nV[v];
+							} else {
+								std::cerr << "graph type "<<D[d].gtype<<" not supported yet for predicting edges.\n";
+								throw 1;
+							}
+							wpredicted = mu * theta * mv;
+							wnew = 1 - (1 - GsoFar[d].get_uv(u,v))*(1 - wpredicted);
+							if (wnew>EPS) {
+								GsoFar[d].set_uv(u,v,wnew);
+							} else {
+								GsoFar[d].delete_uv(u,v);
+							}
+						}
+					}
+				}
+			}
+		}
+		NCNZGenerator NodeGen(tree, d);
+		int n;
+		for (; (! NodeGen.isDone()); ) {
+			n = NodeGen.goNext();
+			Node* pnode = tree->nodeMap[n];
+			float theta = pnode->theta[d];
+			if (pnode->collapsed) {
+				// need to go over the vertices
+				assert(pnode->vertsComputed);
+				AllChildVertGenerator G1(tree, n); 
+				AllChildVertGenerator G2(tree, n);
+				int u;
+				for (; (! G1.isDone()); ) {
+					u = G1.goNext();
+					if (D[d].gtype=='w') {
+						mu = w[d].degrees[u];
+					} else if (D[d].gtype=='b') {
+						mu = w[d].nV[u];
+					} else {
+						std::cerr << "graph type "<<D[d].gtype<<" not supported yet for predicting edges.\n";
+						throw 1;
+					}
+					int v;
+					for (; (! G2.isDone()); ) {
+						v = G2.goNext();
+						if (D[d].gtype=='w') {
+							mv = w[d].degrees[v];
+						} else if (D[d].gtype=='b') {
+							mv = w[d].nV[v];
+						} else {
+							std::cerr << "graph type "<<D[d].gtype<<" not supported yet for predicting edges.\n";
+							throw 1;
+						}
+						wpredicted = mu * theta * mv;
+						wnew = 1 - (1 - GsoFar[d].get_uv(u,v))*(1 - wpredicted);
+						if (wnew>EPS) {
+							GsoFar[d].set_uv(u,v,wnew);
+						} else {
+							GsoFar[d].delete_uv(u,v);
+						}
+					}
+				}
+			} else {
+				// need to go over child - vertices (pair-wise)
+				for (std::set<int>::iterator cit1(pnode->childSet.begin()); cit1 != pnode->childSet.end(); cit1++) {
+					for (std::set<int>::iterator cit1(pnode->childSet.begin()); cit1 != pnode->childSet.end(); cit1++) {
+						AllChildVertGenerator G1(tree, *cit1); 
+						AllChildVertGenerator G2(tree, *cit2);
+						int u;
+						for (; (! G1.isDone()); ) {
+							u = G1.goNext();
+							if (D[d].gtype=='w') {
+								mu = w[d].degrees[u];
+							} else if (D[d].gtype=='b') {
+								mu = w[d].nV[u];
+							} else {
+								std::cerr << "graph type "<<D[d].gtype<<" not supported yet for predicting edges.\n";
+								throw 1;
+							}
+							int v;
+							for (; (! G2.isDone()); ) {
+								v = G2.goNext();
+								if (D[d].gtype=='w') {
+									mv = w[d].degrees[v];
+								} else if (D[d].gtype=='b') {
+									mv = w[d].nV[v];
+								} else {
+									std::cerr << "graph type "<<D[d].gtype<<" not supported yet for predicting edges.\n";
+									throw 1;
+								}
+								wpredicted = mu * theta * mv;
+								wnew = 1 - (1 - GsoFar[d].get_uv(u,v))*(1 - wpredicted);
+								if (wnew>EPS) {
+									GsoFar[d].set_uv(u,v,wnew);
+								} else {
+									GsoFar[d].delete_uv(u,v);
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+#endif			
+
