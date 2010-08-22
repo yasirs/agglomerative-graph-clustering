@@ -59,7 +59,6 @@ int main(int argc, char* argv[]) {
 	std::cout << "writing comm neigh\n";
 	fnout = fnstem + ".cneighb"; en->printCommonNeighbFile(fnout.c_str(), 0, 0);
 	*/
-
 	// run the agglomerative algorithm
 	std::cout << "starting to run\n";
 	en->run();
@@ -85,7 +84,6 @@ int main(int argc, char* argv[]) {
 		dummy << residint;
 		std::string sres;
 		dummy >> sres;
-		
 		lp.updateSoFarLazy(GsoFar);
 		fnout = fnstem + sres + ".soFar";
 		GsoFar->writeSingle(fnout.c_str());
@@ -105,12 +103,9 @@ int main(int argc, char* argv[]) {
 		GPred = lp.makeEdgePred(Glabel);
 		fnout = fnstem + ".scores" + sres;
 		GPred[0].writeSingle(fnout.c_str());
-
-
 		//fnout = fnout + "_noname";
 		//GPred[0].writeSingle_noname(fnout.c_str());
 		std::cout << "done!\nPrinting out the " << residint <<"th heirarchical network\n";
-
 		fnout = fnstem + sres + ".clusters";
 		en->tree->writeCollapsedHierEdges(fnout.c_str());
 		residint++;

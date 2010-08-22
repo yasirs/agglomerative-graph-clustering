@@ -1,3 +1,5 @@
+#ifndef MYGENERATORS_HPP
+#define MYGENERATORS_HPP
 #include <stack>
 
 class NCNZGenerator{
@@ -20,12 +22,32 @@ NCNZGenerator::NCNZGenerator(TreeClass* t, int mydim) {
 }
 
 bool NCNZGenerator::isDone() {
-	return (this->toVisit.empty());
+	int curNode = this->toVisit.top();
+	Node* pnode = this->tree->nodeMap[curNode];
+	while (1) {
+		if (pnode->theta[d] != 0)
+			return 1;
+		else {
+			this->toVisit.pop();
+			if (! pnode->collapsed) {
+				for (std::set<int>::iterator cit(pnode->childSet.begin()); cit != pnode->childSet.end(); ++cit) {
+					toVisit.push(*cit);
+				}
+			}
+			if (this->toVisit.empty()) {
+				return 0;
+			} else {
+				curNode = this->toVisit.top();
+				pnode = this->tree->nodeMap[curNode];
+			}
+		}
+	}
 }
 
 int NCNZGenerator::goNext() {
-	if (this->toVisit.empty()) return 0;
-	int curNode = this->toVisit.pop();
+	assert (! this->toVisit.empty());
+	int curNode = this->toVisit.top();
+	this->toVisit.pop();
 	Node* pnode = this->tree->nodeMap[curNode];
 	while (1) {
 		if (! pnode->collapsed) {
@@ -36,12 +58,10 @@ int NCNZGenerator::goNext() {
 		if (pnode->theta[d] != 0)
 			return curNode;
 		else {
-			if (this->toVisit.empty()) {
-				return 0;
-			} else {
-				curNode = this->toVisit.pop();
-				pnode = this->tree->nodeMap[curNode];
-			}
+			assert (! this->toVisit.empty());
+			curNode = this->toVisit.top();
+			this->toVisit.pop();
+			pnode = this->tree->nodeMap[curNode];
 		}
 	}
 }
@@ -73,10 +93,11 @@ AllChildVertGenerator::AllChildVertGenerator(TreeClass* t, int nodenum) {
 int AllChildVertGenerator::goNext() {
 	int curNode;
 	Node* pnode;
-	if (toVisit.empty()) {
+	if (this->toVisit.empty()) {
 		return 0;
 	}
-	curNode = toVisit.pop();
+	curNode = this->toVisit.top();
+	this->toVisit.pop();
 	pnode = tree->nodeMap[curNode];
 	while (1) {
 		if (pnode->isTerm) {
@@ -88,7 +109,8 @@ int AllChildVertGenerator::goNext() {
 				for (; vit != pnode->vertexSet.end(); vit++) {
 					toVisit.push(*vit);
 				}
-				curNode = toVisit.pop();
+				curNode = this->toVisit.top();
+				this->toVisit.pop();
 				assert( tree->nodeMap[curNode]->isTerm);
 				return curNode;
 			} else {
@@ -98,12 +120,12 @@ int AllChildVertGenerator::goNext() {
 					toVisit.push(*nit);
 				}
 				// pop and continue
-				curNode = toVisit.pop();
+				curNode = toVisit.top();
+				this->toVisit.pop();
 				pnode = tree->nodeMap[curNode];
 			}
 		}
 	}
+}
 
-
-
-			
+#endif

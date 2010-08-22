@@ -155,24 +155,6 @@ void linkPredictorOther::addPredstoGraph(graphData* PD) {
 
 
 
-void linkPredictorOther::updateSoFar2(graphData* GsoFar) {
-	// TODO:: lazy V^2 computation right now, need to update it to go over only the nonzero thetas
-	float wpredicted, wnew;
-	for (int d=0; d< this->dim;d++) {
-		for (int u= 0; u<GsoFar[d].numV; u++) {
-			for (int v= 0; v<GsoFar[d].numV; v++) {
-				wpredicted = this->predictEdge(u,v,d);
-				wnew = 1 - (1 - GsoFar[d].get_uv(u,v))*(1 - wpredicted);
-				if (wnew>EPS) {
-					GsoFar[d].set_uv(u,v,wnew);
-				} else {
-					GsoFar[d].delete_uv(u,v);
-				}
-			}
-		}
-	}
-}
-
 
 
 
@@ -313,6 +295,7 @@ float linkPredictorOther::predictEdge(int u, int v, int d) {
 void linkPredictorOther::updateSoFarLazy(graphData* GsoFar) {
 	std::map<int, std::map<int, float*> >::iterator outit;
 	std::map<int,float*>::iterator init;
+	float wnew, wpredicted;
 	for (int d; d<this->dim;d++) {
 		for (outit = topThetas.begin(); outit != topThetas.end(); ++outit) {
 			int n1 = (*outit).first;
@@ -324,6 +307,7 @@ void linkPredictorOther::updateSoFarLazy(graphData* GsoFar) {
 					AllChildVertGenerator G1(tree, n1); 
 					AllChildVertGenerator G2(tree, n2);
 					int u;
+					float mu;
 					for (; (! G1.isDone()); ) {
 						u = G1.goNext();
 						if (D[d].gtype=='w') {
@@ -335,6 +319,7 @@ void linkPredictorOther::updateSoFarLazy(graphData* GsoFar) {
 							throw 1;
 						}
 						int v;
+						float mv;
 						for (; (! G2.isDone()); ) {
 							v = G2.goNext();
 							if (D[d].gtype=='w') {
@@ -369,6 +354,7 @@ void linkPredictorOther::updateSoFarLazy(graphData* GsoFar) {
 				AllChildVertGenerator G1(tree, n); 
 				AllChildVertGenerator G2(tree, n);
 				int u;
+				float mu;
 				for (; (! G1.isDone()); ) {
 					u = G1.goNext();
 					if (D[d].gtype=='w') {
@@ -380,6 +366,7 @@ void linkPredictorOther::updateSoFarLazy(graphData* GsoFar) {
 						throw 1;
 					}
 					int v;
+					float mv;
 					for (; (! G2.isDone()); ) {
 						v = G2.goNext();
 						if (D[d].gtype=='w') {
@@ -402,10 +389,11 @@ void linkPredictorOther::updateSoFarLazy(graphData* GsoFar) {
 			} else {
 				// need to go over child - vertices (pair-wise)
 				for (std::set<int>::iterator cit1(pnode->childSet.begin()); cit1 != pnode->childSet.end(); cit1++) {
-					for (std::set<int>::iterator cit1(pnode->childSet.begin()); cit1 != pnode->childSet.end(); cit1++) {
+					for (std::set<int>::iterator cit2(pnode->childSet.begin()); cit2 != pnode->childSet.end(); cit2++) {
 						AllChildVertGenerator G1(tree, *cit1); 
 						AllChildVertGenerator G2(tree, *cit2);
 						int u;
+						float mu;
 						for (; (! G1.isDone()); ) {
 							u = G1.goNext();
 							if (D[d].gtype=='w') {
@@ -417,6 +405,7 @@ void linkPredictorOther::updateSoFarLazy(graphData* GsoFar) {
 								throw 1;
 							}
 							int v;
+							float mv;
 							for (; (! G2.isDone()); ) {
 								v = G2.goNext();
 								if (D[d].gtype=='w') {
