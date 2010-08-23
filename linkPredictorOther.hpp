@@ -305,7 +305,6 @@ void linkPredictorOther::updateSoFarLazy(graphData* GsoFar) {
 					int n2 = (*init).first;
 					float theta = (*init).second[d];
 					AllChildVertGenerator G1(tree, n1); 
-					AllChildVertGenerator G2(tree, n2);
 					int u;
 					float mu;
 					for (; (! G1.isDone()); ) {
@@ -320,6 +319,7 @@ void linkPredictorOther::updateSoFarLazy(graphData* GsoFar) {
 						}
 						int v;
 						float mv;
+						AllChildVertGenerator G2(tree, n2);
 						for (; (! G2.isDone()); ) {
 							v = G2.goNext();
 							if (u != v) {
@@ -354,7 +354,6 @@ void linkPredictorOther::updateSoFarLazy(graphData* GsoFar) {
 				// need to go over the vertices
 				assert(pnode->vertsComputed);
 				AllChildVertGenerator G1(tree, n); 
-				AllChildVertGenerator G2(tree, n);
 				int u;
 				float mu;
 				for (; (! G1.isDone()); ) {
@@ -369,6 +368,7 @@ void linkPredictorOther::updateSoFarLazy(graphData* GsoFar) {
 					}
 					int v;
 					float mv;
+					AllChildVertGenerator G2(tree, n);
 					for (; (! G2.isDone()); ) {
 						v = G2.goNext();
 						if (u != v) {
@@ -396,7 +396,6 @@ void linkPredictorOther::updateSoFarLazy(graphData* GsoFar) {
 					for (std::set<int>::iterator cit2(pnode->childSet.begin()); cit2 != pnode->childSet.end(); cit2++) {
 						if ((*cit1) != (*cit2)) {
 							AllChildVertGenerator G1(tree, *cit1); 
-							AllChildVertGenerator G2(tree, *cit2);
 							int u;
 							float mu;
 							for (; (! G1.isDone()); ) {
@@ -411,6 +410,7 @@ void linkPredictorOther::updateSoFarLazy(graphData* GsoFar) {
 								}
 								int v;
 								float mv;
+								AllChildVertGenerator G2(tree, *cit2);
 								for (; (! G2.isDone()); ) {
 									v = G2.goNext();
 									if (u != v) {

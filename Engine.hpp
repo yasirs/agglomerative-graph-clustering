@@ -108,6 +108,7 @@ class Engine{
 		float deltascore1(int d, int a, int b, int x) {
 			return deltascore(d,a,b,x);
 		}
+		float debug_getscore(int d,int a,int b);
 		float centerscore(int d, int a, int b);
 		std::set<int> getNeighborsVertex(int i);
 		std::set<int> getNeighborsNode(int i);
@@ -116,6 +117,16 @@ class Engine{
 		void printDegreeProdFile(const char* filename, int d, bool edges);
 		void printCommonNeighbFile(const char* filename, int d, bool edges);
 };
+
+
+float Engine::debug_getscore(int d,int a,int b) {
+	float s = 0;
+	for(std::set<int>::iterator nit (tree->topLevel.begin()); nit != tree->topLevel.end(); ++nit) {
+		if (! ((*nit==a)|(*nit==b))  )
+		s = s + deltascore(d,a,b,*nit);
+	}
+	return s;
+}
 
 
 void Engine::printCommonNeighbFile(const char* fn, int d, bool edges) {
