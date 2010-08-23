@@ -296,11 +296,11 @@ void linkPredictorOther::updateSoFarLazy(graphData* GsoFar) {
 	std::map<int, std::map<int, float*> >::iterator outit;
 	std::map<int,float*>::iterator init;
 	float wnew, wpredicted;
-	for (int d; d<this->dim;d++) {
+	for (int d=0; d<this->dim;d++) {
 		for (outit = topThetas.begin(); outit != topThetas.end(); ++outit) {
 			int n1 = (*outit).first;
 			for (init = (*outit).second.begin(); init != (*outit).second.end(); init++) {
-				if ((*init).second[d] != 0) {
+				if (((*init).second[d] != 0)&((*outit).first !=(*init).first)) {
 					// need to process this
 					int n2 = (*init).first;
 					float theta = (*init).second[d];
@@ -322,20 +322,22 @@ void linkPredictorOther::updateSoFarLazy(graphData* GsoFar) {
 						float mv;
 						for (; (! G2.isDone()); ) {
 							v = G2.goNext();
-							if (D[d].gtype=='w') {
-								mv = w[d].degrees[v];
-							} else if (D[d].gtype=='b') {
-								mv = w[d].nV[v];
-							} else {
-								std::cerr << "graph type "<<D[d].gtype<<" not supported yet for predicting edges.\n";
-								throw 1;
-							}
-							wpredicted = mu * theta * mv;
-							wnew = 1 - (1 - GsoFar[d].get_uv(u,v))*(1 - wpredicted);
-							if (wnew>EPS) {
-								GsoFar[d].set_uv(u,v,wnew);
-							} else {
-								GsoFar[d].delete_uv(u,v);
+							if (u != v) {
+								if (D[d].gtype=='w') {
+									mv = w[d].degrees[v];
+								} else if (D[d].gtype=='b') {
+									mv = w[d].nV[v];
+								} else {
+									std::cerr << "graph type "<<D[d].gtype<<" not supported yet for predicting edges.\n";
+									throw 1;
+								}
+								wpredicted = mu * theta * mv;
+								wnew = 1 - (1 - GsoFar[d].get_uv(u,v))*(1 - wpredicted);
+								if (wnew>EPS) {
+									GsoFar[d].set_uv(u,v,wnew);
+								} else {
+									GsoFar[d].delete_uv(u,v);
+								}
 							}
 						}
 					}
@@ -369,20 +371,22 @@ void linkPredictorOther::updateSoFarLazy(graphData* GsoFar) {
 					float mv;
 					for (; (! G2.isDone()); ) {
 						v = G2.goNext();
-						if (D[d].gtype=='w') {
-							mv = w[d].degrees[v];
-						} else if (D[d].gtype=='b') {
-							mv = w[d].nV[v];
-						} else {
-							std::cerr << "graph type "<<D[d].gtype<<" not supported yet for predicting edges.\n";
-							throw 1;
-						}
-						wpredicted = mu * theta * mv;
-						wnew = 1 - (1 - GsoFar[d].get_uv(u,v))*(1 - wpredicted);
-						if (wnew>EPS) {
-							GsoFar[d].set_uv(u,v,wnew);
-						} else {
-							GsoFar[d].delete_uv(u,v);
+						if (u != v) {
+							if (D[d].gtype=='w') {
+								mv = w[d].degrees[v];
+							} else if (D[d].gtype=='b') {
+								mv = w[d].nV[v];
+							} else {
+								std::cerr << "graph type "<<D[d].gtype<<" not supported yet for predicting edges.\n";
+								throw 1;
+							}
+							wpredicted = mu * theta * mv;
+							wnew = 1 - (1 - GsoFar[d].get_uv(u,v))*(1 - wpredicted);
+							if (wnew>EPS) {
+								GsoFar[d].set_uv(u,v,wnew);
+							} else {
+								GsoFar[d].delete_uv(u,v);
+							}
 						}
 					}
 				}
@@ -390,38 +394,42 @@ void linkPredictorOther::updateSoFarLazy(graphData* GsoFar) {
 				// need to go over child - vertices (pair-wise)
 				for (std::set<int>::iterator cit1(pnode->childSet.begin()); cit1 != pnode->childSet.end(); cit1++) {
 					for (std::set<int>::iterator cit2(pnode->childSet.begin()); cit2 != pnode->childSet.end(); cit2++) {
-						AllChildVertGenerator G1(tree, *cit1); 
-						AllChildVertGenerator G2(tree, *cit2);
-						int u;
-						float mu;
-						for (; (! G1.isDone()); ) {
-							u = G1.goNext();
-							if (D[d].gtype=='w') {
-								mu = w[d].degrees[u];
-							} else if (D[d].gtype=='b') {
-								mu = w[d].nV[u];
-							} else {
-								std::cerr << "graph type "<<D[d].gtype<<" not supported yet for predicting edges.\n";
-								throw 1;
-							}
-							int v;
-							float mv;
-							for (; (! G2.isDone()); ) {
-								v = G2.goNext();
+						if ((*cit1) != (*cit2)) {
+							AllChildVertGenerator G1(tree, *cit1); 
+							AllChildVertGenerator G2(tree, *cit2);
+							int u;
+							float mu;
+							for (; (! G1.isDone()); ) {
+								u = G1.goNext();
 								if (D[d].gtype=='w') {
-									mv = w[d].degrees[v];
+									mu = w[d].degrees[u];
 								} else if (D[d].gtype=='b') {
-									mv = w[d].nV[v];
+									mu = w[d].nV[u];
 								} else {
 									std::cerr << "graph type "<<D[d].gtype<<" not supported yet for predicting edges.\n";
 									throw 1;
 								}
-								wpredicted = mu * theta * mv;
-								wnew = 1 - (1 - GsoFar[d].get_uv(u,v))*(1 - wpredicted);
-								if (wnew>EPS) {
-									GsoFar[d].set_uv(u,v,wnew);
-								} else {
-									GsoFar[d].delete_uv(u,v);
+								int v;
+								float mv;
+								for (; (! G2.isDone()); ) {
+									v = G2.goNext();
+									if (u != v) {
+										if (D[d].gtype=='w') {
+											mv = w[d].degrees[v];
+										} else if (D[d].gtype=='b') {
+											mv = w[d].nV[v];
+										} else {
+											std::cerr << "graph type "<<D[d].gtype<<" not supported yet for predicting edges.\n";
+											throw 1;
+										}
+										wpredicted = mu * theta * mv;
+										wnew = 1 - (1 - GsoFar[d].get_uv(u,v))*(1 - wpredicted);
+										if (wnew>EPS) {
+											GsoFar[d].set_uv(u,v,wnew);
+										} else {
+											GsoFar[d].delete_uv(u,v);
+										}
+									}
 								}
 							}
 						}

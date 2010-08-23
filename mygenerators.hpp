@@ -22,11 +22,12 @@ NCNZGenerator::NCNZGenerator(TreeClass* t, int mydim) {
 }
 
 bool NCNZGenerator::isDone() {
+	if (this->toVisit.empty()) return 1;
 	int curNode = this->toVisit.top();
 	Node* pnode = this->tree->nodeMap[curNode];
 	while (1) {
 		if (pnode->theta[d] != 0)
-			return 1;
+			return 0;
 		else {
 			this->toVisit.pop();
 			if (! pnode->collapsed) {
@@ -35,7 +36,7 @@ bool NCNZGenerator::isDone() {
 				}
 			}
 			if (this->toVisit.empty()) {
-				return 0;
+				return 1;
 			} else {
 				curNode = this->toVisit.top();
 				pnode = this->tree->nodeMap[curNode];
@@ -116,7 +117,7 @@ int AllChildVertGenerator::goNext() {
 			} else {
 				// curNode is not a terminal, neither are its vertices computed
 				std::set<int>::iterator nit (pnode->childSet.begin());
-				for (; nit != pnode->vertexSet.end(); nit++) {
+				for (; nit != pnode->childSet.end(); nit++) {
 					toVisit.push(*nit);
 				}
 				// pop and continue
@@ -126,6 +127,6 @@ int AllChildVertGenerator::goNext() {
 			}
 		}
 	}
-}
 
+}
 #endif
