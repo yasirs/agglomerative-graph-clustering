@@ -407,10 +407,6 @@ float Engine::deltascore(int d, int a, int b, int x) {
 		ans = Etot * mySafeLog(thetaTot) + (Ttot - Etot) * mySafeLog(1-thetaTot)
 			- Eax * mySafeLog(thetaA) - (Tax - Eax) * mySafeLog(1-thetaA)
 			- Ebx * mySafeLog(thetaB) - (Tbx - Ebx) * mySafeLog(1-thetaB);
-		//TODO::
-		if (std::isnan(ans)) {
-			std::cout << "isnan answer!\n";
-		}
 	} else if (D[d].gtype=='w') {
 		std::cout << "max likelihood doesn't work for weighted graphs, I think\n";
 		float Eax, Ebx, Tax, Tbx;
@@ -458,7 +454,7 @@ int Engine::run() {
 	float cscore, jscore;
 	scoremap::pairScore pscore;
 	std::map<int, scoremap::smap>::iterator smOut;
-	std::map<int, scoremap::twoScores>::iterator smIn;
+	scoremap::scDestType::iterator smIn;
 	std::map<int, std::map<int,float> >::iterator datOut;
 	std::map<int, float>::iterator datIn;
 	//while (sm.hasPos()) {

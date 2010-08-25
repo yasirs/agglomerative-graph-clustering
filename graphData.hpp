@@ -105,17 +105,20 @@ void graphData::writeSingle(const char* fn) {
 	file.open(fn,std::ios::out);
 	std::map<int, destList*>::iterator outIt;
 	destList::iterator inIt;
+	std::string uname, vname;
 	for (outIt = edgeList.begin(); outIt != edgeList.end(); ++outIt) {
 		u = outIt->first;
-		for (inIt = edgeList[u]->begin(); inIt != edgeList[u]->end(); ++inIt) {
+		uname = int2Name[u];
+		for (inIt = outIt->second->begin(); inIt != outIt->second->end(); ++inIt) {
 			v = inIt->first;
+			vname = int2Name[v];
 			weight = inIt->second;
 			if (u<v) {
 				if (gtype=='w') {
-					file << int2Name[u] <<'\t' << int2Name[v] << '\t' << weight << '\n';
+					file << uname <<'\t' << vname << '\t' << weight << '\n';
 				}
 				else if (gtype=='b') {
-					file << int2Name[u] <<'\t' << int2Name[v] << '\t' << weight <<'\n';
+					file << uname <<'\t' << vname << '\t' << weight <<'\n';
 				}
 				else {
 					std::cerr << gtype << " type of graph not recognized in writing graphs\n";
