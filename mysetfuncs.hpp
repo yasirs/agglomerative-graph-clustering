@@ -32,6 +32,31 @@ template<typename T> int num_set_common(const std::set<T>& s1, const std::set<T>
 };
 
 
+
+
+template<class K, class V> int num_common_keys(std::tr1::unordered_map<K,V>& m1, std::tr1::unordered_map<K,V>& m2) {
+	std::set<K> s;
+	get_common_keys(m1,m2,s);
+	return s.size();
+};
+
+
+template<class K, class V> void get_common_keys(std::tr1::unordered_map<K,V>& m1, std::tr1::unordered_map<K,V>& m2, std::set<K>& s) {
+	typename std::tr1::unordered_map<K,V>::iterator it1;
+	typename std::tr1::unordered_map<K,V>::iterator it2;
+	K k1, k2;
+	for (it1 = m1.begin(); it1 != m1.end(); it1++) {
+		k1 = it1->first;
+		for (it2 = m2.begin(); it2 != m2.end(); it2++) {
+			k2 = it2->first;
+			if (k1==k2) s.insert(k1);
+		}
+	}
+};
+
+
+
+
 template<class K, class V> int num_common_keys(std::map<K,V>& m1, std::map<K,V>& m2) {
 	std::set<K> s;
 	get_common_keys(m1,m2,s);

@@ -7,6 +7,7 @@
 #include <vector>
 #include <sstream>
 #include <iostream>
+#include <tr1/unordered_map>
 
 void my_Tokenize(const std::string& str,std::vector<std::string>& tokens,const std::string& delimiter);
 
@@ -24,7 +25,7 @@ class graphData{
 		char gtype;
 		float aveP;
 		float Etot;
-		typedef std::map<int, float> destList;
+		typedef std::tr1::unordered_map<int, float> destList;
 		std::map<int, std::string> int2Name;
 		std::map<std::string, int> name2Int;
 		std::map<int, destList*> edgeList;
@@ -303,7 +304,8 @@ void graphData::set_uv(int u, int v, float w) {
 	if (outIt==edgeList.end()) {
 		destList* pdest = new destList;
 		(*pdest).insert((*pdest).begin(), std::pair<int,float>(v,w));
-		edgeList[u] = pdest;
+		edgeList.insert(outIt,std::pair<int, destList*>(u,pdest));
+		//edgeList[u] = pdest;
 	} else {
 		(*(*outIt).second)[v] = w;
 	}
