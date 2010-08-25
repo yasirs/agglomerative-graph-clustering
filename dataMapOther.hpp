@@ -208,7 +208,7 @@ bool dataMapOther::allErase(int a, int b, int numV) {
 		this->sNV.erase(a);
 		this->sSelfMissing.erase(a);
 		this->degrees.erase(a);
-		this->nV.erase(a);
+		//this->nV.erase(a);
 		this->selfMissing.erase(a);
 	}
 	if (b>=numV) {
@@ -219,7 +219,7 @@ bool dataMapOther::allErase(int a, int b, int numV) {
 		this->sNV.erase(b);
 		this->sSelfMissing.erase(b);
 		this->degrees.erase(b);
-		this->nV.erase(b);
+		//this->nV.erase(b);
 		this->selfMissing.erase(b);
 	}
 	/*this->degrees.erase(a); this->degrees.erase(b);
@@ -232,6 +232,7 @@ bool dataMapOther::allErase(int a, int b, int numV) {
 void dataMapOther::initialize(graphData& D, graphData& Doriginal, graphData& DsoFar, std::map<int,std::set<int> >& fNeighbours) {
 	int u, v;
 	std::set<int> emptySet;
+	this->nV.resize(D.numV,0);
 	for (std::map<int, graphData::destList*>::iterator it1 (D.edgeList.begin()); it1 != D.edgeList.end(); ++it1) {
 		u = (*it1).first;
 		this->nV[u]=1;

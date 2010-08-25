@@ -624,10 +624,12 @@ int Engine::run() {
 				jscore = 0;
 				for (d=0;d<dim;d++) {
 					// go through the union set of neighbors
-					std::set<int> neighbUnion;
-					set_union_update(neighbUnion, firstNeighbors[x], firstNeighbors[c]);
-					for (intsetit = neighbUnion.begin(); intsetit != neighbUnion.end(); ++intsetit) {
-						z = *intsetit;
+					//std::set<int> neighbUnion;
+					//set_union_update(neighbUnion, firstNeighbors[x], firstNeighbors[c]);
+					set_union_Enumerator<int> neighbEnum(firstNeighbors[x],firstNeighbors[c]);
+					for (int z; neighbEnum.next(z);) {
+					//for (intsetit = neighbUnion.begin(); intsetit != neighbUnion.end(); ++intsetit) {
+						//z = *intsetit;
 						if (! ((x==z)||(c==z)||(a==z)||(b==z)) ) {
 							jscore = jscore + deltascore(d,c,x,z);
 						}
@@ -649,10 +651,12 @@ int Engine::run() {
 				jscore = 0;
 				for (d=0;d<dim;d++) {
 					// go through the union set of neighbors
-					std::set<int> neighbUnion;
-					set_union_update(neighbUnion, firstNeighbors[x], firstNeighbors[c]);
-					for (intsetit = neighbUnion.begin(); intsetit != neighbUnion.end(); ++intsetit) {
-						z = *intsetit;
+					//std::set<int> neighbUnion;
+					//set_union_update(neighbUnion, firstNeighbors[x], firstNeighbors[c]);
+					set_union_Enumerator<int> neighbEnum(firstNeighbors[x],firstNeighbors[c]);
+					for (int z; neighbEnum.next(z);) {
+					//for (intsetit = neighbUnion.begin(); intsetit != neighbUnion.end(); ++intsetit) {
+						//z = *intsetit;
 						if (! ((x==z)||(c==z)||(a==z)||(b==z)) ) {
 							jscore = jscore + deltascore(d,x,c,z);
 						}
@@ -681,10 +685,12 @@ int Engine::run() {
 							cscore = 0; jscore = 0;
 							for (d=0;d<dim;d++) {
 								// go through the union set of neighbors
-								std::set<int> neighbUnion;
-								set_union_update(neighbUnion, firstNeighbors[x], firstNeighbors[y]);
-								for (intsetit = neighbUnion.begin(); intsetit != neighbUnion.end(); ++intsetit) {
-									z = *intsetit;
+								//std::set<int> neighbUnion;
+								//set_union_update(neighbUnion, firstNeighbors[x], firstNeighbors[y]);
+								set_union_Enumerator<int> neighbEnum(firstNeighbors[x],firstNeighbors[y]);
+								for (int z; neighbEnum.next(z);) {
+								//for (intsetit = neighbUnion.begin(); intsetit != neighbUnion.end(); ++intsetit) {
+									//z = *intsetit;
 									if (! ((x==z)||(y==z)) ) {
 										jscore = jscore + deltascore(d,x,y,z);
 									}
@@ -699,10 +705,12 @@ int Engine::run() {
 							cscore = 0; jscore = 0;
 							for (d=0;d<dim;d++) {
 								// go through the union set of neighbors
-								std::set<int> neighbUnion;
-								set_union_update(neighbUnion, firstNeighbors[x], firstNeighbors[y]);
-								for (intsetit = neighbUnion.begin(); intsetit != neighbUnion.end(); ++intsetit) {
-									z = *intsetit;
+								//std::set<int> neighbUnion;
+								//set_union_update(neighbUnion, firstNeighbors[x], firstNeighbors[y]);
+								set_union_Enumerator<int> neighbEnum(firstNeighbors[x],firstNeighbors[y]);
+								for (int z; neighbEnum.next(z);) {
+								//for (intsetit = neighbUnion.begin(); intsetit != neighbUnion.end(); ++intsetit) {
+									//z = *intsetit;
 									if (! ((x==z)||(y==z)) ) {
 										jscore = jscore + deltascore1(d,y,x,z);
 									}

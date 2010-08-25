@@ -82,7 +82,8 @@ bool Node::makeDataforMerged(int a, int b, dataMap* w, TreeClass* tree, graphDat
 		assert(w[d].AddPair(this->nid,this->nid,wc));
 		w[d].degrees[this->nid] = w[d].degrees[a] + w[d].degrees[b];
 		w[d].selfMissing[this->nid] = w[d].selfMissing[a] + w[d].selfMissing[b] + (w[d].degrees[a] * w[d].degrees[b]) - w[d].get_uv(a,b);
-		w[d].nV[this->nid] = w[d].nV[a] + w[d].nV[b];
+		//w[d].nV[this->nid] = w[d].nV[a] + w[d].nV[b];
+		w[d].nV.push_back(w[d].nV[a] + w[d].nV[b]);
 		if (D[d].gtype=='w') {
 			wab = w[d].get_uv(a,b);
 			this->thNum[d] = wab;

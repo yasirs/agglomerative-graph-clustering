@@ -130,7 +130,8 @@ bool NodeOther::makeDataforMerged(int a, int b, dataMap* ww, TreeClass* tree, gr
 		assert(w[d].AddPairSoFar(this->nid,this->nid,wc));
 		w[d].degrees[this->nid] = w[d].degrees[a] + w[d].degrees[b];
 		w[d].selfMissing[this->nid] = w[d].selfMissing[a] + w[d].selfMissing[b] + (w[d].degrees[a] * w[d].degrees[b]) - w[d].get_uv(a,b);
-		w[d].nV[this->nid] = w[d].nV[a] + w[d].nV[b];
+		//w[d].nV[this->nid] = w[d].nV[a] + w[d].nV[b];
+		w[d].nV.push_back(w[d].nV[a]+w[d].nV[b]);
 		w[d].oDegrees[this->nid] = w[d].oDegrees[a] + w[d].oDegrees[b];
 		w[d].oSelfMissing[this->nid] = w[d].oSelfMissing[a] + w[d].oSelfMissing[b] + (w[d].oDegrees[a] * w[d].oDegrees[b]) - w[d].get_uvOriginal(a,b);
 		w[d].oNV[this->nid] = w[d].oNV[a] + w[d].oNV[b];

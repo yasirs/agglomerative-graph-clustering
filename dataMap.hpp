@@ -17,8 +17,11 @@ class dataMap{
 	public:
 		std::tr1::unordered_map<int, std::tr1::unordered_map<int,float> > dat;
 		std::tr1::unordered_map<int, float> degrees; // for weighted
-		std::tr1::unordered_map<int, float> nV; // for binomial model
+		//std::tr1::unordered_map<int, float> nV; // for binomial model
+		std::vector<float> nV;
 		std::tr1::unordered_map<int, float> selfMissing; // for weighted networks 
+		std::tr1::unordered_map<int,float>::iterator temp_inIt;
+		std::tr1::unordered_map<int, std::tr1::unordered_map<int,float> >::iterator temp_outIt; 
 		bool has_uv(int u, int v); //done
 		bool AddPair(int u, int v, float d); //done
 		bool Addto(int u, int v, float d); //done
@@ -104,14 +107,14 @@ bool dataMap::allErase(int a, int b, int numV) {
 		}
 	}
 	this->dat.erase(b);
-	if (a>=numV) { // why check for this? I forgot
+	if (a>=numV) { // why check for this? because we need nv etc. to compute scores for the vertex edges
 		this->degrees.erase(a);
-		this->nV.erase(a);
+		//this->nV.erase(a);
 		this->selfMissing.erase(a);
 	}
 	if (b>=numV) {
 		this->degrees.erase(b);
-		this->nV.erase(b);
+		//this->nV.erase(b);
 		this->selfMissing.erase(b);
 	}
 	/*this->degrees.erase(a); this->degrees.erase(b);
@@ -128,11 +131,13 @@ float dataMap::getDegree(int i) {
 
 float dataMap::get_uv(int u, int v) {
 	//NOTE: returns zero if not present
-	std::tr1::unordered_map<int, std::tr1::unordered_map<int, float> >::iterator outIt(dat.find(u));
-	if (outIt!=dat.end()) {
-		std::tr1::unordered_map<int,float>::iterator inIt ( (*outIt).second.find(v));
-		if ( inIt !=(*outIt).second.end()) {
-			return (*inIt).second;
+	//std::tr1::unordered_map<int, std::tr1::unordered_map<int, float> >::iterator outIt(dat.find(u));
+	temp_outIt = dat.find(u);
+	if (temp_outIt!=dat.end()) {
+		//std::tr1::unordered_map<int,float>::iterator inIt ( (*outIt).second.find(v));
+		temp_inIt = (*temp_outIt).second.find(v);
+		if ( temp_inIt !=(*temp_outIt).second.end()) {
+			return (*temp_inIt).second;
 		} else {
 			return 0;
 		}

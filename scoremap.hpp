@@ -59,6 +59,11 @@ class scoremap{
 		std::set<int>* allPartners_u(int u);
 };
 
+bool operator<(const scoremap::twoScores& s1, const scoremap::twoScores& s2);
+bool operator>(const scoremap::twoScores& s1, const scoremap::twoScores& s2);
+
+
+
 int scoremap::size() {
 	return scores.size();
 }
@@ -72,6 +77,35 @@ bool scoremap::AddTo(int u, int v, float scorej) {
 		return 0;
 	} else {
 		(*smIn).second.joinScore += scorej;
+		twoScores ts1, ts2;
+		if (((*smIn).second) > ((*smOut).second.bestP)) { // new bestP is this one!
+			(*smOut).second.bestP = (*smIn).second;
+			(*smOut).second.bestK = (*smIn).first;
+			if ((*smIn).second > this->bestP) {
+				this->bestP = (*smIn).second;
+				this->bestK = (*smOut).first;
+			}
+		} else {
+			if ( (*smOut).second.bestK == (*smIn).first ) { // this was the old bestP, is it still so?
+				(*smOut).second.bestP = (*smIn).second;
+				for (std::map<int, twoScores>::iterator inIt=(*smOut).second.scoreDest.begin();
+					inIt != (*smOut).second.scoreDest.end(); ++inIt ) {
+					if ((*inIt).second > (*smOut).second.bestP) {
+						(*smOut).second.bestP = (*inIt).second;
+						(*smOut).second.bestK = (*inIt).first;
+					}
+				}
+				if (this->bestK == (*smOut).first) {
+					this->bestP = (*smOut).second.bestP;
+					for (std::map<int, smap>::iterator outIt=scores.begin(); outIt != scores.end(); outIt++) {
+						if ((*outIt).second.bestP > this->bestP) {
+							this->bestP = (*outIt).second.bestP;
+							this->bestK = (*outIt).first;
+						}
+					}
+				}
+			}
+		}				
 		return 1;
 	}
 };

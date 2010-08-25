@@ -167,9 +167,13 @@ bool graphData::has_uv(int u, int v) {
 
 
 float graphData::get_uv(int u, int v) {
-	if (edgeList.find(u)!=edgeList.end()) {
-		if (edgeList[u]->find(v) != edgeList[u]->end()) {
-			return (*edgeList[u])[v];
+	std::map<int,destList*>::iterator outIt;
+	outIt = edgeList.find(u);
+	if (outIt != edgeList.end()) {
+		destList::iterator inIt;
+		inIt = (*outIt).second->find(v);
+		if (inIt != (*outIt).second->end()) {
+			return (*inIt).second;
 		}
 	}
 	return 0;
@@ -201,11 +205,15 @@ bool graphData::readBinaryBasedOnOld(graphData* Goriginal, const char* filename)
 		if (tok.size()>1) {
 			linesread++;
 			if (name2Int.find(tok[0])==name2Int.end()) {
+				// do nothing
+				continue;
 				return 0;
 			} else {
 				u = name2Int[tok[0]];
 			}
 			if (name2Int.find(tok[1])==name2Int.end()) {
+				// do nothing
+				continue;
 				return 0;
 			} else {
 				v = name2Int[tok[1]];
@@ -290,10 +298,15 @@ bool graphData::readWeighted(const char* fn) {
 };
 
 void graphData::set_uv(int u, int v, float w) {
-	if (edgeList.find(u)==edgeList.end()) {
-		edgeList[u] = new destList;
+	std::map<int, destList*>::iterator outIt;
+	outIt = edgeList.find(u);
+	if (outIt==edgeList.end()) {
+		destList* pdest = new destList;
+		(*pdest).insert((*pdest).begin(), std::pair<int,float>(v,w));
+		edgeList[u] = pdest;
+	} else {
+		(*(*outIt).second)[v] = w;
 	}
-	(*edgeList[u])[v] = w;
 };
 
 bool graphData::delete_uv(int u, int v) {
