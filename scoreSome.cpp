@@ -44,7 +44,7 @@ int main(int argc, char* argv[]) {
 	Goriginal[0].readBinary(fnin.c_str());
 	std::cout << "read file!\n";
 	fnin = fnstem + ".labels";
-	labelData Glabel(& Goriginal[0], fnin.c_str(), numResids+1);
+	labelData Glabel(& Goriginal[0], fnin.c_str(), numResids+1+3);
 	Goriginal[0].copyNoEdges(GsoFar[0]);
 	en = new Engine(Goriginal,Goriginal, GsoFar, 1);
 	en->initializeScores();
@@ -103,6 +103,8 @@ int main(int argc, char* argv[]) {
 		GsoFar->writeSingle(fnout.c_str());
 		residint++;
 	}
+	fnin = fnstem + ".edges";
+	Glabel.populateLocal(fnin.c_str(), residint+1);
 	fnout = fnstem+".labelScores";
 	Glabel.write(fnout.c_str());
 	std::cout << "done!\n";
