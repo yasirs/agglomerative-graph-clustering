@@ -11,8 +11,8 @@ class dataMapOther: public dataMap{
 		std::tr1::unordered_map<int, float> oNV; // for binomial model
 		std::tr1::unordered_map<int, float> oSelfMissing; // for weighted networks 
 		std::tr1::unordered_map<int, std::tr1::unordered_map<int, float> > sDat;
-		std::tr1::unordered_map<int, float> sDegrees; // fsr weighted
-		std::tr1::unordered_map<int, float> sNV; // fsr binsmial msdel
+		std::tr1::unordered_map<int, float> sDegrees; // for weighted
+		std::tr1::unordered_map<int, float> sNV; // for binsmial msdel
 		std::tr1::unordered_map<int, float> sSelfMissing; // fsr weighted netwsrks 
 		bool AddPairSoFar(int u, int v, float d); // done
 		bool AddtoSoFar(int u, int v, float d); // done
@@ -44,6 +44,17 @@ dataMapOther::~dataMapOther() {
 	
 
 void dataMapOther::addMergedData(int a, int b, int c, std::set<int>& fNeighbours) {
+	dataMap::addMergedData(a,b,c,fNeighbours); // Call the base class function first
+	assert(this->AddPairOriginal(c,c,this->get_uvOriginal(a,a)+this->get_uvOriginal(b,b)+this->get_uvOriginal(a,b)));
+	assert(this->AddPairSoFar(c,c,this->get_uvSoFar(a,a)+this->get_uvSoFar(b,b)+this->get_uvSoFar(a,b)));
+	this->oDegrees[c] = this->oDegrees[a] + this->oDegrees[b];
+	this->sDegrees[c] = this->sDegrees[a] + this->sDegrees[b];
+	this->oSelfMissing[c] = this->oSelfMissing[a] + this->oSelfMissing[b] + (this->oDegrees[a] * this->oDegrees[b])
+		- this->get_uvOriginal(a,b);
+	this->sSelfMissing[c] = this->sSelfMissing[a] + this->sSelfMissing[b] + (this->sDegrees[a] * this->sDegrees[b])
+		- this->get_uvSoFar(a,b);
+	this->oNV[c] = this->oNV[a] + this->oNV[b];
+	this->sNV[c] = this->sNV[a] + this->sNV[b];
 	int x;
 	for (std::set<int>::iterator intit (fNeighbours.begin()) ; intit != fNeighbours.end(); ++intit) {
 		x = (*intit);
@@ -51,8 +62,6 @@ void dataMapOther::addMergedData(int a, int b, int c, std::set<int>& fNeighbours
 		this->AddPairOriginal(x,c,this->get_uvOriginal(x,a) + this->get_uvOriginal(b,x));
 		this->AddPairSoFar(c,x,this->get_uvSoFar(a,x) + this->get_uvSoFar(b,x));
 		this->AddPairSoFar(x,c,this->get_uvSoFar(x,a) + this->get_uvSoFar(b,x));
-		this->AddPair(c,x,this->get_uv(a,x) + this->get_uv(b,x));
-		this->AddPair(x,c,this->get_uv(x,a) + this->get_uv(b,x));
 	}
 }
 

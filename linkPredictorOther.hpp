@@ -221,23 +221,25 @@ void linkPredictorOther::attach(Engine* e) {
 		topThetas[n1] = std::map<int, float*>();
 		for (intit2 = tree->topLevel.begin(); intit2 != tree->topLevel.end(); ++intit2) {
 			n2 = (*intit2);
-			topThetas[n1][n2] = new float[dim];
-			for (d=0;d<dim;d++) {
-				if (D[d].gtype=='w') {
-					thSoFar = w[d].get_uvSoFar(n1,n2) / (w[d].sDegrees[n1] * w[d].sDegrees[n2]);
-					if (std::isnan(thSoFar)) thSoFar=0;
-					thOriginal = w[d].get_uvOriginal(n1,n2) / (w[d].oDegrees[n1] * w[d].oDegrees[n2]);
-					if (std::isnan(thOriginal)) thOriginal=0;
-					topThetas[n1][n2][d] = std::max(0.0f,(thOriginal - thSoFar)/(1 - thSoFar));
-				} else if (D[d].gtype=='b') {
-					thOriginal = w[d].get_uvOriginal(n1,n2)/(w[d].oNV[n1] * w[d].oNV[n2]);
-					if (std::isnan(thOriginal)) thOriginal=0;
-					thSoFar = w[d].get_uvSoFar(n1,n2)/(w[d].oNV[n1] * w[d].oNV[n2]);
-					if (std::isnan(thSoFar)) thSoFar=0;
-					topThetas[n1][n2][d] = std::max(0.0f,(thOriginal - thSoFar)/(1 - thSoFar));
-				} else {
-					std::cerr << "graph type "<<D[d].gtype<<" not yet supported for link prediction (top Thetas).\n";
-					throw 1;
+			if (w->get_uv(n1,n2)) {
+				topThetas[n1][n2] = new float[dim];
+				for (d=0;d<dim;d++) {
+					if (D[d].gtype=='w') {
+						thSoFar = w[d].get_uvSoFar(n1,n2) / (w[d].sDegrees[n1] * w[d].sDegrees[n2]);
+						if (std::isnan(thSoFar)) thSoFar=0;
+						thOriginal = w[d].get_uvOriginal(n1,n2) / (w[d].oDegrees[n1] * w[d].oDegrees[n2]);
+						if (std::isnan(thOriginal)) thOriginal=0;
+						topThetas[n1][n2][d] = std::max(0.0f,(thOriginal - thSoFar)/(1 - thSoFar));
+					} else if (D[d].gtype=='b') {
+						thOriginal = w[d].get_uvOriginal(n1,n2)/(w[d].oNV[n1] * w[d].oNV[n2]);
+						if (std::isnan(thOriginal)) thOriginal=0;
+						thSoFar = w[d].get_uvSoFar(n1,n2)/(w[d].oNV[n1] * w[d].oNV[n2]);
+						if (std::isnan(thSoFar)) thSoFar=0;
+						topThetas[n1][n2][d] = std::max(0.0f,(thOriginal - thSoFar)/(1 - thSoFar));
+					} else {
+						std::cerr << "graph type "<<D[d].gtype<<" not yet supported for link prediction (top Thetas).\n";
+						throw 1;
+					}
 				}
 			}
 		}

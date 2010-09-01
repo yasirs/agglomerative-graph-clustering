@@ -72,7 +72,7 @@ int main(int argc, char* argv[]) {
 	en->tree->writeCollapsedHierEdges(fnout.c_str());
 	lp.updateSoFarLazy(GsoFar);
 	fnout = fnstem + "0.soFar";
-	GsoFar->writeSingle(fnout.c_str());
+	//GsoFar->writeSingle(fnout.c_str());
 	Glabel.putSoFar(GsoFar, 1);
 
 	int residint = 1;
@@ -100,7 +100,7 @@ int main(int argc, char* argv[]) {
 		lp.updateSoFarLazy(GsoFar);
 		fnout = fnstem + sres + ".soFar";
 		Glabel.putSoFar(GsoFar, residint+1);
-		GsoFar->writeSingle(fnout.c_str());
+		//GsoFar->writeSingle(fnout.c_str());
 		residint++;
 	}
 	fnin = fnstem + ".edges";

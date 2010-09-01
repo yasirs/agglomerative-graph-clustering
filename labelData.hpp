@@ -103,7 +103,7 @@ void labelData::populateLocal(const char* filename, int lput) {
 			cm = getcm(destu, destv);
 			inIt->second[lput] = du*dv;
 			inIt->second[lput+1] = cm;
-			inIt->second[lput+2] = ( (float) cm)/(du*dv-cm);
+			inIt->second[lput+2] = ( (float) cm)/(du+dv-cm);
 		}
 	}
 	headers[lput] = std::string("dprod");
@@ -124,7 +124,11 @@ void labelData::putSoFar(graphData* GsoFar, int levthis) {
 			inIt->second[levthis] = GsoFar->get_uv(u,v);
 		}
 	}
-	headers[levthis] = std::string("soFar");
+	std::stringstream temp;
+	temp << levthis;
+	std::string lstr;
+	temp >> lstr;
+	headers[levthis] = std::string("soFar") + lstr;
 };
 
 void labelData::write(const char* fn) {
@@ -160,6 +164,7 @@ void labelData::write(const char* fn) {
 labelData::labelData(graphData* Goriginal, const char* filename, int reg) {
 	this->levels = reg;
 	headers.resize(reg+1);
+	headers[0] = std::string("label");
 	std::string strline;
 	std::ifstream file;
 	std::vector<std::string> tok;
