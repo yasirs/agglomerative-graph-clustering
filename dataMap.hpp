@@ -45,11 +45,6 @@ dataMap::~dataMap() {
 };
 
 void dataMap::addMergedData(int a, int b, int c, std::set<int>& fNeighbours) {
-	assert(this->AddPair(c,c,this->get_uv(a,a)+this->get_uv(b,b)+this->get_uv(a,b)));
-	this->degrees[c] = this->degrees[a] + this->degrees[b];
-	this->selfMissing[c] = this->selfMissing[a] + this->selfMissing[b] + (this->degrees[a] * this->degrees[b])
-		- this->get_uv(a,b);
-	this->nV.push_back(this->nV[a] = this->nV[b]);
 	int x;
 	for (std::set<int>::iterator intit (fNeighbours.begin()) ; intit != fNeighbours.end(); ++intit) {
 		x = (*intit);

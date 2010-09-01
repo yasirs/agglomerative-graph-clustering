@@ -14,7 +14,7 @@ class NodeOther: public Node {
 		float *thetaSoFar;
 		float *thDenSoFar;
 		float *thNumSoFar;
-		virtual bool makeThetaforMerged(int a, int b, dataMap* w, TreeClass* tree, graphData* D);
+		virtual bool makeDataforMerged(int a, int b, dataMap* w, TreeClass* tree, graphData* D);
 		NodeOther(int nodeID, int parentID, bool isTerminal, int vertID, int dimension);
 		NodeOther(int nodeID, int parentID, bool isTerminal, int dimension);
 		virtual ~NodeOther();
@@ -116,12 +116,28 @@ NodeOther::~NodeOther() {
 	delete[] thDenOriginal;
 }
 
-bool NodeOther::makeThetaforMerged(int a, int b, dataMap* ww, TreeClass* tree, graphData* D) {
+bool NodeOther::makeDataforMerged(int a, int b, dataMap* ww, TreeClass* tree, graphData* D) {
 	float wc, wab;
 	float x;
 	dataMapOther *w = (dataMapOther*) ww;
 
 	for (int d=0;d<(tree->dim);d++) {
+		wc = w[d].get_uv(a,a) + w[d].get_uv(b,b) + w[d].get_uv(a,b);
+		assert(w[d].AddPair(this->nid,this->nid,wc));
+		wc = w[d].get_uvOriginal(a,a) + w[d].get_uvOriginal(b,b) + w[d].get_uvOriginal(a,b);
+		assert(w[d].AddPairOriginal(this->nid,this->nid,wc));
+		wc = w[d].get_uvSoFar(a,a) + w[d].get_uvSoFar(b,b) + w[d].get_uvSoFar(a,b);
+		assert(w[d].AddPairSoFar(this->nid,this->nid,wc));
+		w[d].degrees[this->nid] = w[d].degrees[a] + w[d].degrees[b];
+		w[d].selfMissing[this->nid] = w[d].selfMissing[a] + w[d].selfMissing[b] + (w[d].degrees[a] * w[d].degrees[b]) - w[d].get_uv(a,b);
+		//w[d].nV[this->nid] = w[d].nV[a] + w[d].nV[b];
+		w[d].nV.push_back(w[d].nV[a]+w[d].nV[b]);
+		w[d].oDegrees[this->nid] = w[d].oDegrees[a] + w[d].oDegrees[b];
+		w[d].oSelfMissing[this->nid] = w[d].oSelfMissing[a] + w[d].oSelfMissing[b] + (w[d].oDegrees[a] * w[d].oDegrees[b]) - w[d].get_uvOriginal(a,b);
+		w[d].oNV[this->nid] = w[d].oNV[a] + w[d].oNV[b];
+		w[d].sDegrees[this->nid] = w[d].sDegrees[a] + w[d].sDegrees[b];
+		w[d].sSelfMissing[this->nid] = w[d].sSelfMissing[a] + w[d].sSelfMissing[b] + (w[d].sDegrees[a] * w[d].sDegrees[b]) - w[d].get_uvSoFar(a,b);
+		w[d].sNV[this->nid] = w[d].sNV[a] + w[d].sNV[b];
 		if (D[d].gtype=='w') {
 			wab = w[d].get_uv(a,b);
 			this->thNum[d] = wab;
@@ -154,6 +170,11 @@ bool NodeOther::makeThetaforMerged(int a, int b, dataMap* ww, TreeClass* tree, g
 			this->thNumSoFar[d] += ( (NodeOther*) tree->nodeMap[a])->thNumSoFar[d] +( (NodeOther*) tree->nodeMap[b])->thNumSoFar[d];
 			this->thDenSoFar[d] +=( (NodeOther*) tree->nodeMap[a])->thDenSoFar[d] + ( (NodeOther*) tree->nodeMap[b])->thDenSoFar[d];
 		}
+		/*
+		x = this->thNum[d] / this->thDen[d];
+		if (std::isnan(x)) x = 0;
+		this->theta[d] = x;
+		*/
 		x = this->thNumOriginal[d] / this->thDenOriginal[d];
 		if (std::isnan(x)) x = 0;
 		this->thetaOriginal[d] = x;
