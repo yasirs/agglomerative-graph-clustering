@@ -474,7 +474,6 @@ int Engine::run() {
 		}
 		// compute d,w,n,m for c
 		Node* tempNode = tree->nodeMap[c];
-		tempNode->makeThetaforMerged(a,b,w,tree,D);
 
 		// update neighbors
 		firstNeighbors[c] = emptySet;
@@ -489,12 +488,9 @@ int Engine::run() {
 
 		for (d=0;d<dim;d++) {
 			w[d].addMergedData(a,b,c,firstNeighbors[c]);
-			/*for (intit = firstNeighbors[c].begin(); intit != firstNeighbors[c].end(); ++intit) {
-				x = (*intit);
-				w[d].AddPair(c,x,w[d].get_uv(a,x) + w[d].get_uv(b,x));
-				w[d].AddPair(x,c,w[d].get_uv(x,a) + w[d].get_uv(b,x));
-			}*/
 		}
+		tempNode->makeThetaforMerged(a,b,w,tree,D);
+
 		// delete a,b scores
 		for (intit = firstNeighbors[a].begin(); intit != firstNeighbors[a].end(); ++intit) {
 			x = *intit;
