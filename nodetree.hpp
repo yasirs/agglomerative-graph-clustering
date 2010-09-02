@@ -35,7 +35,7 @@ class Node{
 		Node(int nodeID, int parentID, bool isTerminal, int vertID, int dimension);
 		Node(int nodeID, int parentID, bool isTerminal, int dimension);
 		bool collapseNode(std::map<int,Node*> &nmap);
-		virtual bool makeThetaforMerged(int a, int b, dataMap* w, TreeClass* tree, graphData* D);
+		virtual bool writeThetaforMerged(int a, int b, dataMap* w, TreeClass* tree, graphData* D);
 		virtual ~Node();
 };
 
@@ -74,16 +74,16 @@ Node::~Node() {
 
 
 
-bool Node::makeThetaforMerged(int a, int b, dataMap* w, TreeClass* tree, graphData* D) {
+bool Node::writeThetaforMerged(int a, int b, dataMap* w, TreeClass* tree, graphData* D) {
 	float wc, wab;
 	float x;
 	for (int d=0;d<(tree->dim);d++) {
 		//wc = w[d].get_uv(a,a) + w[d].get_uv(b,b) + w[d].get_uv(a,b);
 		//assert(w[d].AddPair(this->nid,this->nid,wc));
-		w[d].degrees[this->nid] = w[d].degrees[a] + w[d].degrees[b];
-		w[d].selfMissing[this->nid] = w[d].selfMissing[a] + w[d].selfMissing[b] + (w[d].degrees[a] * w[d].degrees[b]) - w[d].get_uv(a,b);
+		//w[d].degrees[this->nid] = w[d].degrees[a] + w[d].degrees[b];
+		//w[d].selfMissing[this->nid] = w[d].selfMissing[a] + w[d].selfMissing[b] + (w[d].degrees[a] * w[d].degrees[b]) - w[d].get_uv(a,b);
 		//w[d].nV[this->nid] = w[d].nV[a] + w[d].nV[b];
-		w[d].nV.push_back(w[d].nV[a] + w[d].nV[b]);
+		//w[d].nV.push_back(w[d].nV[a] + w[d].nV[b]);
 		if (D[d].gtype=='w') {
 			wab = w[d].get_uv(a,b);
 			this->thNum[d] = wab;

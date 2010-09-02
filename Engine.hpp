@@ -472,9 +472,7 @@ int Engine::run() {
 			tree->nodeMap[c]->vertsComputed = 0;
 
 		}
-		// compute d,w,n,m for c
-		Node* tempNode = tree->nodeMap[c];
-		tempNode->makeThetaforMerged(a,b,w,tree,D);
+		// compute neighbours
 		firstNeighbors[c] = emptySet;
 		secondNeighbors[c] = emptySet;
 		set_union_update(firstNeighbors[c],firstNeighbors[a],firstNeighbors[b]);
@@ -483,9 +481,15 @@ int Engine::run() {
 		set_union_update(tempSet,secondNeighbors[a],secondNeighbors[b]);
 		set_difference_update(secondNeighbors[c],tempSet,firstNeighbors[c]);
 		secondNeighbors[c].erase(a); secondNeighbors[c].erase(b);
+
+		// compute d,w,n,m for c
+
 		for (d=0;d<dim;d++) {
 			w[d].addMergedData(a,b,c,firstNeighbors[c]);
 		}
+
+		tree->nodeMap[c]->writeThetaforMerged(a,b,w,tree,D);
+
 		// delete a,b scores
 		for (intit = firstNeighbors[a].begin(); intit != firstNeighbors[a].end(); ++intit) {
 			x = *intit;
@@ -663,42 +667,6 @@ int Engine::run() {
 		for (d=0; d<dim; d++) {
 			assert(w[d].allErase(a,b, D[d].numV));
 		}
-		/*for (d=0;d<dim;d++) {
-			if (D[d].numV<(a+1)) {
-				w[d].degrees.erase(a);
-				w[d].selfMissing.erase(a);
-				w[d].nV.erase(a);
-			}
-			if (D[d].numV<(b+1)) {
-				w[d].degrees.erase(b);
-				w[d].selfMissing.erase(b);
-				w[d].nV.erase(b);
-			}
-			// now let us go through the neighbors of a
-			for (intit = firstNeighbors[a].begin(); intit != firstNeighbors[a].end(); ++intit) {
-				x = *intit;
-				w[d].dat[x].erase(a);
-				w[d].dat[a].erase(x);
-			}
-			for (intit = secondNeighbors[a].begin(); intit != secondNeighbors[a].end(); ++intit) {
-				x = *intit;
-				w[d].dat[x].erase(a);
-				w[d].dat[a].erase(x);
-			}
-			w[d].dat.erase(a);
-			// now let us go through the neighbors of b
-			for (intit = firstNeighbors[b].begin(); intit != firstNeighbors[b].end(); ++intit) {
-				x = *intit;
-				w[d].dat[x].erase(b);
-				w[d].dat[b].erase(x);
-			}
-			for (intit = secondNeighbors[b].begin(); intit != secondNeighbors[b].end(); ++intit) {
-				x = *intit;
-				w[d].dat[x].erase(b);
-				w[d].dat[b].erase(x);
-			}
-			w[d].dat.erase(b);
-		}*/
 		// delete a,b from neighbors
 		for (intit = firstNeighbors[a].begin(); intit != firstNeighbors[a].end(); ++intit) {
 			x = *intit;
