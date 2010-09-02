@@ -44,17 +44,26 @@ dataMapOther::~dataMapOther() {
 	
 
 void dataMapOther::addMergedData(int a, int b, int c, std::set<int>& fNeighbours) {
+	dataMap::addMergedData(a,b,c,fNeighbours);
 	int x;
-	float wc = this->get_uvOriginal(a,a) + this->get_uvOriginal(b,b) + this->get_uvOriginal(a,b);
-	assert(this->AddPairOriginal(c,c,wc));                                
+	assert(this->AddPairOriginal(c,c,this->get_uvOriginal(a,a) + this->get_uvOriginal(b,b) + this->get_uvOriginal(a,b)));                                
+	assert(this->AddPairSoFar(c,c,this->get_uvSoFar(a,a) + this->get_uvSoFar(b,b) + this->get_uvSoFar(a,b)));                                
+	this->oNV[c] = this->oNV[a]+this->oNV[b];
+	this->oDegrees[c] = this->oDegrees[a] + this->oDegrees[b];
+	this->sNV[c] = this->sNV[a]+this->sNV[b];
+	this->sDegrees[c] = this->sDegrees[a] + this->sDegrees[b];
+	this->oSelfMissing[c] = this->oSelfMissing[a] + this->oSelfMissing[b] + (this->oDegrees[a] * this->oDegrees[b]) - this->get_uvOriginal(a,b);
+	this->sSelfMissing[c] = this->sSelfMissing[a] + this->sSelfMissing[b] + (this->sDegrees[a] * this->sDegrees[b]) - this->get_uvSoFar(a,b);
+
+
 	for (std::set<int>::iterator intit (fNeighbours.begin()) ; intit != fNeighbours.end(); ++intit) {
 		x = (*intit);
 		this->AddPairOriginal(c,x,this->get_uvOriginal(a,x) + this->get_uvOriginal(b,x));
 		this->AddPairOriginal(x,c,this->get_uvOriginal(x,a) + this->get_uvOriginal(b,x));
 		this->AddPairSoFar(c,x,this->get_uvSoFar(a,x) + this->get_uvSoFar(b,x));
 		this->AddPairSoFar(x,c,this->get_uvSoFar(x,a) + this->get_uvSoFar(b,x));
-		this->AddPair(c,x,this->get_uv(a,x) + this->get_uv(b,x));
-		this->AddPair(x,c,this->get_uv(x,a) + this->get_uv(b,x));
+		//this->AddPair(c,x,this->get_uv(a,x) + this->get_uv(b,x));
+		//this->AddPair(x,c,this->get_uv(x,a) + this->get_uv(b,x));
 	}
 }
 

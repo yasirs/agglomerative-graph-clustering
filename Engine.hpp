@@ -474,7 +474,7 @@ int Engine::run() {
 		}
 		// compute d,w,n,m for c
 		Node* tempNode = tree->nodeMap[c];
-		tempNode->makeDataforMerged(a,b,w,tree,D);
+		tempNode->makeThetaforMerged(a,b,w,tree,D);
 		firstNeighbors[c] = emptySet;
 		secondNeighbors[c] = emptySet;
 		set_union_update(firstNeighbors[c],firstNeighbors[a],firstNeighbors[b]);
