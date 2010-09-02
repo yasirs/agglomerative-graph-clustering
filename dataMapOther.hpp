@@ -45,6 +45,8 @@ dataMapOther::~dataMapOther() {
 
 void dataMapOther::addMergedData(int a, int b, int c, std::set<int>& fNeighbours) {
 	int x;
+	float wc = this->get_uvOriginal(a,a) + this->get_uvOriginal(b,b) + this->get_uvOriginal(a,b);
+	assert(this->AddPairOriginal(c,c,wc));                                
 	for (std::set<int>::iterator intit (fNeighbours.begin()) ; intit != fNeighbours.end(); ++intit) {
 		x = (*intit);
 		this->AddPairOriginal(c,x,this->get_uvOriginal(a,x) + this->get_uvOriginal(b,x));

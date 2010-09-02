@@ -124,8 +124,8 @@ bool NodeOther::makeDataforMerged(int a, int b, dataMap* ww, TreeClass* tree, gr
 	for (int d=0;d<(tree->dim);d++) {
 		wc = w[d].get_uv(a,a) + w[d].get_uv(b,b) + w[d].get_uv(a,b);
 		assert(w[d].AddPair(this->nid,this->nid,wc));
-		wc = w[d].get_uvOriginal(a,a) + w[d].get_uvOriginal(b,b) + w[d].get_uvOriginal(a,b);
-		assert(w[d].AddPairOriginal(this->nid,this->nid,wc));
+		//wc = w[d].get_uvOriginal(a,a) + w[d].get_uvOriginal(b,b) + w[d].get_uvOriginal(a,b);
+		//assert(w[d].AddPairOriginal(this->nid,this->nid,wc));
 		wc = w[d].get_uvSoFar(a,a) + w[d].get_uvSoFar(b,b) + w[d].get_uvSoFar(a,b);
 		assert(w[d].AddPairSoFar(this->nid,this->nid,wc));
 		w[d].degrees[this->nid] = w[d].degrees[a] + w[d].degrees[b];
