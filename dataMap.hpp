@@ -11,37 +11,103 @@
 #include "graphData.hpp"
 #include "nodetree.hpp"
 #include "scoremap.hpp"
+#include "modelStats.hpp"
 
 
 class dataMap{
 	public:
-		std::tr1::unordered_map<int, std::tr1::unordered_map<int,float> > dat;
-		std::tr1::unordered_map<int, float> degrees; // for weighted
-		//std::tr1::unordered_map<int, float> nV; // for binomial model
-		std::vector<float> nV;
-		std::tr1::unordered_map<int, float> selfMissing; // for weighted networks 
-		std::tr1::unordered_map<int,float>::iterator temp_inIt;
-		std::tr1::unordered_map<int, std::tr1::unordered_map<int,float> >::iterator temp_outIt; 
+		std::tr1::unordered_map<int, std::tr1::unordered_map<int,ModelPairStatsBase*> > datpair;
+		//std::tr1::unordered_map<int, ModelSelfStatsBase*> datvert;
+		std::vector<ModelSelfStatsBase*> datvert;
+		char gtype;
+
+		std::tr1::unordered_map<int, ModelPairStatsBase*>::iterator temp_inIt;
+		std::tr1::unordered_map<int, std::tr1::unordered_map<int, ModelPairStatsBase*> >::iterator temp_outIt; 
+		bool AdEdge(int u, int v, float x); //done
 		bool has_uv(int u, int v); //done
-		bool AddPair(int u, int v, float d); //done
-		bool Addto(int u, int v, float d); //done
-		bool eraseAll(); //done
-		//bool erase(int u, int v); //done
-		std::set<int>* neighbors(int i); //done
-		float getuv_ifhas(int u, int v);
-		float get_uv(int u, int v);
-		float getDegree(int i);
-		virtual bool allErase(int a, int b, int numV);
-		virtual void initialize(graphData& D, std::map<int,std::set<int> >& fNeighbors);
+		bool AddPair(int u, int v, float d);
+		bool Addto(int u, int v, float d);
+		bool eraseAll();
+		std::set<int>* neighbors(int i);
+		ModelPairStatsBase* getuv_ifhas(int u, int v);
+		ModelPairStatsBase* get_uv(int u, int v); //done
+		float get_uvSimple(int u, int v); //done
+		//virtual bool allErase(int a, int b, int numV); //dont even go there yet, we dont need to erase
+		virtual void initialize(graphData& D, std::map<int,std::set<int> >& fNeighbors); //done
 		virtual void addMergedData(int a, int b, int c, std::set<int>& fNeighbours);
 		virtual ~dataMap();
 };
 
+bool dataMap::AddEdge(int u, int v, float x) {
+	// returns True if a new edge was added, false otherwise
+	bool ans = 0;
+	temp_outIt = datpair.find(u);
+	if (temp_outIt == datpair.end()) {
+		datpair[u] = std::tr1::unordered_map<int,ModelPairStatsBase*>;
+		temp_outIt = datpair.find(u);
+	}
+	temp_inIt = *temp_outIt.second.find(v);
+	if (temp_inIt == temp_outIt.second.end()) {
+		// add a pointer
+		ModelPairStatsBase *p;
+		if (gtype=='b') p = new BinomialPairStats;
+		else if (gtype=='p') p = new PoissonPairStats;
+		else if (gtype=='w') p = new WPairStats;
+		else {cout << "bad graph type\n";
+		temp_outIt.second[v] = p;
+		temp_inIt = *temp_outIt.second.find(v);
+		ans = 1;
+	}
+	temp_inIt.second->AddEdge(x);
+	datvert[u]->AddOutGoing(x);
+	return ans;
+}
+
+void dataMap::initialize(graphData& D, std::map<int,std::set<int> >& fNeighbours) {
+	this->gtype = D.gtype;
+	int u, v;
+	for (u=0; u != D.numV; u++) {
+		assert(datvert.size()==u);
+			if (this->gtype=='b') {
+				datvert.push_back(new BinomialSelfStats);
+			} else if (this->gtype=='p') {
+				datvert.push_back(new PoissonSelfStats);
+			} else if (this->gtype=='w') {
+				datvert.push_back(new WSelfStats);
+			} else {
+				std::cerr << "Error! "<<this->gtype<<" graph not recognised while initializing datamap\n";
+				throw(0);
+			}
+	}
+	std::set<int> emptySet;
+	for (std::map<int, graphData::destList*>::iterator it1 (D.edgeList.begin()); it1 != D.edgeList.end(); ++it1) {
+		u = (*it1).first;
+		if (fNeighbours.find(u)==fNeighbours.end()) fNeighbours[u] = emptySet;
+		for (graphData::destList::iterator it2 ((*it1).second->begin()); it2 != (*it1).second->end(); ++it2) {
+			v = (*it2).first;
+			assert(this->AddEdge(u,v,(*it2).second));
+			if (fNeighbours.find(v)==fNeighbours.end()) fNeighbours[v] = emptySet;
+			fNeighbours[u].insert(v);
+			fNeighbours[v].insert(u);
+		}
+	}
+}
+
+
+
 dataMap::~dataMap() {
-	dat.clear();
-	degrees.clear();
-	nV.clear();
-	selfMissing.clear();
+	for (temp_outIt= datpair.begin(); temp_outIt != datpair.end(); ++tempoutIt) {
+		for (temp_inIt = *temp_outIt.second.begin(); temp_inIt != *temp_outIt.second.end(); ++temp_inIt) {
+			delete *temp_inIt.second;
+		}
+	}
+	datpair.clear();
+	std::tr1::unordered_map<int, ModelSelfStatsBase*>::iterator vit(datvert.begin());
+	for (; vit != datvert.end(); ++vit) {
+		delete *vit.second;
+	}
+	datvert.clear();
+
 };
 
 void dataMap::addMergedData(int a, int b, int c, std::set<int>& fNeighbours) {
@@ -59,33 +125,9 @@ void dataMap::addMergedData(int a, int b, int c, std::set<int>& fNeighbours) {
 	
 
 
-void dataMap::initialize(graphData& D, std::map<int,std::set<int> >& fNeighbours) {
-	int u, v;
-	std::set<int> emptySet;
-	for (std::map<int, graphData::destList*>::iterator it1 (D.edgeList.begin()); it1 != D.edgeList.end(); ++it1) {
-		u = (*it1).first;
-		this->nV[u]=1;
-		if (fNeighbours.find(u)==fNeighbours.end()) fNeighbours[u] = emptySet;
-		if (this->degrees.find(u)==this->degrees.end()) this->degrees[u]=0;
-		if (this->selfMissing.find(u)==this->selfMissing.end()) this->selfMissing[u]=0;
-		for (graphData::destList::iterator it2 ((*it1).second->begin()); it2 != (*it1).second->end(); ++it2) {
-			v = (*it2).first;
-			this->nV[v]=1;
-			this->AddPair(u,v,(*it2).second);
-			this->AddPair(v,u,(*it2).second);
-			if (this->degrees.find(v)==this->degrees.end()) this->degrees[v]=0;
-			if (this->selfMissing.find(v)==this->selfMissing.end()) this->selfMissing[v]=0;
-			this->degrees[u] += (*it2).second;
-			this->degrees[v] += (*it2).second;
-			if (fNeighbours.find(v)==fNeighbours.end()) fNeighbours[v] = emptySet;
-			fNeighbours[u].insert(v);
-			fNeighbours[v].insert(u);
-		}
-	}
-}
 
 
-bool dataMap::allErase(int a, int b, int numV) {
+/*bool dataMap::allErase(int a, int b, int numV) {
 	int x;
 	std::tr1::unordered_map<int, std::tr1::unordered_map<int,float> >::iterator outIt(this->dat.find(a));
 	if (outIt == this->dat.end()) {
@@ -121,11 +163,11 @@ bool dataMap::allErase(int a, int b, int numV) {
 		//this->nV.erase(b);
 		this->selfMissing.erase(b);
 	}
-	/*this->degrees.erase(a); this->degrees.erase(b);
-	this->nV.erase(a); this->nV.erase(b);
-	this->selfMissing.erase(a); this->selfMissing.erase(b);*/
+	//this->degrees.erase(a); this->degrees.erase(b);
+	//this->nV.erase(a); this->nV.erase(b);
+	//this->selfMissing.erase(a); this->selfMissing.erase(b);
 	return 1;
-}
+}*/
 
 
 
@@ -133,21 +175,37 @@ float dataMap::getDegree(int i) {
 	return degrees[i];
 };
 
-float dataMap::get_uv(int u, int v) {
-	//NOTE: returns zero if not present
-	//std::tr1::unordered_map<int, std::tr1::unordered_map<int, float> >::iterator outIt(dat.find(u));
+
+
+float dataMap::get_uvSimple(int u, int v) {
+	//NOTE: returns NULL if not present
 	temp_outIt = dat.find(u);
 	if (temp_outIt!=dat.end()) {
-		//std::tr1::unordered_map<int,float>::iterator inIt ( (*outIt).second.find(v));
 		temp_inIt = (*temp_outIt).second.find(v);
 		if ( temp_inIt !=(*temp_outIt).second.end()) {
-			return (*temp_inIt).second;
+			return (*temp_inIt).second->simple();
 		} else {
 			return 0;
 		}
 
 	} else {
 		return 0;
+	}
+};
+
+ModelPairStatsBase* dataMap::get_uv(int u, int v) {
+	//NOTE: returns NULL if not present
+	temp_outIt = dat.find(u);
+	if (temp_outIt!=dat.end()) {
+		temp_inIt = (*temp_outIt).second.find(v);
+		if ( temp_inIt !=(*temp_outIt).second.end()) {
+			return (*temp_inIt).second;
+		} else {
+			return NULL;
+		}
+
+	} else {
+		return NULL;
 	}
 };
 
@@ -165,10 +223,10 @@ std::set<int>* dataMap::neighbors(int i) {
 };
 
 bool dataMap::has_uv(int u, int v) {
-	std::tr1::unordered_map<int, std::tr1::unordered_map<int, float> >::iterator outIt(dat.find(u));
-	if (outIt != dat.end()) {
-		std::tr1::unordered_map<int,float>::iterator inIt ( (*outIt).second.find(v));
-		if ( inIt != (*outIt).second.end()) {
+	tmep_outIt = dat.find(u);
+	if (temp_outIt != dat.end()) {
+		temp_inIt = (*outIt).second.find(v);
+		if ( temp_inIt != (*temp_outIt).second.end()) {
 			return 1;
 		}
 	}
@@ -176,17 +234,17 @@ bool dataMap::has_uv(int u, int v) {
 };
 
 bool dataMap::AddPair(int u, int v, float d) {
-	std::tr1::unordered_map<int, std::tr1::unordered_map<int, float> >::iterator outIt(dat.find(u));
-	if ( outIt != dat.end()) {
-		std::tr1::unordered_map<int,float>::iterator inIt ( (*outIt).second.find(v));
-		if ( inIt != (*outIt).second.end()) {
-			(*inIt).second = d;
+	temp_outIt = dat.find(u);
+	if ( temp_outIt != dat.end()) {
+		temp_inIt = (*outIt).second.find(v);
+		if ( temp_inIt != (*outIt).second.end()) {
+			(*temp_inIt).second = d;
 			return 0;
 		} else {
-			(*outIt).second[v]=d;
+			(*temp_outIt).second[v]=d;
 		}
 	} else {
-		std::tr1::unordered_map<int,float> mnew;
+		std::tr1::unordered_map<int,ModelStatsPairBase*> mnew;
 		mnew[v] = d;
 		dat[u] = mnew;
 	}
