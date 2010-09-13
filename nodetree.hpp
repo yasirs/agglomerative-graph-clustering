@@ -9,6 +9,7 @@
 #include <iostream>
 #include "graphData.hpp"
 #include "dataMap.hpp"
+#include "modelParam.hpp"
 
 
 class TreeClass;
@@ -23,17 +24,18 @@ class Node{
 		bool isTerm;
 		bool collapsed;
 		bool vertsComputed;
-		float *theta;
-		float *thDen;
-		float *thNum;
+		ModelParamBase** params;
+		//float *theta;
+		//float *thDen;
+		//float *thNum;
 		std::set<int>* getAllVerts(std::map<int, Node*>& mp);
 		Node(int i, int j, bool ist) {
 			nid = i;
 			parent = j;
 			isTerm = ist;
 		}
-		Node(int nodeID, int parentID, bool isTerminal, int vertID, int dimension);
-		Node(int nodeID, int parentID, bool isTerminal, int dimension);
+		Node(int nodeID, int parentID, bool isTerminal, int vertID, int dimension, graphData* D);
+		Node(int nodeID, int parentID, bool isTerminal, int dimension, graphData* D);
 		bool collapseNode(std::map<int,Node*> &nmap);
 		virtual bool writeThetaforMerged(int a, int b, dataMap* w, TreeClass* tree, graphData* D);
 		virtual ~Node();
@@ -67,24 +69,21 @@ class TreeClass{
 
 
 Node::~Node() {
-	delete[] theta;
-	delete[] thNum;
-	delete[] thDen;
+	delete[] params;
 }
 
 
 
 bool Node::writeThetaforMerged(int a, int b, dataMap* w, TreeClass* tree, graphData* D) {
-	float wc, wab;
-	float x;
 	for (int d=0;d<(tree->dim);d++) {
+		this->params[d]->calculate(w[d].get_uv(a,b),w[d].datvert[a],w[d].datvert[b]);
 		//wc = w[d].get_uv(a,a) + w[d].get_uv(b,b) + w[d].get_uv(a,b);
 		//assert(w[d].AddPair(this->nid,this->nid,wc));
 		//w[d].degrees[this->nid] = w[d].degrees[a] + w[d].degrees[b];
 		//w[d].selfMissing[this->nid] = w[d].selfMissing[a] + w[d].selfMissing[b] + (w[d].degrees[a] * w[d].degrees[b]) - w[d].get_uv(a,b);
 		//w[d].nV[this->nid] = w[d].nV[a] + w[d].nV[b];
 		//w[d].nV.push_back(w[d].nV[a] + w[d].nV[b]);
-		if (D[d].gtype=='w') {
+		/*if (D[d].gtype=='w') {
 			wab = w[d].get_uv(a,b);
 			this->thNum[d] = wab;
 			this->thDen[d] = w[d].degrees[a] * w[d].degrees[b];
@@ -95,18 +94,20 @@ bool Node::writeThetaforMerged(int a, int b, dataMap* w, TreeClass* tree, graphD
 		} else {
 			std::cerr << "graph type "<<D[d].gtype<<" not yet supported (during theta calculation).\n";
 			throw 1;
-		}
+		}*/
 		if (this->collapsed) {
-			this->thNum[d] += tree->nodeMap[a]->thNum[d] + tree->nodeMap[b]->thNum[d];
-			this->thDen[d] += tree->nodeMap[a]->thDen[d] + tree->nodeMap[b]->thDen[d];
+			this->params[d]->collapse(tree->nodeMap[a]->params[d],tree->nodeMap[b]->params[d]);
+			//this->thNum[d] += tree->nodeMap[a]->thNum[d] + tree->nodeMap[b]->thNum[d];
+			//this->thDen[d] += tree->nodeMap[a]->thDen[d] + tree->nodeMap[b]->thDen[d];
 		}
-		x = this->thNum[d] / this->thDen[d];
+		this->params[d]->cleanup();
+		/*x = this->thNum[d] / this->thDen[d];
 		if (std::isnan(x)) x = 0;
 		this->theta[d] = x;
 		//TODO:: delete the following, only for debugging
 		if (theta<0) {
 			std::cerr << "bad theta being written!\n";
-		}
+		}*/
 	}
 	return 1;
 }
@@ -137,24 +138,29 @@ bool Node::collapseNode(std::map<int,Node*> &nmap) {
 	return 0;
 };
 
-Node::Node(int nodeID, int parentID, bool isTerminal, int dimension) {
+Node::Node(int nodeID, int parentID, bool isTerminal, int dimension, graphData* D) {
 	this->nid = nodeID;
 	this->parent = parentID;
 	this->isTerm = isTerminal;
-	this->theta = new float[dimension];
-	this->thDen = new float[dimension];
-	this->thNum = new float[dimension];
-	for (int d=0;d<dimension; d++) {
-		this->theta[d] = 0;
-		this->thDen[d] = 0;
-		this->thNum[d] = 0;
+	this->params = new ModelParamBase*[dimension];
+	for (int d=0; d<dimension; d++) {
+		if (D[d].gtype == 'b') {
+			this->params[d] = new BinomialParam;
+		} else if (D[d].gtype == 'p') {
+			this->params[d] = new PoissonParam;
+		} else if (D[d].gtype == 'w') {
+			this->params[d] = new WParam;
+		} else {
+			std::cerr << "dont know what to do with graph type "<<D[d].gtype<<" while making node\n";
+			throw(1);
+		}
 	}
 	if (isTerminal) {
 		this->collapsed = 1;
 	}
 }
 
-Node::Node(int nodeID, int parentID, bool isTerminal, int vertID, int dimension) {
+Node::Node(int nodeID, int parentID, bool isTerminal, int vertID, int dimension, graphData* D) {
 	if (! isTerminal) {
 		std::cerr << "bad call to Node constructor!, given vertex ID for non-terminal node!\n";
 		throw(1);
@@ -162,13 +168,17 @@ Node::Node(int nodeID, int parentID, bool isTerminal, int vertID, int dimension)
 	this->nid = nodeID;
 	this->parent = parentID;
 	this->isTerm = isTerminal;
-	this->theta = new float[dimension];
-	this->thDen = new float[dimension];
-	this->thNum = new float[dimension];
-	for (int d=0;d<dimension; d++) {
-		this->theta[d] = 0;
-		this->thDen[d] = 0;
-		this->thNum[d] = 0;
+	for (int d=0; d<dimension; d++) {
+		if (D[d].gtype == 'b') {
+			this->params[d] = new BinomialParam;
+		} else if (D[d].gtype == 'p') {
+			this->params[d] = new PoissonParam;
+		} else if (D[d].gtype =='w') {
+			this->params[d] = new WParam;
+		} else {
+			std::cerr << "dont know what to do with graph type "<<D[d].gtype<<" while making node\n";
+			throw(1);
+		}
 	}
 	if (isTerminal) {
 		this->collapsed = 1;
@@ -182,7 +192,7 @@ Node::Node(int nodeID, int parentID, bool isTerminal, int vertID, int dimension)
 int TreeClass::makeMergeNode(int a, int b) {
 	int c = this->numNodes;
 	this->numNodes = c + 1;
-	Node* pnode = new Node(c, -1, 0, dim);
+	Node* pnode = new Node(c, -1, 0, dim,D);
 	this->nodeMap[c] = pnode;
 	this->nodeMap[a]->parent = c;
 	this->nodeMap[b]->parent = c;
@@ -199,7 +209,7 @@ TreeClass::TreeClass(graphData* G, int dimension) {
 	this->dim = dimension;
 	D = G;
 	for (int i=0; i<D[0].numV; i++) {
-		this->nodeMap[i] = new Node(i, -1, 1, i, this->dim);
+		this->nodeMap[i] = new Node(i, -1, 1, i, this->dim, D);
 		this->topLevel.insert(i);
 	}
 	this->numNodes = D[0].numV;
