@@ -38,34 +38,6 @@ struct FPairEqual {
   }
 };
 
-float mySafeLog(float x) {
-	if (x<1e-8) return 1e10;
-	else if (std::isnan(x)) return 0;
-	else return log(x);
-};
-
-
-
-#if (! NOGSL)
-#include "gsl/gsl_sf.h"
-#else
-double lgamma(double x) {
-	double ans;
-	ans = x*log(x)-x;
-	return ans;
-};
-double gsl_sf_lnbeta(double a, double b) {
-	double ans;
-	ans = lgamma(a)+lgamma(b) -lgamma(a+b);
-	return ans;
-};
-double gsl_sf_gamma(double a) {
-	return exp(lgamma(a));
-};
-
-#endif
-
-
 float gammaFunction(float a) {
 	if (a==1) return 1;
 	else return gamma(a);
@@ -305,143 +277,14 @@ Engine::~Engine() {
 
 float Engine::centerscore(int d, int a, int b) {
 	assert(a!=b);
-	float ans;
-	if (D[d].gtype=='b') {
-		float Tab, Eab, Eaa, Ebb, Taa, Tbb, Tcc;
-		Tab = w[d].nV[a] * w[d].nV[b];
-		Taa = w[d].nV[a] * (w[d].nV[a] - 1)/2.0f;
-		Tbb = w[d].nV[b] * (w[d].nV[b] - 1)/2.0f;
-		Tcc = Taa + Tbb + Tab;
-		Eab = w[d].get_uv(a,b);
-		Eaa = w[d].get_uv(a,a);
-		Ebb = w[d].get_uv(b,b);
-		float Etot = Eaa+Ebb+Eab;
-		float Ttot = Taa+Tbb+Tab;
-		float thetaTot = Etot/Ttot;
-		float thetaA = Eaa/Taa;
-		float thetaB = Ebb/Tbb;
-		float thetaAB = Eab/Tab;
-		ans = Etot * mySafeLog(thetaTot) + (Ttot - Etot) * mySafeLog(1-thetaTot)
-			- Eaa * mySafeLog(thetaA) - (Taa - Eaa) * mySafeLog(1-thetaA)
-			- Ebb * mySafeLog(thetaB) - (Tbb - Ebb) * mySafeLog(1-thetaB)
-			- Eab * mySafeLog(thetaAB) - (Tab - Eab) * mySafeLog(1-thetaAB);
-		
-	/*	ans =   lnBetaFunction(Eaa + Eab + Ebb + 1,Haa + Hbb + Tab - Eab + 1)
-			- lnBetaFunction(Eaa + 1, Haa +1)
-			- lnBetaFunction(Ebb + 1, Hbb +1)
-			- lnBetaFunction(Eab+1,Tab - Eab +1);
-		//for the random reference model
-#if (! NOREFERENCE)
-		ans -=  lnBetaFunction(Tcc*D[d].aveP + 1, Tcc*(1 - D[d].aveP) + 1)
-			- lnBetaFunction(Taa*D[d].aveP + 1, Taa*(1 - D[d].aveP) + 1)
-			- lnBetaFunction(Tbb*D[d].aveP + 1, Tbb*(1 - D[d].aveP) + 1)
-			- lnBetaFunction(Tab*D[d].aveP + 1, Tab*(1 - D[d].aveP) + 1);
-#endif*/
-	} else if (D[d].gtype=='w') {
-		float Tab, Eab, Eaa, Ebb, Haa, Hbb, Taa, Tbb;
-		Eab = w[d].get_uv(a,b);
-		Eaa = w[d].get_uv(a,a);
-		Ebb = w[d].get_uv(b,b);
-		Haa = w[d].selfMissing[a];
-		Hbb = w[d].selfMissing[a];
-		Tab = w[d].degrees[a] * w[d].degrees[b];
-		Taa = Eaa + Haa;
-		Tbb = Ebb + Hbb;
-		float Etot = Eaa+Ebb+Eab;
-		float Ttot = Taa+Tbb+Tab;
-		float thetaTot = Etot/Ttot;
-		float thetaA = Eaa/Taa;
-		float thetaB = Ebb/Tbb;
-		float thetaAB = Eab/Tab;
-		ans = Etot * mySafeLog(thetaTot) + (Ttot - Etot) * mySafeLog(1-thetaTot)
-			- Eaa * mySafeLog(thetaA) - (Taa - Eaa) * mySafeLog(1-thetaA)
-			- Ebb * mySafeLog(thetaB) - (Tbb - Ebb) * mySafeLog(1-thetaB)
-			- Eab * mySafeLog(thetaAB) - (Tab - Eab) * mySafeLog(1-thetaAB);
-		/*
-		ans =   lnBetaFunction(Eaa + Eab + Ebb + 1,Haa + Hbb + Tab - Eab + 1)
-			- lnBetaFunction(Eaa + 1, Haa +1)
-			- lnBetaFunction(Ebb + 1, Hbb +1)
-			- lnBetaFunction(Eab+1,Tab - Eab +1);
-		//for the random reference model
-#if (! NOREFERENCE)
-		Tcc = Taa + Tbb + Tab;
-		float Ebaraa, Ebarbb, Ebarab, Ebarcc;
-		Ebarab = w[d].degrees[a] * w[d].degrees[b];
-		Ebaraa = Taa/(2.0f*D[d].Etot);
-		Ebarbb = Tbb/(2.0f*D[d].Etot);
-		Ebarcc = Ebaraa + Ebarbb + Ebarbb;
-		ans -=  lnBetaFunction(Ebarcc + 1, Tcc - Ebarcc + 1)
-			- lnBetaFunction(Ebaraa + 1, Taa - Ebaraa + 1)
-			- lnBetaFunction(Ebarbb + 1, Tbb - Ebarbb + 1)
-			- lnBetaFunction(Ebarab + 1, Tab - Ebarab + 1);	
-#endif*/
-	} else {
-		std::cerr << "error: graph type " << D[d].gtype << " not allowed here.!\n";
-		exit(1);
-	}
-	return ans;
+	return this->w[d].MLcenterscore(a,b);
 };
 
 
 float Engine::deltascore(int d, int a, int b, int x) {
 	// maximum likelihood version
 	assert((a!=b)&&(a!=x)&&(b!=x));
-	float ans;
-	float da, db, dx;
-	if (D[d].gtype=='b') {
-		float Eax, Ebx, Tax, Tbx;
-		Eax = w[d].get_uv(a,x);
-		Ebx = w[d].get_uv(b,x);
-		da = w[d].nV[a];
-		db = w[d].nV[b];
-		dx = w[d].nV[x];
-		Tax = da * dx;
-		Tbx = db * dx;
-		//Hax = Tax - Eax;
-		//Hbx = Tbx - Ebx;
-		float Etot = Eax+Ebx;
-		float Ttot = Tax+Tbx;
-		float thetaTot = Etot/Ttot;
-		float thetaA = Eax/Tax;
-		float thetaB = Ebx/Tbx;
-		ans = Etot * mySafeLog(thetaTot) + (Ttot - Etot) * mySafeLog(1-thetaTot)
-			- Eax * mySafeLog(thetaA) - (Tax - Eax) * mySafeLog(1-thetaA)
-			- Ebx * mySafeLog(thetaB) - (Tbx - Ebx) * mySafeLog(1-thetaB);
-	} else if (D[d].gtype=='w') {
-		std::cout << "max likelihood doesn't work for weighted graphs, I think\n";
-		float Eax, Ebx, Tax, Tbx;
-		Eax = w[d].get_uv(a,x);
-		Ebx = w[d].get_uv(b,x);
-		da = w[d].degrees[a];
-		db = w[d].degrees[b];
-		dx = w[d].degrees[x];
-		Tax = da * dx;
-		Tbx = db * dx;
-		/*Ebarax = da * dx/(2.0f*D[d].Etot);
-		Ebarbx = db * dx/(2.0f*D[d].Etot);
-		Hbarax = da * dx - Ebarax;
-		Hbarbx = db * dx - Ebarbx;*/
-		float Etot = Eax+Ebx;
-		float Ttot = Tax+Tbx;
-		float thetaTot = Etot/Ttot;
-		float thetaA = Eax/Tax;
-		float thetaB = Ebx/Tbx;
-		ans = Etot * mySafeLog(thetaTot) + (Ttot - Etot) * mySafeLog(1-thetaTot)
-			- Eax * mySafeLog(thetaA) - (Tax - Eax) * mySafeLog(1-thetaA)
-			- Ebx * mySafeLog(thetaB) - (Tbx - Ebx) * mySafeLog(1-thetaB);
-/*
-#if (! NOREFERENCE)
-		ans -=	 (	lnBetaFunction(Ebarax+Ebarbx+1.0f,Hbarax+Hbarbx+1.0f)
-				-lnBetaFunction(Ebarax+1.0f,Hbarax+1.0f)
-				-lnBetaFunction(Ebarbx+1.0f,Hbarbx+1.0f)
-			 );
-#endif*/
-	}
-	else {
-		std::cout << "graph type "<<D[d].gtype<<" not understood.\n";
-		throw 1;
-	}
-	return ans;
+	return this->w[d].MLdeltascore(a,b,x);
 };
 
 
@@ -664,9 +507,9 @@ int Engine::run() {
 		}
 
 		// delete a,b from weights (and degrees) in all dimensions
-		for (d=0; d<dim; d++) {
-			assert(w[d].allErase(a,b, D[d].numV));
-		}
+		//for (d=0; d<dim; d++) {
+		//	assert(w[d].allErase(a,b, D[d].numV));
+		//}
 		// delete a,b from neighbors
 		for (intit = firstNeighbors[a].begin(); intit != firstNeighbors[a].end(); ++intit) {
 			x = *intit;

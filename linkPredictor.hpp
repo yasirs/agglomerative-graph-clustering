@@ -10,7 +10,7 @@
 
 class linkPredictor {
 	public:
-		std::map<int,std::map<int, float*> > topThetas;
+		std::map<int,std::map<int, ModelParamBase**> > topParams;
 		int dim;
 		dataMap* w;
 		TreeClass* tree;
@@ -125,18 +125,18 @@ void linkPredictor::addPredstoGraph(graphData* PD) {
 
 
 void linkPredictor::attach(Engine* e) {
-	// delete old topThetas, if any
-	std::map<int, std::map<int, float*> >::iterator outit;
-	std::map<int,float*>::iterator init;
-	for (outit = topThetas.begin(); outit != topThetas.end(); ++outit) {
+	// delete old topParams, if any
+	std::map<int, std::map<int, ModelParamBase**> >::iterator outit;
+	std::map<int, ModelParamBase**>::iterator init;
+	for (outit = topParams.begin(); outit != topParams.end(); ++outit) {
 		for (init = (*outit).second.begin(); 
 			init != (*outit).second.end();
 			++init) {
 			delete[] (*init).second;
 		}
-		topThetas[(*outit).first].clear();
+		topParams[(*outit).first].clear();
 	}
-	topThetas.clear();
+	topParams.clear();
 
 	// assign new tree, w
 	tree = e->tree;
@@ -149,23 +149,23 @@ void linkPredictor::attach(Engine* e) {
 	std::set<int>::iterator intit1, intit2, intit3;
 	for (intit1 = tree->topLevel.begin(); intit1 != tree->topLevel.end(); ++intit1) {
 		n1 = (*intit1);
-		topThetas[n1] = std::map<int, float*>();
+		topParams[n1] = std::map<int, ModelParamBase**>();
 		for (intit2 = tree->topLevel.begin(); intit2 != tree->topLevel.end(); ++intit2) {
 			n2 = (*intit2);
-			topThetas[n1][n2] = new float[dim];
+			topParams[n1][n2] = new ModelParamBase* [dim];
 			for (d=0;d<dim;d++) {
 				if (D[d].gtype=='w') {
-					theta = w[d].get_uv(n1,n2)/(w[d].degrees[n1] * w[d].degrees[n2]);
-					if (std::isnan(theta)) theta=0;
-					topThetas[n1][n2][d] = theta;
+					topParams[n1][n2][d] = new WParam;
 				} else if (D[d].gtype=='b') {
-					theta = w[d].get_uv(n1,n2)/(w[d].nV[n1] * w[d].nV[n2]);
-					if (std::isnan(theta)) theta=0;
-					topThetas[n1][n2][d] = theta;
+					topParams[n1][n2][d] = new BinomialParam;
+				} else if (D[d].gtype=='p') {
+					topParams[n1][n2][d] = new PoissonParam;
 				} else {
-					std::cerr << "graph type "<<D[d].gtype<<" not yet supported for link prediction (top Thetas).\n";
+					std::cerr << "graph type "<<D[d].gtype<<" not yet supported for link prediction (top Params).\n";
 					throw 1;
 				}
+				topParams[n1][n2][d]->calculate(w[d].get_uv(n1,n2),w[d].datvert[n1],w[d].datvert[n2]);
+				topParams[n1][n2][d]->cleanup();
 			}
 		}
 	}
@@ -175,7 +175,6 @@ void linkPredictor::attach(Engine* e) {
 
 
 float linkPredictor::predictEdge(int u, int v, int d) {
-	float ma, mb;
 	if (!attached) {
 		std::cerr << "can't do link prediction, not attached\n";
 		throw 1;
@@ -189,28 +188,13 @@ float linkPredictor::predictEdge(int u, int v, int d) {
 		throw 1;
 	}
 	std::pair<int,int> ipair = tree->getLCA(u,v);
-	float wpredicted, theta;
+	ModelParamBase* param;
 	if (ipair.first==ipair.second) {
-		theta = tree->nodeMap[ipair.first]->theta[d];
+		param = tree->nodeMap[ipair.first]->params[d];
 	} else {
-		theta = topThetas[ipair.first][ipair.second][d];
+		param = topParams[ipair.first][ipair.second][d];
 	}
-	if (D[d].gtype=='w') {
-		ma = w[d].degrees[u];
-		mb = w[d].degrees[v];
-	} else if (D[d].gtype=='b') {
-		ma = w[d].nV[u];
-		mb = w[d].nV[v];
-	} else {
-		std::cerr << "graph type "<<D[d].gtype<<" not supported yet for predicting edges.\n";
-		throw 1;
-	}
-	wpredicted = ma * theta * mb;
-	if ((wpredicted>1)||(wpredicted<0)) {
-		std::cerr << "bad weight predicted?\n";
-		// TODO:: erase this! only for debug
-	}
-	return wpredicted;
+	return param->predict(w[d].datvert[u],w[d].datvert[v]);
 };
 
 

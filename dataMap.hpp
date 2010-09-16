@@ -21,7 +21,11 @@ class dataMap{
 		//std::tr1::unordered_map<int, ModelSelfStatsBase*> datvert;
 		std::vector<ModelSelfStatsBase*> datvert;
 		char gtype;
-
+		ModelPairStatsBase* MyNullPairStat;
+		float MLcenterscore(int a, int b);
+		float MLdeltascore(int a, int b, int x);
+		float FBdeltascore(int a, int b, int x);
+		float FBcenterscore(int a, int b);
 		std::tr1::unordered_map<int, ModelPairStatsBase*>::iterator temp_inIt;
 		std::tr1::unordered_map<int, std::tr1::unordered_map<int, ModelPairStatsBase*> >::iterator temp_outIt; 
 		bool AddEdge(int u, int v, float x); //done
@@ -38,6 +42,41 @@ class dataMap{
 		virtual void addMergedData(int a, int b, int c, std::set<int>& fNeighbours);
 		virtual ~dataMap();
 };
+
+
+float dataMap::FBcenterscore(int a, int b) {
+	ModelPairStatsBase* p = this->get_uv(a,b);
+	if (p==NULL) {
+		p = this->MyNullPairStat;
+	}
+	return p->FBcenterscore(datvert[a],datvert[b],this->get_uv(a,a),this->get_uv(b,b));
+}
+
+float dataMap::MLcenterscore(int a, int b) {
+	ModelPairStatsBase* p = this->get_uv(a,b);
+	if (p==NULL) {
+		p = this->MyNullPairStat;
+	}
+	return p->MLcenterscore(datvert[a],datvert[b],this->get_uv(a,a),this->get_uv(b,b));
+}
+
+float dataMap::FBdeltascore(int a, int b, int x) {
+	ModelPairStatsBase* p = this->get_uv(a,b);
+	if (p==NULL) {
+		p = this->MyNullPairStat;
+	}
+	return p->FBdeltascore(datvert[a],datvert[b],datvert[x],this->get_uv(a,x),this->get_uv(b,x));
+}
+
+
+float dataMap::MLdeltascore(int a, int b, int x) {
+	ModelPairStatsBase* p = this->get_uv(a,b);
+	if (p==NULL) {
+		p = this->MyNullPairStat;
+	}
+	return p->MLdeltascore(datvert[a],datvert[b],datvert[x],this->get_uv(a,x),this->get_uv(b,x));
+}
+
 
 bool dataMap::AddEdge(int u, int v, float x) {
 	// returns True if a new edge was added, false otherwise
@@ -67,6 +106,10 @@ bool dataMap::AddEdge(int u, int v, float x) {
 
 void dataMap::initialize(graphData& D, std::map<int,std::set<int> >& fNeighbours) {
 	this->gtype = D.gtype;
+	if (gtype=='b') MyNullPairStat = new BinomialPairStats;
+	else if (gtype=='p') MyNullPairStat = new PoissonPairStats;
+	else if (gtype=='w') MyNullPairStat = new WPairStats;
+	else {std::cout << "bad graph type\n";}
 	int u, v;
 	for (u=0; u != D.numV; u++) {
 		assert(datvert.size()==u);
@@ -209,7 +252,6 @@ ModelPairStatsBase* dataMap::get_uv(int u, int v) {
 		} else {
 			return NULL;
 		}
-
 	} else {
 		return NULL;
 	}

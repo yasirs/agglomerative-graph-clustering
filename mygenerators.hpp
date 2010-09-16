@@ -26,7 +26,7 @@ bool NCNZGenerator::isDone() {
 	int curNode = this->toVisit.top();
 	Node* pnode = this->tree->nodeMap[curNode];
 	while (1) {
-		if (pnode->theta[d] != 0)
+		if (! pnode->params[d]->isZero())
 			return 0;
 		else {
 			this->toVisit.pop();
@@ -56,7 +56,7 @@ int NCNZGenerator::goNext() {
 				toVisit.push(*cit);
 			}
 		}
-		if (pnode->theta[d] != 0)
+		if (! pnode->params[d]->isZero())
 			return curNode;
 		else {
 			assert (! this->toVisit.empty());
