@@ -118,7 +118,7 @@ scoremap::twoScores scoremap::get_uv(int u, int v) {
 		return scores[u].scoreDest[v];
 	} else {
 		std::cerr << "Error!! doesnt have "<<u<<", "<<v<<"\n";
-		//throw 1;
+		throw 1;
 	}
 };
 

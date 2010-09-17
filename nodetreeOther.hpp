@@ -159,8 +159,6 @@ NodeOther::~NodeOther() {
 }
 
 bool NodeOther::writeThetaforMerged(int a, int b, dataMap* ww, TreeClass* tree, graphData* D) {
-	float wc, wab;
-	float x;
 	dataMapOther *w = (dataMapOther*) ww;
 
 	for (int d=0;d<(tree->dim);d++) {
