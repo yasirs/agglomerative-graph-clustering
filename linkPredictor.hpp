@@ -19,13 +19,32 @@ class linkPredictor {
 		linkPredictor() {
 			attached = 0;
 		}
-		void attach(Engine* e);
+		virtual void attach(Engine* e);
 		float predictEdge(int u, int v, int d);
 		graphData* makeNonEdgePred(graphData* Dref);
 		graphData* makeEdgePred(graphData* Dref);
 		graphData* makeCompleteEdgePred();
 		graphData* copyNoEdges(graphData* Dold);
 		void addPredstoGraph(graphData* PD);
+		~linkPredictor();
+};
+
+void linkPredictor::addPredstoGraph(graphData* PD) {
+	// this adds predictions for existing edges in PD
+	int d,u,v;
+	float weight;
+	graphData::destList::iterator eit;
+	std::map<int, graphData::destList*>::iterator dit;
+	for (d=0; d<dim; d++) {
+		for (dit = PD[d].edgeList.begin(); dit != PD[d].edgeList.end(); ++dit) {
+			u = (*dit).first;
+			for (eit = PD[d].edgeList[u]->begin(); eit != PD[d].edgeList[u]->end(); eit++) {
+				v = (*eit).first;
+				weight = this->predictEdge(u,v,d);
+				assert ( PD[d].Add_uv(u,v,weight));
+			}
+		}
+	}
 };
 
 
@@ -35,7 +54,7 @@ graphData* linkPredictor::copyNoEdges(graphData* Dold) {
 	for (d=0;d<dim;d++) {
 		Dnew[d].int2Name = Dold[d].int2Name;
 		Dnew[d].name2Int = Dold[d].name2Int;
-		Dnew[d].gtype = 'b';
+		Dnew[d].gtype = 'b'; // TODO:: come back to this: why 'b', and not Dold.gtype?
 		Dnew[d].numV = Dold[d].numV;
 	}
 	return Dnew;
@@ -72,6 +91,39 @@ graphData* linkPredictor::makeEdgePred(graphData* Dref) {
 }
 
 
+
+
+graphData* linkPredictor::makeCompleteEdgePred() {
+	assert (attached);
+	graphData* PD;
+	float w, NP;
+	int d,u,v;
+	PD = new graphData[dim];
+	for (d=0; d<dim;d++) {
+		NP = 0;
+		PD[d].gtype = 'w';
+		PD[d].Etot = 0;
+		PD[d].numV = D[d].numV;
+		PD[d].int2Name = D[d].int2Name;
+		PD[d].name2Int = D[d].name2Int;
+		for (u=0; u<D[d].numV; u++) {
+			for (v=0; v<D[d].numV; v++) {
+				if (u!=v) {
+					w = this->predictEdge(u,v,d);
+					assert(! PD[d].Add_uv(u,v,w));
+					PD[d].Etot += w;
+					NP += 1;
+				}
+			}
+		}
+		PD[d].aveP = NP/(D[d].numV * D[d].numV);
+	}
+	return PD;
+};
+
+
+
+
 graphData* linkPredictor::makeNonEdgePred(graphData* Dref) {
 	assert (attached);
 	graphData* PD;
@@ -102,6 +154,8 @@ graphData* linkPredictor::makeNonEdgePred(graphData* Dref) {
 	return PD;
 };
 
+
+/* redefinition?
 void linkPredictor::addPredstoGraph(graphData* PD) {
 	// this add predictions for existing edges in PD
 	int d,u,v;
@@ -119,7 +173,7 @@ void linkPredictor::addPredstoGraph(graphData* PD) {
 		}
 	}
 };
-
+*/
 
 
 
@@ -164,6 +218,7 @@ void linkPredictor::attach(Engine* e) {
 					std::cerr << "graph type "<<D[d].gtype<<" not yet supported for link prediction (top Params).\n";
 					throw 1;
 				}
+				
 				topParams[n1][n2][d]->calculate(w[d].get_uv(n1,n2),w[d].datvert[n1],w[d].datvert[n2]);
 				topParams[n1][n2][d]->cleanup();
 			}
@@ -196,6 +251,22 @@ float linkPredictor::predictEdge(int u, int v, int d) {
 	}
 	return param->predict(w[d].datvert[u],w[d].datvert[v]);
 };
+
+linkPredictor::~linkPredictor() {
+	std::map<int, std::map<int, ModelParamBase**> >::iterator outit;
+	std::map<int, ModelParamBase**>::iterator init;
+	for (outit = topParams.begin(); outit != topParams.end(); ++outit) {
+		for (init = (*outit).second.begin(); init != (*outit).second.end(); ++init) {
+			for (int d=0;d<dim;d++) {
+				delete (*init).second[d];
+			}
+			delete[] (*init).second;
+		}
+		topParams[(*outit).first].clear();
+	}
+	topParams.clear();
+}
+
 
 
 #endif
