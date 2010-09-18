@@ -41,7 +41,7 @@ class ModelPairStatsBase;
 class ModelSelfStatsBase {
 	public:
 		virtual ModelSelfStatsBase* Add2(ModelSelfStatsBase* b2,ModelPairStatsBase* pair)=0;
-		virtual void AddOutGoing(float x);
+		virtual void AddOutGoing(float x) {}
 };
 
 class BinomialSelfStats: public ModelSelfStatsBase {
@@ -58,6 +58,7 @@ class WSelfStats: public ModelSelfStatsBase {
 		float degree;
 		float selfMissing;
 		virtual WSelfStats* Add2(ModelSelfStatsBase* b2,ModelPairStatsBase* pair);
+		virtual void AddOutGoing(float x);
 };
 
 class PoissonSelfStats: public ModelSelfStatsBase {
@@ -74,7 +75,7 @@ class ModelPairStatsBase {
 		virtual float simple()=0;
 		virtual ModelPairStatsBase* Add3(ModelPairStatsBase* b2, ModelPairStatsBase* b3)=0;
 		virtual ModelPairStatsBase* Add2(ModelPairStatsBase* b2)=0;
-		virtual void AddEdge(float x);
+		virtual void AddEdge(float x)=0;
 		virtual float MLcenterscore(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb, ModelPairStatsBase* aa, ModelPairStatsBase* bb)=0;
 		virtual float MLdeltascore(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb,ModelSelfStatsBase* sx, ModelPairStatsBase* pax, ModelPairStatsBase* pbx)=0;
 		virtual float FBcenterscore(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb, ModelPairStatsBase* aa, ModelPairStatsBase* bb)=0;
@@ -149,6 +150,10 @@ WSelfStats* WSelfStats::Add2(ModelSelfStatsBase* b2,ModelPairStatsBase* pair) {
 	p->degree = this->degree + ((WSelfStats*) b2)->degree;
 	p->selfMissing = this->selfMissing + ((WSelfStats*) b2)->selfMissing + (this->degree * ((WSelfStats*) b2)->degree) - ((WPairStats* )pair)->nE;
 	return p;
+}
+
+void WSelfStats::AddOutGoing(float x) {
+	this->degree = this->degree + x;
 }
 
 float BinomialPairStats::FBcenterscore(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb, ModelPairStatsBase* aa, ModelPairStatsBase* bb) {
@@ -354,7 +359,7 @@ float PoissonPairStats::FBdeltascore(ModelSelfStatsBase* sa, ModelSelfStatsBase*
 
 void PoissonPairStats::AddEdge(float x) {
 	this->sumE += x;
-	this->sumlgam += lgamma(x);
+	this->sumlgam += lgamma(x+1);
 }
 
 

@@ -25,6 +25,15 @@ class BinomialParam: public ModelParamBase {
 		virtual float predict(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb);
 };
 
+void BinomialParam::collapse(ModelParamBase* pa, ModelParamBase* pb) {
+	this->numE += ((BinomialParam*) pa)->numE + ((BinomialParam*) pb)->numE;
+	this->numT += ((BinomialParam*) pa)->numT + ((BinomialParam*) pb)->numT;
+}
+
+float BinomialParam::predict(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb) {
+	return ((BinomialSelfStats*) sa)->nV * this->p * ((BinomialSelfStats*) sb)->nV;
+}
+
 bool BinomialParam::isZero() {
 	return (p==0);
 }
@@ -55,6 +64,15 @@ class PoissonParam: public ModelParamBase {
 		virtual float predict(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb);
 };
 
+void PoissonParam::collapse(ModelParamBase* pa, ModelParamBase* pb) {
+	this->sumE += ((PoissonParam*) pa)->sumE + ((PoissonParam*) pb)->sumE;
+	this->sumlgam += ((PoissonParam*) pa)->sumlgam + ((PoissonParam*) pb)->sumlgam;
+	this->numT += ((PoissonParam*) pa)->numT + ((PoissonParam*) pb)->numT;
+}
+
+float PoissonParam::predict(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb) {
+	return ((PoissonSelfStats*) sa)->nV * this->lambda * ((PoissonSelfStats*) sb)->nV;
+}
 
 bool PoissonParam::isZero() {
 	return (this->lambda ==0);
@@ -90,6 +108,16 @@ class WParam : public ModelParamBase {
 		virtual bool isZero();
 		virtual float predict(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb);
 };
+
+void WParam::collapse(ModelParamBase* pa, ModelParamBase* pb) {
+	this->numerator += ((WParam*) pa)->numerator + ((WParam*) pb)->numerator;
+	this->denominator += ((WParam*) pa)->denominator + ((WParam*) pb)->denominator;
+}
+
+float WParam::predict(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb) {
+	return ((WSelfStats*) sa)->degree * this->p * ((WSelfStats*) sb)->degree;
+}
+
 
 void WParam::cleanup() {
 	this->p = this->numerator / this->denominator;
