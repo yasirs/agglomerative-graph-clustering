@@ -177,13 +177,15 @@ void linkPredictorOther::updateSoFarLazy(graphData* GsoFar) {
 					AllChildVertGenerator G2(tree, n);
 					for (; (! G2.isDone()); ) {
 						v = G2.goNext();
-						sv = w[d].datvert[v];
-						wpredicted = par->predict(su,sv);
-						wnew = 1 - (1 - GsoFar[d].get_uv(u,v))*(1 - wpredicted);
-						if (wnew>EPS) {
-							GsoFar[d].set_uv(u,v,wnew);
-						} else {
-							GsoFar[d].delete_uv(u,v);
+						if (u != v) {
+							sv = w[d].datvert[v];
+							wpredicted = par->predict(su,sv);
+							wnew = 1 - (1 - GsoFar[d].get_uv(u,v))*(1 - wpredicted);
+							if (wnew>EPS) {
+								GsoFar[d].set_uv(u,v,wnew);
+							} else {
+								GsoFar[d].delete_uv(u,v);
+							}
 						}
 					}
 				}

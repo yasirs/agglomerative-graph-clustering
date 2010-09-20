@@ -146,7 +146,7 @@ NodeOther::NodeOther(int nodeID, int parentID, bool isTerminal, int vertID, int 
 
 
 NodeOther::~NodeOther() {
-	delete[] params;
+	//delete[] params;
 	delete[] paramsSoFar;
 	delete[] paramsOriginal;
 	/*delete[] thetaSoFar;

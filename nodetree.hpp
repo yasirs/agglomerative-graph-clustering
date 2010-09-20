@@ -168,6 +168,7 @@ Node::Node(int nodeID, int parentID, bool isTerminal, int vertID, int dimension,
 	this->nid = nodeID;
 	this->parent = parentID;
 	this->isTerm = isTerminal;
+	this->params = new ModelParamBase* [dimension];
 	for (int d=0; d<dimension; d++) {
 		if (D[d].gtype == 'b') {
 			this->params[d] = new BinomialParam;

@@ -59,6 +59,10 @@ class WSelfStats: public ModelSelfStatsBase {
 		float selfMissing;
 		virtual WSelfStats* Add2(ModelSelfStatsBase* b2,ModelPairStatsBase* pair);
 		virtual void AddOutGoing(float x);
+		WSelfStats() {
+			this->degree = 0;
+			this->selfMissing = 0;
+		}
 };
 
 class PoissonSelfStats: public ModelSelfStatsBase {
@@ -246,14 +250,16 @@ void BinomialPairStats::AddEdge(float x) {
 
 BinomialPairStats* BinomialPairStats::Add2(ModelPairStatsBase* b2) {
 	BinomialPairStats* p = new BinomialPairStats;
-	p->nE = this->nE + ((BinomialPairStats*) b2)->nE;
+	p->nE = this->nE;
+	if (b2 != NULL) p->nE += ((BinomialPairStats*) b2)->nE;
 	return p;
 }
 
 
 BinomialPairStats* BinomialPairStats::Add3(ModelPairStatsBase* b2, ModelPairStatsBase* b3) {
 	BinomialPairStats* p = new BinomialPairStats;
-	p->nE = this->nE + ((BinomialPairStats*) b2)->nE + ((BinomialPairStats*) b3)->nE;
+	if (b2 != NULL) p->nE += ((BinomialPairStats*) b2)->nE;
+	if (b3 != NULL) p->nE += ((BinomialPairStats*) b3)->nE;
 	return p;
 }
 
@@ -365,16 +371,20 @@ void PoissonPairStats::AddEdge(float x) {
 
 PoissonPairStats* PoissonPairStats::Add3(ModelPairStatsBase* b2, ModelPairStatsBase* b3) {
 	PoissonPairStats* p = new PoissonPairStats;
-	p->sumE = this->sumE + ((PoissonPairStats*) b2)->sumE + ((PoissonPairStats*) b3)->sumE;
-	p->sumlgam = this->sumlgam + ((PoissonPairStats*) b2)->sumlgam + ((PoissonPairStats*) b3)->sumlgam;
+	p->sumE = this->sumE;
+	p->sumlgam = this->sumlgam;
+	if (b2 != NULL) {p->sumE += ((PoissonPairStats*) b2)->sumE; p->sumlgam += ((PoissonPairStats*) b2)->sumlgam; }
+	if (b3 != NULL) {p->sumE += ((PoissonPairStats*) b3)->sumE; p->sumlgam += ((PoissonPairStats*) b3)->sumlgam; }
+	//p->sumlgam = this->sumlgam + ((PoissonPairStats*) b2)->sumlgam + ((PoissonPairStats*) b3)->sumlgam;
 	return p;
 }
 
 
 PoissonPairStats* PoissonPairStats::Add2(ModelPairStatsBase* b2) {
 	PoissonPairStats* p = new PoissonPairStats;
-	p->sumE = this->sumE + ((PoissonPairStats*) b2)->sumE;
-	p->sumlgam = this->sumlgam + ((PoissonPairStats*) b2)->sumlgam;
+	p->sumE = this->sumE;
+	p->sumlgam = this->sumlgam;
+	if (b2 != NULL) {p->sumE += ((PoissonPairStats*) b2)->sumE; p->sumlgam += ((PoissonPairStats*) b2)->sumlgam; }
 	return p;
 }
 
@@ -469,14 +479,17 @@ void WPairStats::AddEdge(float x) {
 
 WPairStats* WPairStats::Add3(ModelPairStatsBase* b2, ModelPairStatsBase* b3) {
 	WPairStats* p = new WPairStats;
-	p->nE = this->nE + ((WPairStats*) b2)->nE + ((WPairStats*) b3)->nE;
+	p->nE = this->nE;
+	if (b2 != NULL) {p->nE += ((WPairStats*) b2)->nE; }
+	if (b3 != NULL) {p->nE += ((WPairStats*) b3)->nE; }
 	return p;
 }
 
 
 WPairStats* WPairStats::Add2(ModelPairStatsBase* b2) {
 	WPairStats* p = new WPairStats;
-	p->nE = this->nE + ((WPairStats*) b2)->nE;
+	p->nE = this->nE;
+	if (b2 != NULL) {p->nE += ((WPairStats*) b2)->nE; }
 	return p;
 }
 

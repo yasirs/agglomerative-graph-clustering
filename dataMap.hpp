@@ -41,7 +41,26 @@ class dataMap{
 		virtual void initialize(graphData& D, std::map<int,std::set<int> >& fNeighbors); //done
 		virtual void addMergedData(int a, int b, int c, std::set<int>& fNeighbours);
 		virtual ~dataMap();
+		virtual void initVert(int u);
 };
+
+
+void dataMap::initVert(int u) {
+	assert(datvert.size()==u);
+	if (gtype=='b') {
+		datvert.push_back(new BinomialSelfStats);
+		this->AddPair(u,u,new BinomialPairStats);
+	} else if (gtype=='p') {
+		datvert.push_back(new PoissonSelfStats);
+		this->AddPair(u,u,new PoissonPairStats);
+	} else if (gtype=='w') {
+		datvert.push_back(new WSelfStats);
+		this->AddPair(u,u,new WPairStats);
+	} else {
+		std::cerr << "Error! "<<gtype<<" graph not recognised while initializing datamap\n";
+		throw(0);
+	}
+}
 
 
 float dataMap::FBcenterscore(int a, int b) {
@@ -112,17 +131,20 @@ void dataMap::initialize(graphData& D, std::map<int,std::set<int> >& fNeighbours
 	else {std::cout << "bad graph type\n";}
 	int u, v;
 	for (u=0; u != D.numV; u++) {
+		this->initVert(u);
+		/*
 		assert(datvert.size()==u);
-			if (this->gtype=='b') {
-				datvert.push_back(new BinomialSelfStats);
-			} else if (this->gtype=='p') {
-				datvert.push_back(new PoissonSelfStats);
-			} else if (this->gtype=='w') {
-				datvert.push_back(new WSelfStats);
-			} else {
-				std::cerr << "Error! "<<this->gtype<<" graph not recognised while initializing datamap\n";
-				throw(0);
-			}
+		if (this->gtype=='b') {
+			datvert.push_back(new BinomialSelfStats);
+		} else if (this->gtype=='p') {
+			datvert.push_back(new PoissonSelfStats);
+		} else if (this->gtype=='w') {
+			datvert.push_back(new WSelfStats);
+		} else {
+			std::cerr << "Error! "<<this->gtype<<" graph not recognised while initializing datamap\n";
+			throw(0);
+		}
+		*/
 	}
 	std::set<int> emptySet;
 	for (std::map<int, graphData::destList*>::iterator it1 (D.edgeList.begin()); it1 != D.edgeList.end(); ++it1) {
@@ -165,8 +187,10 @@ void dataMap::addMergedData(int a, int b, int c, std::set<int>& fNeighbours) {
 	int x;
 	for (std::set<int>::iterator intit (fNeighbours.begin()) ; intit != fNeighbours.end(); ++intit) {
 		x = (*intit);
-		this->AddPair(c,x,this->get_uv(a,x)->Add2(this->get_uv(b,x)));
-		this->AddPair(x,c,this->get_uv(x,a)->Add2(this->get_uv(x,b)));
+
+		this->AddPair(c,x,this->MyNullPairStat->Add3(this->get_uv(a,x),this->get_uv(b,x)));
+		this->AddPair(x,c,this->MyNullPairStat->Add3(this->get_uv(x,a),this->get_uv(x,b)));
+
 		//this->AddPair(c,x,this->get_uv(a,x) + this->get_uv(b,x));
 		//this->AddPair(x,c,this->get_uv(x,a) + this->get_uv(b,x));
 	}

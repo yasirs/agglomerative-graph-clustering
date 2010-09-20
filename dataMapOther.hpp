@@ -26,9 +26,44 @@ class dataMapOther: public dataMap{
 		}
 		virtual void initialize(graphData& D, graphData& Doriginal, graphData& DsoFar, std::map<int,std::set<int> >& fNeighbours); // done
 		virtual void addMergedData(int a, int b, int c, std::set<int>& fNeighbours); // done
+		virtual void initVert(int u);
 		virtual ~dataMapOther();
 };
 
+
+void dataMapOther::initVert(int u) {
+	dataMap::initVert(u); // call the base class function
+
+	assert(oDatvert.size()==u);
+	if (gtype=='b') {
+		oDatvert.push_back(new BinomialSelfStats);
+		this->AddPairOriginal(u,u,new BinomialPairStats);
+	} else if (gtype=='p') {
+		oDatvert.push_back(new PoissonSelfStats);
+		this->AddPairOriginal(u,u,new PoissonPairStats);
+	} else if (gtype=='w') {
+		oDatvert.push_back(new WSelfStats);
+		this->AddPairOriginal(u,u,new WPairStats);
+	} else {
+		std::cerr << "Error! "<<gtype<<" graph not recognised while initializing oDatamap\n";
+		throw(0);
+	}
+
+	assert(sDatvert.size()==u);
+	if (gtype=='b') {
+		sDatvert.push_back(new BinomialSelfStats);
+		this->AddPairSoFar(u,u,new BinomialPairStats);
+	} else if (gtype=='p') {
+		sDatvert.push_back(new PoissonSelfStats);
+		this->AddPairSoFar(u,u,new WPairStats);
+	} else if (gtype=='w') {
+		sDatvert.push_back(new WSelfStats);
+		this->AddPairSoFar(u,u,new WPairStats);
+	} else {
+		std::cerr << "Error! "<<gtype<<" graph not recognised while initializing sDatamap\n";
+		throw(0);
+	}
+}
 
 dataMapOther::~dataMapOther() {
 	for (temp_outIt= oDatpair.begin(); temp_outIt != oDatpair.end(); ++temp_outIt) {
@@ -65,14 +100,14 @@ void dataMapOther::addMergedData(int a, int b, int c, std::set<int>& fNeighbours
 	int x;
 	for (std::set<int>::iterator intit (fNeighbours.begin()) ; intit != fNeighbours.end(); ++intit) {
 		x = (*intit);
-		this->AddPair(c,x,this->get_uv(a,x)->Add2(this->get_uv(b,x)));
-		this->AddPair(x,c,this->get_uv(x,a)->Add2(this->get_uv(x,b)));
+		this->AddPair(c,x,this->MyNullPairStat->Add3(this->get_uv(a,x),this->get_uv(b,x)));
+		this->AddPair(x,c,this->MyNullPairStat->Add3(this->get_uv(x,a),this->get_uv(x,b)));
 
-		this->AddPairOriginal(c,x,this->get_uvOriginal(a,x)->Add2(this->get_uvOriginal(b,x)));
-		this->AddPairOriginal(x,c,this->get_uvOriginal(x,a)->Add2(this->get_uvOriginal(x,b)));
+		this->AddPairOriginal(c,x,this->MyNullPairStat->Add3(this->get_uvOriginal(a,x),this->get_uvOriginal(b,x)));
+		this->AddPairOriginal(x,c,this->MyNullPairStat->Add3(this->get_uvOriginal(x,a),this->get_uvOriginal(x,b)));
 
-		this->AddPairSoFar(c,x,this->get_uvSoFar(a,x)->Add2(this->get_uvSoFar(b,x)));
-		this->AddPairSoFar(x,c,this->get_uvSoFar(x,a)->Add2(this->get_uvSoFar(x,b)));
+		this->AddPairSoFar(c,x,this->MyNullPairStat->Add3(this->get_uvSoFar(a,x),this->get_uvSoFar(b,x)));
+		this->AddPairSoFar(x,c,this->MyNullPairStat->Add3(this->get_uvSoFar(x,a),this->get_uvSoFar(x,b)));
 	}
 }
 
@@ -306,9 +341,17 @@ void dataMapOther::initialize(graphData& D, graphData& Doriginal, graphData& Dso
 	assert(D.gtype==Doriginal.gtype);
 	assert(D.gtype==DsoFar.gtype);
 	this->gtype = D.gtype;
+
+	if (gtype=='b') MyNullPairStat = new BinomialPairStats;
+	else if (gtype=='p') MyNullPairStat = new PoissonPairStats;
+	else if (gtype=='w') MyNullPairStat = new WPairStats;
+	else {std::cout << "bad graph type\n";}
+
 	int u, v;
 	std::set<int> emptySet;
 	for (u=0; u != D.numV; u++) {
+		this->initVert(u);
+		/*
 		assert(datvert.size()==u);
 		if (D.gtype=='b') {
 			datvert.push_back(new BinomialSelfStats);
@@ -342,6 +385,7 @@ void dataMapOther::initialize(graphData& D, graphData& Doriginal, graphData& Dso
 			std::cerr << "Error! "<<DsoFar.gtype<<" graph not recognised while initializing sDatamap\n";
 			throw(0);
 		}
+		*/
 	}
 	std::map<int, graphData::destList*>::iterator it1 (D.edgeList.begin());
 	for (; it1 != D.edgeList.end(); ++it1) {
@@ -360,7 +404,7 @@ void dataMapOther::initialize(graphData& D, graphData& Doriginal, graphData& Dso
 		u = (*it1).first;
 		for (graphData::destList::iterator it2 ((*it1).second->begin()); it2 != (*it1).second->end(); ++it2) {
 			v = (*it2).first;
-			assert(this->AddEdge(u,v,(*it2).second));
+			assert(this->AddEdgeOriginal(u,v,(*it2).second));
 		}
 	}
 
@@ -368,7 +412,7 @@ void dataMapOther::initialize(graphData& D, graphData& Doriginal, graphData& Dso
 		u = (*it1).first;
 		for (graphData::destList::iterator it2 ((*it1).second->begin()); it2 != (*it1).second->end(); ++it2) {
 			v = (*it2).first;
-			assert(this->AddEdge(u,v,(*it2).second));
+			assert(this->AddEdgeSoFar(u,v,(*it2).second));
 		}
 	}
 
