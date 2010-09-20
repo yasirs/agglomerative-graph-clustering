@@ -25,6 +25,10 @@ class BinomialParam: public ModelParamBase {
 		virtual float predict(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb);
 };
 
+void BinomialParam::bestfromSoFar(ModelParamBase* Ori, ModelParamBase* Sof) {
+	this->p = std::max(0.0f,(((BinomialParam*) Ori)->p - ((BinomialParam*) Sof)->p)/(1 - ((BinomialParam*) Sof)->p));
+}
+
 void BinomialParam::collapse(ModelParamBase* pa, ModelParamBase* pb) {
 	this->numE += ((BinomialParam*) pa)->numE + ((BinomialParam*) pb)->numE;
 	this->numT += ((BinomialParam*) pa)->numT + ((BinomialParam*) pb)->numT;
@@ -63,6 +67,11 @@ class PoissonParam: public ModelParamBase {
 		virtual bool isZero();
 		virtual float predict(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb);
 };
+
+void PoissonParam::bestfromSoFar(ModelParamBase* Ori, ModelParamBase* Sof) {
+	//this->p = std::max(0.0f,(((PoissonParam*) Ori)->p - ((PoissonParam*) Sof)->p)/(1 - ((PoissonParam*) Sof)->p));
+	this->lambda = std::max(0.0f,(((PoissonParam*) Ori)->lambda - ((PoissonParam*) Sof)->lambda));
+}
 
 void PoissonParam::collapse(ModelParamBase* pa, ModelParamBase* pb) {
 	this->sumE += ((PoissonParam*) pa)->sumE + ((PoissonParam*) pb)->sumE;
@@ -108,6 +117,10 @@ class WParam : public ModelParamBase {
 		virtual bool isZero();
 		virtual float predict(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb);
 };
+
+void WParam::bestfromSoFar(ModelParamBase* Ori, ModelParamBase* Sof) {
+	this->p = std::max(0.0f,(((WParam*) Ori)->p - ((WParam*) Sof)->p)/(1 - ((WParam*) Sof)->p));
+}
 
 void WParam::collapse(ModelParamBase* pa, ModelParamBase* pb) {
 	this->numerator += ((WParam*) pa)->numerator + ((WParam*) pb)->numerator;

@@ -29,7 +29,7 @@ class linkPredictorOther: public linkPredictor {
 		//void addPredstoGraph(graphData* PD);
 		void updateSoFar(graphData* GsoFar);
 		void updateSoFarLazy(graphData* GsoFar);
-		~linkPredictorOther();
+		//~linkPredictorOther();
 };
 
 
@@ -75,7 +75,6 @@ void linkPredictorOther::attach(Engine* e) {
 	D = e->D;
 	// compute new topThetas
 	int n1, n2, d;
-	float theta;
 	std::set<int>::iterator intit1, intit2, intit3;
 	for (d=0;d<dim;d++) {
 		if (D[d].gtype=='w') {
