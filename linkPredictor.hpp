@@ -199,7 +199,6 @@ void linkPredictor::attach(Engine* e) {
 	D = e->D;
 	// compute new topThetas
 	int n1, n2, d;
-	float theta;
 	std::set<int>::iterator intit1, intit2, intit3;
 	for (intit1 = tree->topLevel.begin(); intit1 != tree->topLevel.end(); ++intit1) {
 		n1 = (*intit1);

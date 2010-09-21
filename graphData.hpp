@@ -37,6 +37,7 @@ class graphData{
 		bool readBinaryBasedOnOld(graphData* Gorginal, const char* filename);
 		bool readWeighted(const char* filename);
 		bool readBinary(const char* filename);
+		bool readGeneral(const char* filename);
 		void writeBoth(const char* filename);
 		void writeSingle(const char* filename);
 		void writeSingle_noname(const char* filename);
@@ -242,6 +243,76 @@ bool graphData::readBinaryBasedOnOld(graphData* Goriginal, const char* filename)
 	aveP = sum/(numV * numV); // shouldn't matter because aveP is to be used for binary
 	return 1;
 };
+
+
+bool graphData::readGeneral(const char* fn) {
+	// NOTE: remember to set the graph type
+	this->gtype = 'u'; // u for unknown, it is a placeholder
+	this->Etot = 0.0f;
+	std::string strline;
+	std::ifstream file;
+	std::vector<std::string> tok;
+	destList* pdl;
+	int u,v;
+	float sum = 0;
+	float weight;
+	std::string St1, St2;
+	std::istringstream temp;
+	file.open(fn,std::ios::in);
+	if (! file.is_open()) return 0;
+	while (!file.eof()) {
+		getline(file,strline);
+		tok.clear();
+		my_Tokenize(strline,tok," \t");
+		if (tok.size()>1) {
+			if (name2Int.find(tok[0])==name2Int.end()) {
+				u = name2Int.size();
+				name2Int[tok[0]] = u;
+				int2Name[u] = tok[0];
+			} else {
+				u = name2Int[tok[0]];
+			}
+			if (name2Int.find(tok[1])==name2Int.end()) {
+				v = name2Int.size();
+				name2Int[tok[1]] = v;
+				int2Name[v] = tok[1];
+			} else {
+				v = name2Int[tok[1]];
+			}
+			if (tok.size()>2) {
+				std::istringstream(tok[2]) >> weight;
+			} else weight = 1;
+			if (edgeList.find(u)==edgeList.end()) {
+				pdl = new destList;
+				edgeList[u] = pdl;
+			}
+			if (edgeList[u]->find(v)==edgeList[u]->end()) {
+				(*edgeList[u])[v] = weight;
+			} else {
+				(*edgeList[u])[v] += weight;
+			}
+
+
+			if (edgeList.find(v)==edgeList.end()) {
+				pdl = new destList;
+				edgeList[v] = pdl;
+			}
+			if (edgeList[u]->find(v)==edgeList[u]->end()) {
+				(*edgeList[u])[v] = weight;
+			} else {
+				(*edgeList[u])[v] += weight;
+			}
+
+			sum += 2; // NOTE : this shouldn't really matter as the sum isn't used for
+					// weighted graphs
+			Etot += weight;
+		}
+	}
+	numV = name2Int.size();
+	aveP = sum/(numV * numV); // shouldn't matter because aveP is to be used for binary
+	return 1;
+};
+
 
 
 

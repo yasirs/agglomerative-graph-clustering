@@ -152,7 +152,10 @@ PoissonSelfStats* PoissonSelfStats::Add2(ModelSelfStatsBase* b2,ModelPairStatsBa
 WSelfStats* WSelfStats::Add2(ModelSelfStatsBase* b2,ModelPairStatsBase* pair) {
 	WSelfStats* p = new WSelfStats;
 	p->degree = this->degree + ((WSelfStats*) b2)->degree;
-	p->selfMissing = this->selfMissing + ((WSelfStats*) b2)->selfMissing + (this->degree * ((WSelfStats*) b2)->degree) - ((WPairStats* )pair)->nE;
+	p->selfMissing = this->selfMissing + ((WSelfStats*) b2)->selfMissing + (this->degree * ((WSelfStats*) b2)->degree);
+	if (pair != NULL) {
+		p->selfMissing  -= ((WPairStats* )pair)->nE;
+	}
 	return p;
 }
 

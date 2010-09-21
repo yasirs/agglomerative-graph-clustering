@@ -15,12 +15,20 @@
 #include <string> 
 
 
+bool fexists(const char* filename) {
+	std::ifstream ifile(filename);
+	return ifile;
+}
+
 
 int main(int argc, char* argv[]) {
 	std::string fnstem,fnin,fnout;
 	char temp[80];
 	linkPredictorOther lp;
 	int numResids;
+	char gtype;
+	bool doScores;
+	labelData* Glabel;
 	if (argc==1) {
 		std::cout << "Need filename for input graph\n";
 		throw 1;
@@ -33,6 +41,12 @@ int main(int argc, char* argv[]) {
 		ssss << argv[2];
 		ssss >> numResids;
 	}
+	if (argc>3) {
+		gtype = argv[3][0];
+	} else {
+		gtype = 'b';
+		std::cout << "graph type = " << gtype;
+	}
 	fnstem = argv[1];
 	//fnstem = "grassland";
 	fnin = fnstem+".edges";
@@ -41,10 +55,14 @@ int main(int argc, char* argv[]) {
 	Engine *en;
 	Goriginal = new graphData[1];
 	GsoFar = new graphData[1];
-	Goriginal[0].readBinary(fnin.c_str());
+	Goriginal[0].readGeneral(fnin.c_str());
+	Goriginal[0].gtype = gtype;
 	std::cout << "read file!\n";
 	fnin = fnstem + ".labels";
-	labelData Glabel(& Goriginal[0], fnin.c_str(), numResids+1+3);
+	doScores = fexists(fnin.c_str());
+	if (doScores) {
+		Glabel = new labelData(& Goriginal[0], fnin.c_str(), numResids+1+3);
+	}
 	Goriginal[0].copyNoEdges(GsoFar[0]);
 	en = new Engine(Goriginal,Goriginal, GsoFar, 1);
 	en->initializeScores();
@@ -73,7 +91,8 @@ int main(int argc, char* argv[]) {
 	lp.updateSoFarLazy(GsoFar);
 	fnout = fnstem + "0.soFar";
 	//GsoFar->writeSingle(fnout.c_str());
-	Glabel.putSoFar(GsoFar, 1);
+	if (doScores)
+		Glabel->putSoFar(GsoFar, 1);
 
 	int residint = 1;
 	while(residint <= numResids) {
@@ -99,14 +118,17 @@ int main(int argc, char* argv[]) {
 		en->tree->writeCollapsedHierEdges(fnout.c_str());
 		lp.updateSoFarLazy(GsoFar);
 		fnout = fnstem + sres + ".soFar";
-		Glabel.putSoFar(GsoFar, residint+1);
+		if (doScores) 
+			Glabel->putSoFar(GsoFar, residint+1);
 		//GsoFar->writeSingle(fnout.c_str());
 		residint++;
 	}
 	fnin = fnstem + ".edges";
-	Glabel.populateLocal(fnin.c_str(), residint+1);
-	fnout = fnstem+".labelScores";
-	Glabel.write(fnout.c_str());
+	if (doScores) {
+		Glabel->populateLocal(fnin.c_str(), residint+1);
+		fnout = fnstem+".labelScores";
+		Glabel->write(fnout.c_str());
+	}
 	std::cout << "done!\n";
 	delete[] Goriginal;
 	delete[] GsoFar;
