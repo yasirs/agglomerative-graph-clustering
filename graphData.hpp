@@ -37,7 +37,7 @@ class graphData{
 		bool readBinaryBasedOnOld(graphData* Gorginal, const char* filename);
 		bool readWeighted(const char* filename);
 		bool readBinary(const char* filename);
-		bool readGeneral(const char* filename);
+		bool readGeneral(const char* filename); //something wrong here, doesnt work
 		void writeBoth(const char* filename);
 		void writeSingle(const char* filename);
 		void writeSingle_noname(const char* filename);
@@ -88,6 +88,9 @@ void graphData::writeSingle_noname(const char* fn) {
 				else if (gtype=='b') {
 					file << u <<'\t' <<  v << '\n';
 				}
+				else if (gtype=='p') {
+					file << u <<'\t' << v  << '\t' << weight << '\n';
+				}
 				else {
 					std::cerr << gtype << " type of graph not recognized in writing graphs\n";
 					throw 1;
@@ -120,6 +123,9 @@ void graphData::writeSingle(const char* fn) {
 				}
 				else if (gtype=='b') {
 					file << uname <<'\t' << vname << '\t' << weight <<'\n';
+				}
+				else if (gtype=='p') {
+					file << u <<'\t' << v  << '\t' << weight << '\n';
 				}
 				else {
 					std::cerr << gtype << " type of graph not recognized in writing graphs\n";

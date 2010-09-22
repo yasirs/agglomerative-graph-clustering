@@ -10,6 +10,7 @@ class ModelParamBase {
 		virtual void bestfromSoFar(ModelParamBase* Ori, ModelParamBase* Sof)=0;
 		virtual bool isZero()=0;
 		virtual float predict(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb)=0;
+		virtual float updatedSoFar(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb, float oldsofar)=0;
 };
 
 class BinomialParam: public ModelParamBase {
@@ -23,7 +24,13 @@ class BinomialParam: public ModelParamBase {
 		virtual void bestfromSoFar(ModelParamBase* Ori, ModelParamBase* Sof);
 		virtual bool isZero();
 		virtual float predict(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb);
+		virtual float updatedSoFar(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb, float oldsofar);
 };
+
+
+float BinomialParam::updatedSoFar(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb, float oldsofar) {
+	return 1 - (1 - oldsofar)*(1 - this->predict(sa,sb));
+}
 
 void BinomialParam::bestfromSoFar(ModelParamBase* Ori, ModelParamBase* Sof) {
 	this->p = std::max(0.0f,(((BinomialParam*) Ori)->p - ((BinomialParam*) Sof)->p)/(1 - ((BinomialParam*) Sof)->p));
@@ -66,7 +73,12 @@ class PoissonParam: public ModelParamBase {
 		virtual void bestfromSoFar(ModelParamBase* Ori, ModelParamBase* Sof);
 		virtual bool isZero();
 		virtual float predict(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb);
+		virtual float updatedSoFar(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb, float oldsofar);
 };
+
+float PoissonParam::updatedSoFar(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb, float oldsofar) {
+	return oldsofar + this->predict(sa,sb);
+}
 
 void PoissonParam::bestfromSoFar(ModelParamBase* Ori, ModelParamBase* Sof) {
 	//this->p = std::max(0.0f,(((PoissonParam*) Ori)->p - ((PoissonParam*) Sof)->p)/(1 - ((PoissonParam*) Sof)->p));
@@ -116,7 +128,12 @@ class WParam : public ModelParamBase {
 		virtual void bestfromSoFar(ModelParamBase* Ori, ModelParamBase* Sof);
 		virtual bool isZero();
 		virtual float predict(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb);
+		virtual float updatedSoFar(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb, float oldsofar);
 };
+
+float WParam::updatedSoFar(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb, float oldsofar) {
+	return 1 - (1 - oldsofar)*(1 - this->predict(sa,sb));
+}
 
 void WParam::bestfromSoFar(ModelParamBase* Ori, ModelParamBase* Sof) {
 	this->p = std::max(0.0f,(((WParam*) Ori)->p - ((WParam*) Sof)->p)/(1 - ((WParam*) Sof)->p));

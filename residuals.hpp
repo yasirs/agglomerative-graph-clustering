@@ -44,8 +44,8 @@ graphData* residualDiff(graphData* Doriginal, graphData* GsoFar, int dim) {
 	for (d=0;d<dim;d++) {
 		Dnew[d].int2Name = Doriginal[d].int2Name;
 		Dnew[d].name2Int = Doriginal[d].name2Int;
-		//Dnew[d].gtype = Doriginal[d].gtype;
-		Dnew[d].gtype = 'b';
+		Dnew[d].gtype = Doriginal[d].gtype;
+		//Dnew[d].gtype = 'b';
 		Dnew[d].numV = Doriginal[d].numV;
 	}
 	for (d=0;d<dim;d++) {

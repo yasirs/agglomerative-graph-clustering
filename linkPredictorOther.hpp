@@ -145,8 +145,9 @@ void linkPredictorOther::updateSoFarLazy(graphData* GsoFar) {
 						v = G2.goNext();
 						if (u != v) {
 							sv = w[d].datvert[v];
-							wpredicted = par->predict(su,sv);
-							wnew = 1 - (1 - GsoFar[d].get_uv(u,v))*(1 - wpredicted);
+							//oldpred = par->predict(su,sv);
+							wnew = par->updatedSoFar(su,sv,GsoFar[d].get_uv(u,v));
+							//wnew = 1 - (1 - GsoFar[d].get_uv(u,v))*(1 - wpredicted);
 							if (wnew>EPS) {
 								GsoFar[d].set_uv(u,v,wnew);
 							} else {
@@ -179,8 +180,9 @@ void linkPredictorOther::updateSoFarLazy(graphData* GsoFar) {
 						v = G2.goNext();
 						if (u != v) {
 							sv = w[d].datvert[v];
-							wpredicted = par->predict(su,sv);
-							wnew = 1 - (1 - GsoFar[d].get_uv(u,v))*(1 - wpredicted);
+							//wpredicted = par->predict(su,sv);
+							wnew = par->updatedSoFar(su,sv,GsoFar[d].get_uv(u,v));
+							//wnew = 1 - (1 - GsoFar[d].get_uv(u,v))*(1 - wpredicted);
 							if (wnew>EPS) {
 								GsoFar[d].set_uv(u,v,wnew);
 							} else {
@@ -207,8 +209,9 @@ void linkPredictorOther::updateSoFarLazy(graphData* GsoFar) {
 									v = G2.goNext();
 									if (u != v) {
 										sv = w[d].datvert[v];
-										wpredicted = par->predict(su,sv);
-										wnew = 1 - (1 - GsoFar[d].get_uv(u,v))*(1 - wpredicted);
+										//wpredicted = par->predict(su,sv);
+										//wnew = 1 - (1 - GsoFar[d].get_uv(u,v))*(1 - wpredicted);
+										wnew = par->updatedSoFar(su,sv,GsoFar[d].get_uv(u,v));
 										if (wnew>EPS) {
 											GsoFar[d].set_uv(u,v,wnew);
 										} else {

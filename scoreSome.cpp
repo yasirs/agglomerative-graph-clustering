@@ -55,7 +55,7 @@ int main(int argc, char* argv[]) {
 	Engine *en;
 	Goriginal = new graphData[1];
 	GsoFar = new graphData[1];
-	Goriginal[0].readGeneral(fnin.c_str());
+	Goriginal[0].readWeighted(fnin.c_str());
 	Goriginal[0].gtype = gtype;
 	std::cout << "read file!\n";
 	fnin = fnstem + ".labels";
@@ -120,7 +120,7 @@ int main(int argc, char* argv[]) {
 		fnout = fnstem + sres + ".soFar";
 		if (doScores) 
 			Glabel->putSoFar(GsoFar, residint+1);
-		//GsoFar->writeSingle(fnout.c_str());
+		GsoFar->writeSingle(fnout.c_str());
 		residint++;
 	}
 	fnin = fnstem + ".edges";
