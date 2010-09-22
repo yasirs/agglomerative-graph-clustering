@@ -205,21 +205,23 @@ void linkPredictor::attach(Engine* e) {
 		topParams[n1] = std::map<int, ModelParamBase**>();
 		for (intit2 = tree->topLevel.begin(); intit2 != tree->topLevel.end(); ++intit2) {
 			n2 = (*intit2);
-			topParams[n1][n2] = new ModelParamBase* [dim];
-			for (d=0;d<dim;d++) {
-				if (D[d].gtype=='w') {
-					topParams[n1][n2][d] = new WParam;
-				} else if (D[d].gtype=='b') {
-					topParams[n1][n2][d] = new BinomialParam;
-				} else if (D[d].gtype=='p') {
-					topParams[n1][n2][d] = new PoissonParam;
-				} else {
-					std::cerr << "graph type "<<D[d].gtype<<" not yet supported for link prediction (top Params).\n";
-					throw 1;
+			if (n1 != n2) {
+				topParams[n1][n2] = new ModelParamBase* [dim];
+				for (d=0;d<dim;d++) {
+					if (D[d].gtype=='w') {
+						topParams[n1][n2][d] = new WParam;
+					} else if (D[d].gtype=='b') {
+						topParams[n1][n2][d] = new BinomialParam;
+					} else if (D[d].gtype=='p') {
+						topParams[n1][n2][d] = new PoissonParam;
+					} else {
+						std::cerr << "graph type "<<D[d].gtype<<" not yet supported for link prediction (top Params).\n";
+						throw 1;
+					}
+					
+					topParams[n1][n2][d]->calculate(w[d].get_uv(n1,n2),w[d].datvert[n1],w[d].datvert[n2]);
+					topParams[n1][n2][d]->cleanup();
 				}
-				
-				topParams[n1][n2][d]->calculate(w[d].get_uv(n1,n2),w[d].datvert[n1],w[d].datvert[n2]);
-				topParams[n1][n2][d]->cleanup();
 			}
 		}
 	}

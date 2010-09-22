@@ -96,23 +96,25 @@ void linkPredictorOther::attach(Engine* e) {
 			topParams[n1] = std::map<int, ModelParamBase**>();
 			for (intit2 = tree->topLevel.begin(); intit2 != tree->topLevel.end(); ++intit2) {
 				n2 = (*intit2);
-				topParams[n1][n2] = new ModelParamBase* [dim];
-				if (D[d].gtype=='w') {
-					topParams[n1][n2][d] = new WParam;
-				} else if (D[d].gtype=='b') {
-					topParams[n1][n2][d] = new BinomialParam;
-				} else if (D[d].gtype=='p') {
-					topParams[n1][n2][d] = new PoissonParam;
-				} else {
-					std::cerr << "graph type "<<D[d].gtype<<" not yet supported for link prediction (top Params).\n";
-					throw 1;
+				if (n1 != n2) {
+					topParams[n1][n2] = new ModelParamBase* [dim];
+					if (D[d].gtype=='w') {
+						topParams[n1][n2][d] = new WParam;
+					} else if (D[d].gtype=='b') {
+						topParams[n1][n2][d] = new BinomialParam;
+					} else if (D[d].gtype=='p') {
+						topParams[n1][n2][d] = new PoissonParam;
+					} else {
+						std::cerr << "graph type "<<D[d].gtype<<" not yet supported for link prediction (top Params).\n";
+						throw 1;
+					}
+					oriP->calculate(ww[d].get_uvOriginal(n1,n2),ww[d].oDatvert[n1],ww[d].oDatvert[n2]);
+					oriP->cleanup();
+					sofP->calculate(ww[d].get_uvSoFar(n1,n2),ww[d].sDatvert[n1],ww[d].sDatvert[n2]);
+					sofP->cleanup();
+					topParams[n1][n2][d]->bestfromSoFar(oriP,sofP);
+					//topParams[n1][n2][d]->cleanup();
 				}
-				oriP->calculate(ww[d].get_uvOriginal(n1,n2),ww[d].oDatvert[n1],ww[d].oDatvert[n2]);
-				oriP->cleanup();
-				sofP->calculate(ww[d].get_uvSoFar(n1,n2),ww[d].sDatvert[n1],ww[d].sDatvert[n2]);
-				sofP->cleanup();
-				topParams[n1][n2][d]->bestfromSoFar(oriP,sofP);
-				topParams[n1][n2][d]->cleanup();
 			}
 		}
 		delete oriP;
