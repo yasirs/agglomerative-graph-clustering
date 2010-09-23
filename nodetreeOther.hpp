@@ -19,9 +19,11 @@ class NodeOther: public Node {
 		virtual bool writeThetaforMerged(int a, int b, dataMap* w, TreeClass* tree, graphData* D);
 		NodeOther(int nodeID, int parentID, bool isTerminal, int vertID, int dimension, graphData* D);
 		NodeOther(int nodeID, int parentID, bool isTerminal, int dimension, graphData* D);
+		virtual void destroy(int di);
 		virtual ~NodeOther();
 		
 };
+
 
 class TreeClassOther: public TreeClass {
 	public:
@@ -83,6 +85,10 @@ NodeOther::NodeOther(int nodeID, int parentID, bool isTerminal, int dimension, g
 			std::cerr << "dont know what to do with graph type "<<D[d].gtype<<" while making node\n";
 			throw(1);
 		}
+		if (isTerminal) {
+			this->paramsOriginal[d]->init();
+			this->paramsSoFar[d]->init();
+		}
 	}
 	/*this->thetaOriginal = new float[dimension];
 	this->thDenOriginal = new float[dimension];
@@ -122,6 +128,8 @@ NodeOther::NodeOther(int nodeID, int parentID, bool isTerminal, int vertID, int 
 			std::cerr << "dont know what to do with graph type "<<D[d].gtype<<" while making node\n";
 			throw(1);
 		}
+		paramsOriginal[d]->init();
+		paramsSoFar[d]->init();
 	}
 	/*
 	this->thetaOriginal = new float[dimension];
@@ -141,7 +149,14 @@ NodeOther::NodeOther(int nodeID, int parentID, bool isTerminal, int vertID, int 
 }
 
 
-
+void NodeOther::destroy(int di) {
+	Node::destroy(di);
+	int d;
+	for (d=0;d<di;d++) {
+		delete paramsSoFar[d];
+		delete paramsOriginal[d];
+	}
+}
 
 
 
@@ -206,7 +221,7 @@ bool NodeOther::writeThetaforMerged(int a, int b, dataMap* ww, TreeClass* tree, 
 		if (std::isnan(x)) x = 0;
 		this->theta[d] = x;
 		*/
-		this->params[d]->cleanup();
+		//this->params[d]->cleanup();
 		this->paramsOriginal[d]->cleanup();
 		this->paramsSoFar[d]->cleanup();
 		/*x = this->thNumOriginal[d] / this->thDenOriginal[d];

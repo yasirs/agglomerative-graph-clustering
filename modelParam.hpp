@@ -11,6 +11,7 @@ class ModelParamBase {
 		virtual bool isZero()=0;
 		virtual float predict(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb)=0;
 		virtual float updatedSoFar(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb, float oldsofar)=0;
+		virtual void init()=0;
 };
 
 class BinomialParam: public ModelParamBase {
@@ -25,8 +26,14 @@ class BinomialParam: public ModelParamBase {
 		virtual bool isZero();
 		virtual float predict(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb);
 		virtual float updatedSoFar(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb, float oldsofar);
+		virtual void init();
 };
 
+void BinomialParam::init() {
+	p = 0;
+	numE = 0;
+	numT = 0;
+}
 
 float BinomialParam::updatedSoFar(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb, float oldsofar) {
 	return 1 - (1 - oldsofar)*(1 - this->predict(sa,sb));
@@ -74,7 +81,15 @@ class PoissonParam: public ModelParamBase {
 		virtual bool isZero();
 		virtual float predict(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb);
 		virtual float updatedSoFar(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb, float oldsofar);
+		virtual void init();
 };
+
+void PoissonParam::init() {
+	lambda = 0;
+	numT = 0;
+	sumE = 0;
+	sumlgam = 0;
+}
 
 float PoissonParam::updatedSoFar(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb, float oldsofar) {
 	return oldsofar + this->predict(sa,sb);
@@ -86,6 +101,8 @@ void PoissonParam::bestfromSoFar(ModelParamBase* Ori, ModelParamBase* Sof) {
 }
 
 void PoissonParam::collapse(ModelParamBase* pa, ModelParamBase* pb) {
+	assert(pa != NULL);
+	assert(pb != NULL);
 	this->sumE += ((PoissonParam*) pa)->sumE + ((PoissonParam*) pb)->sumE;
 	this->sumlgam += ((PoissonParam*) pa)->sumlgam + ((PoissonParam*) pb)->sumlgam;
 	this->numT += ((PoissonParam*) pa)->numT + ((PoissonParam*) pb)->numT;
@@ -129,7 +146,14 @@ class WParam : public ModelParamBase {
 		virtual bool isZero();
 		virtual float predict(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb);
 		virtual float updatedSoFar(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb, float oldsofar);
+		virtual void init();
 };
+
+void WParam::init() {
+	p = 0;
+	numerator = 0;
+	denominator = 0;
+}
 
 float WParam::updatedSoFar(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb, float oldsofar) {
 	return 1 - (1 - oldsofar)*(1 - this->predict(sa,sb));

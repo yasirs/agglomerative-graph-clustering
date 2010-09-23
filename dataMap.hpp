@@ -174,6 +174,7 @@ dataMap::~dataMap() {
 		delete *vit;
 	}
 	datvert.clear();
+	delete MyNullPairStat;
 
 };
 

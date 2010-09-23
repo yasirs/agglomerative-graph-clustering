@@ -38,6 +38,7 @@ class Node{
 		Node(int nodeID, int parentID, bool isTerminal, int dimension, graphData* D);
 		bool collapseNode(std::map<int,Node*> &nmap);
 		virtual bool writeThetaforMerged(int a, int b, dataMap* w, TreeClass* tree, graphData* D);
+		virtual void destroy(int di);
 		virtual ~Node();
 };
 
@@ -66,6 +67,14 @@ class TreeClass{
 			return nodeMap[i];
 		}
 };
+
+void Node::destroy(int di) {
+	int d;
+	for (d=0;d<di;d++) {
+		delete params[d];
+	}
+}
+
 
 
 Node::~Node() {
@@ -154,6 +163,8 @@ Node::Node(int nodeID, int parentID, bool isTerminal, int dimension, graphData* 
 			std::cerr << "dont know what to do with graph type "<<D[d].gtype<<" while making node\n";
 			throw(1);
 		}
+		if (isTerminal)
+			this->params[d]->init();
 	}
 	if (isTerminal) {
 		this->collapsed = 1;
@@ -180,6 +191,7 @@ Node::Node(int nodeID, int parentID, bool isTerminal, int vertID, int dimension,
 			std::cerr << "dont know what to do with graph type "<<D[d].gtype<<" while making node\n";
 			throw(1);
 		}
+		this->params[d]->init();
 	}
 	if (isTerminal) {
 		this->collapsed = 1;
@@ -218,10 +230,12 @@ TreeClass::TreeClass(graphData* G, int dimension) {
 TreeClass::~TreeClass() {
 	std::map<int, Node*>::iterator nit;
 	for (nit=nodeMap.begin(); nit != nodeMap.end(); ++nit) {
+		nit->second->destroy(dim);
 		delete (*nit).second;
 	}
 	nodeMap.clear();
 	topLevel.clear();
+	
 };
 
 

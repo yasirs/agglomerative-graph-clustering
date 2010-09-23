@@ -23,7 +23,6 @@
 #include <algorithm>
 // #include <boost/math/special_functions/gamma.hpp>
 
-
 struct FPairHash {
   std::size_t operator() (const std::pair<float,float>& p) const {
     return ((int) (1000*p.first) + (int) (100*p.second) );
@@ -69,19 +68,28 @@ class Engine{
 		std::map<int,std::set<int> > firstNeighbors;
 		std::map<int,std::set<int> > secondNeighbors;
 		//std::map<int, float> groupDegrees;
+		struct mergeRecord {
+			int child1; int child2; int merged;
+			mergeRecord(int i, int j, int k) {
+				child1 = i; child2 = j; merged = k;
+			}
+		};
+		std::list<mergeRecord> mergeList;
 		~Engine();
 		Engine(graphData* G, int d);
 		Engine(graphData* G, graphData* Goriginal, graphData* GsoFar, int d);
 		bool initializeScores();
-		int run();
+		int runML();
+		int runFB();
+		int passFB();
+		int passML();
 		bool doStage();
 		bool cleanUp();
-		float deltascore(int d, int a, int b, int x);
-		float deltascore1(int d, int a, int b, int x) {
-			return deltascore(d,a,b,x);
-		}
-		float debug_getscore(int d,int a,int b);
-		float centerscore(int d, int a, int b);
+		float deltascoreML(int d, int a, int b, int x);
+		float deltascoreFB(int d, int a, int b, int x);
+		//float debug_getscore(int d,int a,int b);
+		float centerscoreML(int d, int a, int b);
+		float centerscoreFB(int d, int a, int b);
 		std::set<int> getNeighborsVertex(int i);
 		std::set<int> getNeighborsNode(int i);
 		void printJaccardFile(const char* filename, int d, bool edges);
@@ -90,7 +98,7 @@ class Engine{
 		void printCommonNeighbFile(const char* filename, int d, bool edges);
 };
 
-
+/*
 float Engine::debug_getscore(int d,int a,int b) {
 	float s = 0;
 	for(std::set<int>::iterator nit (tree->topLevel.begin()); nit != tree->topLevel.end(); ++nit) {
@@ -99,7 +107,7 @@ float Engine::debug_getscore(int d,int a,int b) {
 	}
 	return s;
 }
-
+*/
 
 void Engine::printCommonNeighbFile(const char* fn, int d, bool edges) {
 	int u,v, c;
@@ -275,20 +283,32 @@ Engine::~Engine() {
 };
 
 
-float Engine::centerscore(int d, int a, int b) {
+float Engine::centerscoreFB(int d, int a, int b) {
+	assert(a!=b);
+	return this->w[d].FBcenterscore(a,b);
+};
+
+
+float Engine::deltascoreFB(int d, int a, int b, int x) {
+	assert((a!=b)&&(a!=x)&&(b!=x));
+	return this->w[d].FBdeltascore(a,b,x);
+};
+
+
+
+float Engine::centerscoreML(int d, int a, int b) {
 	assert(a!=b);
 	return this->w[d].MLcenterscore(a,b);
 };
 
 
-float Engine::deltascore(int d, int a, int b, int x) {
-	// maximum likelihood version
+float Engine::deltascoreML(int d, int a, int b, int x) {
 	assert((a!=b)&&(a!=x)&&(b!=x));
 	return this->w[d].MLdeltascore(a,b,x);
 };
 
 
-int Engine::run() {
+int Engine::runML() {
 	std::set<int> emptySet, tempSet;
 	std::set<int> possSet1, possSet2;
 	std::set<int>::iterator intit, intit2, intit3, intsetit;
@@ -382,7 +402,7 @@ int Engine::run() {
 					if (y!=c) {
 						jscore =0;
 						for (d=0;d<dim;d++) {
-							jscore = jscore + deltascore(d,x,y,c)-deltascore(d,x,y,a)-deltascore(d,x,y,b);
+							jscore = jscore + deltascoreML(d,x,y,c)-deltascoreML(d,x,y,a)-deltascoreML(d,x,y,b);
 						}
 						if (firstNeighbors[c].count(y)) {
 							assert(sm.AddTo(x,y,jscore/2));
@@ -413,10 +433,10 @@ int Engine::run() {
 					//for (intsetit = neighbUnion.begin(); intsetit != neighbUnion.end(); ++intsetit) {
 						//z = *intsetit;
 						if (! ((x==z)||(c==z)||(a==z)||(b==z)) ) {
-							jscore = jscore + deltascore(d,c,x,z);
+							jscore = jscore + deltascoreML(d,c,x,z);
 						}
 					}
-					cscore += centerscore(d,c,x);
+					cscore += centerscoreML(d,c,x);
 				}
 				if (sm.has_uv(c,x)) {
 					std::cout << "bad stuff will happen\nc = "<<c<<", x = "<<x<<"\n";
@@ -440,10 +460,10 @@ int Engine::run() {
 					//for (intsetit = neighbUnion.begin(); intsetit != neighbUnion.end(); ++intsetit) {
 						//z = *intsetit;
 						if (! ((x==z)||(c==z)||(a==z)||(b==z)) ) {
-							jscore = jscore + deltascore(d,x,c,z);
+							jscore = jscore + deltascoreML(d,x,c,z);
 						}
 					}
-					cscore += centerscore(d,c,x);
+					cscore += centerscoreML(d,c,x);
 				}
 				if (sm.has_uv(c,x)) {
 					std::cout << "bad stuff will happen\nc = "<<c<<", x = "<<x<<"\n";
@@ -474,10 +494,10 @@ int Engine::run() {
 								//for (intsetit = neighbUnion.begin(); intsetit != neighbUnion.end(); ++intsetit) {
 									//z = *intsetit;
 									if (! ((x==z)||(y==z)) ) {
-										jscore = jscore + deltascore(d,x,y,z);
+										jscore = jscore + deltascoreML(d,x,y,z);
 									}
 								}
-								cscore = cscore + centerscore(d,x,y);
+								cscore = cscore + centerscoreML(d,x,y);
 							}
 							assert(sm.AddPair(x,y,jscore,cscore));
 						}
@@ -494,10 +514,10 @@ int Engine::run() {
 								//for (intsetit = neighbUnion.begin(); intsetit != neighbUnion.end(); ++intsetit) {
 									//z = *intsetit;
 									if (! ((x==z)||(y==z)) ) {
-										jscore = jscore + deltascore1(d,y,x,z);
+										jscore = jscore + deltascoreML(d,y,x,z);
 									}
 								}
-								cscore = cscore + centerscore(d,y,x);
+								cscore = cscore + centerscoreML(d,y,x);
 							}
 							assert(sm.AddPair(y,x,jscore,cscore));
 						}
@@ -536,6 +556,7 @@ int Engine::run() {
 
 	
 		numJoins++;
+		this->mergeList.push_back(mergeRecord(a,b,c));
 		if (DEBUGMODE) {
 			std::cout << "joined "<<a<<" and "<<b<<" to form "<<c<<"\n";
 			tint = sm.has_u(a);
@@ -551,7 +572,7 @@ int Engine::run() {
 			}
 		}
 	}
-	return numJoins;
+	return mergeList.size();
 };
 
 
@@ -603,10 +624,10 @@ bool Engine::initializeScores() {
 					for (unsetit = neighbUnion.begin(); unsetit != neighbUnion.end(); ++unsetit) {
 						z = *unsetit;
 						if (! ((x==z)||(y==z)) ) {
-							jscore = jscore + deltascore1(d,x,y,z);
+							jscore = jscore + deltascoreML(d,x,y,z);
 						}
 					}
-					cscore = cscore + centerscore(d,x,y);
+					cscore = cscore + centerscoreML(d,x,y);
 				}
 				assert(sm.AddPair(x,y,jscore,cscore));
 			}
@@ -625,10 +646,10 @@ bool Engine::initializeScores() {
 					for (unsetit = neighbUnion.begin(); unsetit != neighbUnion.end(); ++unsetit) {
 						z = *unsetit;
 						if (! ((x==z)||(y==z)) ) {
-							jscore = jscore + deltascore1(d,x,y,z);
+							jscore = jscore + deltascoreML(d,x,y,z);
 						}
 					}
-					cscore = cscore + centerscore(d,x,y);
+					cscore = cscore + centerscoreML(d,x,y);
 				}
 				assert(sm.AddPair(x,y,jscore,cscore));
 			}
@@ -638,47 +659,5 @@ bool Engine::initializeScores() {
 	return 1;
 };
 
-/*
-bool Engine::doStage() {
-	curLev++;
-	int a,b,i,d;
-	std::set<int> aset,bset,xset;
-	std::set<int> *p1set;
-	std::set<int> *p2set;
-	std::set<int>::iterator setiter,setiter2,setiter3;
-	// dataMap iterators
-	for (d=dim;d<dim;d++) {
-		p1set = w[d].grkeys();
-		for (setiter = p1set->begin(); setiter != p1set->end(); ++setiter) aset.insert(*setiter);
-		delete p1set;
-	}
-	// aset is the set of all groups to use as 'a' (all active groups in case of undirected graph)
-	for (setiter = aset.begin(); setiter != aset.end(); ++setiter) {
-		a = (*setiter);
-		// let us go through all the dimensions to get the 1st and 2nd neighbors in bset
-		for (d=0;d<dim;d++) {
-			p1set = w[d].neighbors(a);
-			for (setiter2 = p1set->begin(); setiter2 != p1set->end(); ++setiter2) {
-				bset.insert(*setiter2);
-				p2set = w[d].neighbors(*setiter2);
-				for (setiter3 = p2set->begin(); setiter3 != p2set->end(); ++setiter3) bset.insert(*setiter3);
-				delete p2set;
-			}
-			delete p1set;
-		}
-		for (setiter2 = bset.begin(); setiter2 != bset.end(); ++setiter2) {
-			b = *setiter2;
-			if (! sm.has_uv(a,b)) {
-				// calculate score for a,b
-				for (d=0;d<dim;d++) {
-					// run over x
-					for (setiter3 = aset.begin();
-					sm.Addto(u,v,deltascore(d,a,b,x));
-			
-		
-		
-
-
-}; */
-
+#include "e2.hpp"
 #endif

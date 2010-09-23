@@ -79,7 +79,7 @@ int main(int argc, char* argv[]) {
 	*/
 	// run the agglomerative algorithm
 	std::cout << "starting to run\n";
-	en->run();
+	en->runML();
 	std::cout << "done running\n";
 	lp.attach(en); // attached the engine
 	std::cout << "Attached!\n";
@@ -110,7 +110,7 @@ int main(int argc, char* argv[]) {
 		en = new Engine(Gnew,Goriginal,GsoFar,1);
 		en->initializeScores();
 		std::cout << "running on the residual\n";
-		en->run();
+		en->runML();
 		lp.attach(en);
 		fnout = fnstem + ".scores" + sres;
 		std::cout << "done!\nPrinting out the " << residint <<"th heirarchical network\n";
@@ -132,6 +132,7 @@ int main(int argc, char* argv[]) {
 	std::cout << "done!\n";
 	delete[] Goriginal;
 	delete[] GsoFar;
+	delete[] Gnew;
 	delete en;
 	//delete G;
 	return 1;

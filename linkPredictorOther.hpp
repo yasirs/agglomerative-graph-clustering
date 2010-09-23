@@ -29,8 +29,13 @@ class linkPredictorOther: public linkPredictor {
 		//void addPredstoGraph(graphData* PD);
 		void updateSoFar(graphData* GsoFar);
 		void updateSoFarLazy(graphData* GsoFar);
-		//~linkPredictorOther();
+		virtual ~linkPredictorOther();
 };
+
+
+linkPredictorOther::~linkPredictorOther() {
+	// do nothing, the base class function does it for us
+}
 
 
 
@@ -55,12 +60,14 @@ void linkPredictorOther::updateSoFar(graphData* GsoFar) {
 
 void linkPredictorOther::attach(Engine* e) {
 	// delete old topParams, if any
+	int d;
 	std::map<int, std::map<int, ModelParamBase**> >::iterator outit;
 	std::map<int, ModelParamBase**>::iterator init;
 	for (outit = topParams.begin(); outit != topParams.end(); ++outit) {
-		for (init = (*outit).second.begin(); 
-			init != (*outit).second.end();
-			++init) {
+		for (init = (*outit).second.begin(); init != (*outit).second.end(); ++init) {
+			for (d=0;d<dim;d++) {
+				delete init->second[d];
+			}
 			delete[] (*init).second;
 		}
 		topParams[(*outit).first].clear();
@@ -74,7 +81,7 @@ void linkPredictorOther::attach(Engine* e) {
 	dim = e->dim;
 	D = e->D;
 	// compute new topThetas
-	int n1, n2, d;
+	int n1, n2;
 	std::set<int>::iterator intit1, intit2, intit3;
 	for (d=0;d<dim;d++) {
 		if (D[d].gtype=='w') {
