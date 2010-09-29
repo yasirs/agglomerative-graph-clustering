@@ -131,7 +131,7 @@ void linkPredictorOther::attach(Engine* e) {
 };
 
 void linkPredictorOther::updateSoFarLazy(graphData* GsoFar) {
-	float wnew, wpredicted;
+	float wnew;
 	std::map<int, std::map<int, ModelParamBase**> >::iterator outit;
 	std::map<int, ModelParamBase**>::iterator init;
 	for (int d=0; d<this->dim;d++) {

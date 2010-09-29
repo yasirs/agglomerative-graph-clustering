@@ -81,8 +81,8 @@ class Engine{
 		bool initializeScores();
 		int runML();
 		int runFB();
-		int passFB();
-		int passML();
+		void passFB();
+		void passML();
 		bool doStage();
 		bool cleanUp();
 		float deltascoreML(int d, int a, int b, int x);
@@ -313,7 +313,7 @@ int Engine::runML() {
 	std::set<int> possSet1, possSet2;
 	std::set<int>::iterator intit, intit2, intit3, intsetit;
 	int numJoins = 0;
-	int a,b,c,x,y,z,d, tint;
+	int a,b,c,x,y,d, tint;
 	float cscore, jscore;
 	scoremap::pairScore pscore;
 	std::map<int, scoremap::smap>::iterator smOut;
@@ -659,5 +659,60 @@ bool Engine::initializeScores() {
 	return 1;
 };
 
-#include "e2.hpp"
+void Engine::passFB() {
+	int a,b,c,d,z;
+	float csc, dsc;
+	// initialize toplevel to the vertices
+	this->tree->topLevel.clear();
+	for (int i=0; i<D[0].numV; i++) {
+		tree->topLevel.insert(i);
+	}
+	std::list<mergeRecord>::iterator mergeit(mergeList.begin());
+	std::set<int>::iterator intit;
+	for (; mergeit != mergeList.end(); mergeit++) {
+		a = mergeit->child1;
+		b = mergeit->child2;
+		c = mergeit->merged;
+		// decide whether to do this merge
+		dsc = 0;
+		for (d=0;d<dim;d++) {
+			for (intit = tree->topLevel.begin(); intit != tree->topLevel.end(); intit++) {
+				z = *intit;
+				if ((a!=z) & (b!=z) & (c!=z)) {
+					dsc += deltascoreFB(d,a,b,z);
+				}
+			}
+		}
+		if (dsc>=0) {
+			// let us do the merge
+			tree->topLevel.erase(a);
+			tree->topLevel.erase(b);
+			tree->topLevel.insert(c);
+			
+			// do we need to merge them?
+			if ((tree->nodeMap[a]->collapsed) & (tree->nodeMap[b]->collapsed)) {
+				// let us compute the center score
+				csc = 0;
+				for (d=0;d<dim;d++) {
+					csc += centerscoreFB(d,a,b);
+				}
+				if (csc>=0) {
+					// let us merge them
+					assert(tree->nodeMap[c]->collapseNode(tree->nodeMap));
+				} else {
+					tree->nodeMap[c]->collapsed = 0;
+					tree->nodeMap[c]->vertsComputed = 0;
+				}
+			}
+			tree->nodeMap[c]->writeThetaforMerged(a,b,w,tree,D);
+		} else {
+			// break out of the loop
+			break;
+		}
+	}
+					
+}
+
+
+
 #endif

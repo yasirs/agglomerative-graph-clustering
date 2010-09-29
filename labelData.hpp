@@ -170,7 +170,6 @@ labelData::labelData(graphData* Goriginal, const char* filename, int reg) {
 	std::vector<std::string> tok;
 	destList* pdl;
 	int u,v;
-	float sum = 0;
 	float weight;
 	int linesread=0;
 	std::string St1, St2;

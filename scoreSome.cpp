@@ -23,7 +23,6 @@ bool fexists(const char* filename) {
 
 int main(int argc, char* argv[]) {
 	std::string fnstem,fnin,fnout;
-	char temp[80];
 	linkPredictorOther lp;
 	int numResids;
 	char gtype;
@@ -66,7 +65,7 @@ int main(int argc, char* argv[]) {
 	Goriginal[0].copyNoEdges(GsoFar[0]);
 	en = new Engine(Goriginal,Goriginal, GsoFar, 1);
 	en->initializeScores();
-	/*
+	
 	// let us write the competing scores
 	std::cout << "writing degree product\n";
 	fnout = fnstem + ".dprod"; en->printDegreeProdFile(fnout.c_str(), 0, 0);
@@ -76,10 +75,11 @@ int main(int argc, char* argv[]) {
 	fnout = fnstem + ".jaccard"; en->printJaccardFile(fnout.c_str(), 0, 0);
 	std::cout << "writing comm neigh\n";
 	fnout = fnstem + ".cneighb"; en->printCommonNeighbFile(fnout.c_str(), 0, 0);
-	*/
+
 	// run the agglomerative algorithm
 	std::cout << "starting to run\n";
 	en->runML();
+	en->passFB();
 	std::cout << "done running\n";
 	lp.attach(en); // attached the engine
 	std::cout << "Attached!\n";
@@ -111,6 +111,7 @@ int main(int argc, char* argv[]) {
 		en->initializeScores();
 		std::cout << "running on the residual\n";
 		en->runML();
+		en->passFB();
 		lp.attach(en);
 		fnout = fnstem + ".scores" + sres;
 		std::cout << "done!\nPrinting out the " << residint <<"th heirarchical network\n";

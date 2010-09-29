@@ -41,11 +41,11 @@ class dataMap{
 		virtual void initialize(graphData& D, std::map<int,std::set<int> >& fNeighbors); //done
 		virtual void addMergedData(int a, int b, int c, std::set<int>& fNeighbours);
 		virtual ~dataMap();
-		virtual void initVert(int u);
+		virtual void initVert(unsigned int u);
 };
 
 
-void dataMap::initVert(int u) {
+void dataMap::initVert(unsigned int u) {
 	assert(datvert.size()==u);
 	if (gtype=='b') {
 		datvert.push_back(new BinomialSelfStats);

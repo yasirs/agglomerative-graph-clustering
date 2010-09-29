@@ -26,12 +26,12 @@ class dataMapOther: public dataMap{
 		}
 		virtual void initialize(graphData& D, graphData& Doriginal, graphData& DsoFar, std::map<int,std::set<int> >& fNeighbours); // done
 		virtual void addMergedData(int a, int b, int c, std::set<int>& fNeighbours); // done
-		virtual void initVert(int u);
+		virtual void initVert(unsigned int u);
 		virtual ~dataMapOther();
 };
 
 
-void dataMapOther::initVert(int u) {
+void dataMapOther::initVert(unsigned int u) {
 	dataMap::initVert(u); // call the base class function
 
 	assert(oDatvert.size()==u);
