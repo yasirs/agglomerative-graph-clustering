@@ -171,8 +171,8 @@ float BinomialPairStats::FBcenterscore(ModelSelfStatsBase* sa, ModelSelfStatsBas
 	if (bb==NULL) Ebb = 0;
 	else Ebb = ((BinomialPairStats* )bb)->nE;
 	Hab = ((BinomialSelfStats*) sa)->nV * ((BinomialSelfStats*) sb)->nV - Eab;
-	Haa = (((BinomialSelfStats*) sa)->nV * ((BinomialSelfStats*) sa)->nV - 1)/2.0f;
-	Hbb = (((BinomialSelfStats*) sb)->nV * ((BinomialSelfStats*) sb)->nV - 1)/2.0f;
+	Haa = ((BinomialSelfStats*) sa)->nV * (((BinomialSelfStats*) sa)->nV - 1)/2.0f;
+	Hbb = ((BinomialSelfStats*) sb)->nV * (((BinomialSelfStats*) sb)->nV - 1)/2.0f;
 	ans = lnBetaFunction(Eaa+Ebb+Eab+1,Haa+Hbb+Hab+1)
 	    - lnBetaFunction(Eaa+1,Haa+1)
 	    - lnBetaFunction(Ebb+1,Hbb+1)
@@ -183,8 +183,8 @@ float BinomialPairStats::FBcenterscore(ModelSelfStatsBase* sa, ModelSelfStatsBas
 float BinomialPairStats::MLcenterscore(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb, ModelPairStatsBase* aa, ModelPairStatsBase* bb) {
 	float Tab, Eab, Eaa, Ebb, Taa, Tbb, ans;
 	Tab = ((BinomialSelfStats*) sa)->nV * ((BinomialSelfStats*) sb)->nV;
-	Taa = (((BinomialSelfStats*) sa)->nV * ((BinomialSelfStats*) sa)->nV - 1)/2.0f;
-	Tbb = (((BinomialSelfStats*) sb)->nV * ((BinomialSelfStats*) sb)->nV - 1)/2.0f;
+	Taa = ((BinomialSelfStats*) sa)->nV * (((BinomialSelfStats*) sa)->nV - 1)/2.0f;
+	Tbb = ((BinomialSelfStats*) sb)->nV * (((BinomialSelfStats*) sb)->nV - 1)/2.0f;
 	Eab = this->nE;
 	if (aa==NULL) Eaa = 0;
 	else Eaa = ((BinomialPairStats* )aa)->nE;
@@ -269,8 +269,8 @@ BinomialPairStats* BinomialPairStats::Add3(ModelPairStatsBase* b2, ModelPairStat
 float PoissonPairStats::FBcenterscore(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb, ModelPairStatsBase* aa, ModelPairStatsBase* bb) {
 	float Tab, Eab, Eaa, Ebb, lEab, lEbb, lEaa, Taa, Tbb, ans;
 	Tab = ((PoissonSelfStats*) sa)->nV * ((PoissonSelfStats*) sb)->nV;
-	Taa = (((PoissonSelfStats*) sa)->nV * ((PoissonSelfStats*) sa)->nV - 1);
-	Tbb = (((PoissonSelfStats*) sb)->nV * ((PoissonSelfStats*) sb)->nV - 1);
+	Taa = ((PoissonSelfStats*) sa)->nV * (((PoissonSelfStats*) sa)->nV - 1)/2.0f;
+	Tbb = ((PoissonSelfStats*) sb)->nV * (((PoissonSelfStats*) sb)->nV - 1)/2.0f;
 	Eab = this->sumE;
 	lEab = this->sumlgam;
 	if (aa==NULL) { Eaa = 0; lEaa = 0; }
@@ -292,8 +292,8 @@ float PoissonPairStats::FBcenterscore(ModelSelfStatsBase* sa, ModelSelfStatsBase
 float PoissonPairStats::MLcenterscore(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb, ModelPairStatsBase* aa, ModelPairStatsBase* bb) {
 	float Tab, Eab, Eaa, Ebb, lEab, lEbb, lEaa, Taa, Tbb, ans;
 	Tab = ((PoissonSelfStats*) sa)->nV * ((PoissonSelfStats*) sb)->nV;
-	Taa = (((PoissonSelfStats*) sa)->nV * ((PoissonSelfStats*) sa)->nV - 1);
-	Tbb = (((PoissonSelfStats*) sb)->nV * ((PoissonSelfStats*) sb)->nV - 1);
+	Taa = ((PoissonSelfStats*) sa)->nV * (((PoissonSelfStats*) sa)->nV - 1)/2.0f;
+	Tbb = ((PoissonSelfStats*) sb)->nV * (((PoissonSelfStats*) sb)->nV - 1)/2.0f;
 	Eab = this->sumE;
 	lEab = this->sumlgam;
 	if (aa==NULL) { Eaa = 0; lEaa = 0; }

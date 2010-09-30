@@ -121,7 +121,7 @@ int main(int argc, char* argv[]) {
 		fnout = fnstem + sres + ".soFar";
 		if (doScores) 
 			Glabel->putSoFar(GsoFar, residint+1);
-		GsoFar->writeSingle(fnout.c_str());
+		//GsoFar->writeSingle(fnout.c_str());
 		residint++;
 	}
 	fnin = fnstem + ".edges";
