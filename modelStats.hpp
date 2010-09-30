@@ -65,6 +65,21 @@ class WSelfStats: public ModelSelfStatsBase {
 		}
 };
 
+class DcorrSelfStats: public ModelSelfStatsBase {
+	public:
+		float degree;
+		float selfMissing;
+		float nV;
+		DcorrSelfStats() {
+			this->degree = 0;
+			this->selfMissing = 0;
+			this->nV = 1;
+		}
+		virtual DcorrSelfStats* Add2(ModelSelfStatsBase* b2,ModelPairStatsBase* pair);
+};
+
+
+
 class PoissonSelfStats: public ModelSelfStatsBase {
 	public:
 		float nV;
@@ -119,6 +134,25 @@ class PoissonPairStats: public ModelPairStatsBase {
 		virtual float FBdeltascore(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb,ModelSelfStatsBase* sx, ModelPairStatsBase* pax, ModelPairStatsBase* pbx);
 };
 
+class DcorrPairStats: public ModelPairStatsBase {
+	public:
+		float nE;
+		float sumlgam;
+		DcorrPairStats() {
+			this->nE = 0; this->sumlgam = 0;
+		}
+		virtual float simple() { return sumE; }
+		virtual DcorrPairStats* Add3(ModelPairStatsBase* b2, ModelPairStatsBase* b3);
+		virtual DcorrPairStats* Add2(ModelPairStatsBase* b2);
+		virtual void AddEdge(float x);
+		virtual float MLcenterscore(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb, ModelPairStatsBase* aa, ModelPairStatsBase* bb);
+		virtual float MLdeltascore(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb,ModelSelfStatsBase* sx, ModelPairStatsBase* pax, ModelPairStatsBase* pbx);
+		virtual float FBcenterscore(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb, ModelPairStatsBase* aa, ModelPairStatsBase* bb);
+		virtual float FBdeltascore(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb,ModelSelfStatsBase* sx, ModelPairStatsBase* pax, ModelPairStatsBase* pbx);
+};
+
+
+
 class WPairStats: public ModelPairStatsBase {
 	public:
 		float nE;
@@ -162,6 +196,20 @@ WSelfStats* WSelfStats::Add2(ModelSelfStatsBase* b2,ModelPairStatsBase* pair) {
 void WSelfStats::AddOutGoing(float x) {
 	this->degree = this->degree + x;
 }
+
+
+DcorrSelfStats* DcorrSelfStats::Add2(ModelSelfStatsBase* b2,ModelPairStatsBase* pair) {
+	DcorrSelfStats* p = new DcorrSelfStats;
+	p->degree = this->degree + ((DcorrSelfStats*) b2)->degree;
+	p->nV = this->nV + ((DcorrSelfStats*) b3)->nV;
+	p->selfMissing = this->selfMissing + ((DcorrSelfStats*) b2)->selfMissing + (this->degree * ((DcorrSelfStats*) b2)->degree);
+	if (pair != NULL) {
+		p->selfMissing  -= ((DcorrPairStats* )pair)->nE;
+	}
+	return p;
+}
+
+
 
 float BinomialPairStats::FBcenterscore(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb, ModelPairStatsBase* aa, ModelPairStatsBase* bb) {
 	float Hab, Eab, Eaa, Ebb, Haa, Hbb, ans;
@@ -265,6 +313,61 @@ BinomialPairStats* BinomialPairStats::Add3(ModelPairStatsBase* b2, ModelPairStat
 	if (b3 != NULL) p->nE += ((BinomialPairStats*) b3)->nE;
 	return p;
 }
+
+float DcorrPairStats::MLdeltascore(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb,ModelSelfStatsBase* sx, ModelPairStatsBase* pax, ModelPairStatsBase* pbx) {
+	float Eax, Ebx, lEax, lEbx, Tax, Tbx, ans, da, db, dx;
+	if (pax==NULL) { Eax = 0; lEax = 0;}
+	else {
+		Eax = ((DcorrPairStats*) pax)->nE;
+		lEax = ((DcorrPairStats*) pax)->sumlgam;
+	}
+	if (pbx==NULL) { Ebx = 0; lEbx = 0;}
+	else {
+		Ebx = ((DcorrPairStats*) pbx)->nE;
+		lEbx = ((DcorrPairStats*) pbx)->sumlgam;
+	}
+	da = ((DcorrSelfStats*) sa)->degree;
+	db = ((DcorrSelfStats*) sb)->degree;
+	dx = ((DcorrSelfStats*) sx)->degree;
+	Tax = da * dx;
+	Tbx = db * dx;
+	float Etot = Eax+Ebx;
+	float lEtot = lEax + lEbx;
+	float Ttot = Tax+Tbx;
+	ans = Etot*(mySafeLog(Etot/Ttot)-1) - lEtot
+		- Eax*(mySafeLog(Eax/Tax)-1) + lEax
+		- Ebx*(mySafeLog(Ebx/Tbx)-1) + lEbx;
+	return ans;
+}
+
+
+float DcorrPairStats::FBdeltascore(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb,ModelSelfStatsBase* sx, ModelPairStatsBase* pax, ModelPairStatsBase* pbx) {
+	float Eax, Ebx, lEax, lEbx, Tax, Tbx, ans, da, db, dx;
+	if (pax==NULL) { Eax = 0; lEax = 0;}
+	else {
+		Eax = ((DcorrPairStats*) pax)->nE;
+		lEax = ((DcorrPairStats*) pax)->sumlgam;
+	}
+	if (pbx==NULL) { Ebx = 0; lEbx = 0;}
+	else {
+		Ebx = ((DcorrPairStats*) pbx)->nE;
+		lEbx = ((DcorrPairStats*) pbx)->sumlgam;
+	}
+	da = ((DcorrSelfStats*) sa)->degree;
+	db = ((DcorrSelfStats*) sb)->degree;
+	dx = ((DcorrSelfStats*) sx)->degree;
+	Tax = da * dx;
+	Tbx = db * dx;
+	float Etot = Eax+Ebx;
+	float lEtot = lEax + lEbx;
+	float Ttot = Tax+Tbx;
+	ans = - lEtot + lgamma(1+Etot) - (1+Etot)*mySafeLog(Ttot)
+	      + lEax  - lgamma(1+Eax)  + (1+Eax )*mySafeLog(Tax)
+	      + lEbx  - lgamma(1+Ebx)  + (1+Ebx )*mySafeLog(Tbx);
+	return ans;
+}
+
+
 
 float PoissonPairStats::FBcenterscore(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb, ModelPairStatsBase* aa, ModelPairStatsBase* bb) {
 	float Tab, Eab, Eaa, Ebb, lEab, lEbb, lEaa, Taa, Tbb, ans;
