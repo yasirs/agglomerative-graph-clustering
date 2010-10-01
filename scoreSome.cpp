@@ -14,6 +14,8 @@
 #include <iostream>
 #include <string> 
 
+DcorrPairStats dp;
+DcorrSelfStats ds;
 
 bool fexists(const char* filename) {
 	std::ifstream ifile(filename);
