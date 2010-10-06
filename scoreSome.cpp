@@ -79,7 +79,7 @@ int main(int argc, char* argv[]) {
 	// run the agglomerative algorithm
 	std::cout << "starting to run\n";
 	en->runML();
-	en->passFB();
+	//en->passFB();
 	std::cout << "done running\n";
 	lp.attach(en); // attached the engine
 	std::cout << "Attached!\n";
@@ -90,7 +90,7 @@ int main(int argc, char* argv[]) {
 	en->tree->writeCollapsedHierEdges(fnout.c_str());
 	lp.updateSoFarLazy(GsoFar);
 	fnout = fnstem + "0.soFar";
-	//GsoFar->writeSingle(fnout.c_str());
+	GsoFar->writeSingle(fnout.c_str());
 	if (doScores)
 		Glabel->putSoFar(GsoFar, 1);
 
@@ -121,7 +121,8 @@ int main(int argc, char* argv[]) {
 		fnout = fnstem + sres + ".soFar";
 		if (doScores) 
 			Glabel->putSoFar(GsoFar, residint+1);
-		//GsoFar->writeSingle(fnout.c_str());
+		GsoFar->writeSingle(fnout.c_str());
+		fnout = fnstem + sres + ".residual"; Gnew->writeSingle(fnout.c_str());
 		residint++;
 	}
 	fnin = fnstem + ".edges";
