@@ -81,6 +81,9 @@ NodeOther::NodeOther(int nodeID, int parentID, bool isTerminal, int dimension, g
 		} else if (D[d].gtype == 'w') {
 			this->paramsOriginal[d] = new WParam;
 			this->paramsSoFar[d] = new WParam;
+		} else if (D[d].gtype == 'd') {
+			this->paramsOriginal[d] = new DcorrParam;
+			this->paramsSoFar[d] = new DcorrParam;
 		} else {
 			std::cerr << "dont know what to do with graph type "<<D[d].gtype<<" while making node\n";
 			throw(1);
@@ -124,6 +127,9 @@ NodeOther::NodeOther(int nodeID, int parentID, bool isTerminal, int vertID, int 
 		} else if (D[d].gtype == 'w') {
 			this->paramsOriginal[d] = new WParam;
 			this->paramsSoFar[d] = new WParam;
+		} else if (D[d].gtype == 'd') {
+			this->paramsOriginal[d] = new DcorrParam;
+			this->paramsSoFar[d] = new DcorrParam;
 		} else {
 			std::cerr << "dont know what to do with graph type "<<D[d].gtype<<" while making node\n";
 			throw(1);

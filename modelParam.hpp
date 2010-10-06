@@ -188,6 +188,57 @@ void WParam::calculate(ModelPairStatsBase* pab, ModelSelfStatsBase* sa, ModelSel
 	this->denominator = ((WSelfStats*) sa)->degree * ((WSelfStats*) sb)->degree;
 }
 
+class DcorrParam: public ModelParamBase {
+	public:
+		float lambda;
+		float numT;
+		float nE;
+		virtual void calculate(ModelPairStatsBase* pab, ModelSelfStatsBase* sa, ModelSelfStatsBase* sb);
+		virtual void collapse(ModelParamBase* pa, ModelParamBase* pb);
+		virtual void cleanup();
+		virtual void bestfromSoFar(ModelParamBase* Ori, ModelParamBase* Sof);
+		virtual bool isZero();
+		virtual float predict(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb);
+		virtual float updatedSoFar(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb, float oldsofar);
+		virtual void init();
+};
+
+DcorrParam::calculate(ModelPairStatsBase* pab, ModelSelfStatsBase* sa, ModelSelfStatsBase* sb) {
+	if (pab==NULL) this->nE = 0;
+	else this->nE = ((DcorrPairStats*) pab)->nE;
+	this->numT = ((DcorrSelfStats*) sa)->degree * ((DcorrSelfStats*) sb)->degree;
+}
+
+void DcorrParam::collapse(ModelParamBase* pa, ModelParamBase* pb) {
+	this->nE += ((DcorrParam*) pa)->nE + ((DcorrParam*) pb)->nE;
+	this->numT += ((DcorrParam*) pa)->numT + ((DcorrParam*) pb)->numT;
+}
+
+
+void DcorrParam::cleanup() {
+	this->lambda = this->nE / this->numT;
+	if (std::isnan(lambda)) p=0;
+}
+
+void DcorrParam::init() {
+	lambda = 0;
+	nE = 0;
+	numT = 0;
+}
+
+float DcorrParam::updatedSoFar(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb, float oldsofar) {
+	return oldsofar + predict(sa,sb);
+}
+
+void DcorrParam::bestfromSoFar(ModelParamBase* Ori, ModelParamBase* Sof) {
+	this->lambda = std::max(0.0f, ((DcorrParam*) Ori)->lambda - ((DcorrParam*) Sof)->lambda);
+}
+
+bool DcorrParam::isZero() {
+	return (this->lambda ==0);
+}
+
+
 
 
 

@@ -56,6 +56,9 @@ void dataMap::initVert(unsigned int u) {
 	} else if (gtype=='w') {
 		datvert.push_back(new WSelfStats);
 		this->AddPair(u,u,new WPairStats);
+	} else if (gtype=='d') {
+		datvert.push_back(new DcorrSelfStats);
+		this->AddPair(u,u,new DcorrSelfStats);
 	} else {
 		std::cerr << "Error! "<<gtype<<" graph not recognised while initializing datamap\n";
 		throw(0);
@@ -113,6 +116,7 @@ bool dataMap::AddEdge(int u, int v, float x) {
 		if (gtype=='b') p = new BinomialPairStats;
 		else if (gtype=='p') p = new PoissonPairStats;
 		else if (gtype=='w') p = new WPairStats;
+		else if (gtype=='d') p = new DcorrPairStats;	
 		else {std::cout << "bad graph type\n";}
 		temp_outIt->second[v] = p;
 		temp_inIt = temp_outIt->second.find(v);
@@ -128,6 +132,7 @@ void dataMap::initialize(graphData& D, std::map<int,std::set<int> >& fNeighbours
 	if (gtype=='b') MyNullPairStat = new BinomialPairStats;
 	else if (gtype=='p') MyNullPairStat = new PoissonPairStats;
 	else if (gtype=='w') MyNullPairStat = new WPairStats;
+	else if (gtype=='d') MyNullPairStat = new DcorrPairStats;
 	else {std::cout << "bad graph type\n";}
 	int u, v;
 	for (u=0; u != D.numV; u++) {

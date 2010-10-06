@@ -44,6 +44,9 @@ void dataMapOther::initVert(unsigned int u) {
 	} else if (gtype=='w') {
 		oDatvert.push_back(new WSelfStats);
 		this->AddPairOriginal(u,u,new WPairStats);
+	} else if (gtype=='d') {
+		oDatvert.push_back(new DcorrSelfStats);
+		this->AddPairOriginal(u,u,new DcorrPairStats);
 	} else {
 		std::cerr << "Error! "<<gtype<<" graph not recognised while initializing oDatamap\n";
 		throw(0);
@@ -59,6 +62,9 @@ void dataMapOther::initVert(unsigned int u) {
 	} else if (gtype=='w') {
 		sDatvert.push_back(new WSelfStats);
 		this->AddPairSoFar(u,u,new WPairStats);
+	} else if (gtype=='d') {
+		sDatvert.push_back(new DcorrSelfStats);
+		this->AddPairSoFar(u,u,new DcorrPairStats);
 	} else {
 		std::cerr << "Error! "<<gtype<<" graph not recognised while initializing sDatamap\n";
 		throw(0);
@@ -200,6 +206,7 @@ bool dataMapOther::AddEdgeOriginal(int u, int v, float x) {
 		if (gtype=='b') p = new BinomialPairStats;
 		else if (gtype=='p') p = new PoissonPairStats;
 		else if (gtype=='w') p = new WPairStats;
+		else if (gtype=='d') p = new DcorrPairStats;
 		else {std::cout << "bad graph type\n";}
 		temp_outIt->second[v] = p;
 		temp_inIt = temp_outIt->second.find(v);
@@ -226,6 +233,7 @@ bool dataMapOther::AddEdgeSoFar(int u, int v, float x) {
 		if (gtype=='b') p = new BinomialPairStats;
 		else if (gtype=='p') p = new PoissonPairStats;
 		else if (gtype=='w') p = new WPairStats;
+		else if (gtype=='d') p = new DcorrPairStats;
 		else {std::cout << "bad graph type\n";}
 		temp_outIt->second[v] = p;
 		temp_inIt = temp_outIt->second.find(v);
@@ -345,6 +353,7 @@ void dataMapOther::initialize(graphData& D, graphData& Doriginal, graphData& Dso
 	if (gtype=='b') MyNullPairStat = new BinomialPairStats;
 	else if (gtype=='p') MyNullPairStat = new PoissonPairStats;
 	else if (gtype=='w') MyNullPairStat = new WPairStats;
+	else if (gtype=='d') MyNullPairStat = new DcorrPairStats;
 	else {std::cout << "bad graph type\n";}
 
 	int u, v;

@@ -93,6 +93,9 @@ void linkPredictorOther::attach(Engine* e) {
 		} else if (D[d].gtype=='p') {
 			oriP = new PoissonParam;
 			sofP = new PoissonParam;
+		} else if (D[d].gtype=='d') {
+			oriP = new DcorrParam;
+			sofP = new DcorrParam;
 		} else {
 			std::cerr << "graph type "<<D[d].gtype<<" not yet supported for link prediction (top Params).\n";
 			throw 1;
@@ -111,6 +114,8 @@ void linkPredictorOther::attach(Engine* e) {
 						topParams[n1][n2][d] = new BinomialParam;
 					} else if (D[d].gtype=='p') {
 						topParams[n1][n2][d] = new PoissonParam;
+					} else if (D[d].gtype=='d') {
+						topParams[n1][n2][d] = new DcorrParam;
 					} else {
 						std::cerr << "graph type "<<D[d].gtype<<" not yet supported for link prediction (top Params).\n";
 						throw 1;
