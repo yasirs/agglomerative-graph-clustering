@@ -58,7 +58,7 @@ void dataMap::initVert(unsigned int u) {
 		this->AddPair(u,u,new WPairStats);
 	} else if (gtype=='d') {
 		datvert.push_back(new DcorrSelfStats);
-		this->AddPair(u,u,new DcorrSelfStats);
+		this->AddPair(u,u,new DcorrPairStats);
 	} else {
 		std::cerr << "Error! "<<gtype<<" graph not recognised while initializing datamap\n";
 		throw(0);

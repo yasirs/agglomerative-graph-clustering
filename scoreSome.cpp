@@ -14,8 +14,6 @@
 #include <iostream>
 #include <string> 
 
-DcorrPairStats dp;
-DcorrSelfStats ds;
 
 bool fexists(const char* filename) {
 	std::ifstream ifile(filename);
@@ -46,7 +44,7 @@ int main(int argc, char* argv[]) {
 		gtype = argv[3][0];
 	} else {
 		gtype = 'b';
-		std::cout << "graph type = " << gtype;
+		std::cout << "graph type = " << gtype << '\n';
 	}
 	fnstem = argv[1];
 	//fnstem = "grassland";

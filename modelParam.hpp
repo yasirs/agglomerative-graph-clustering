@@ -203,7 +203,7 @@ class DcorrParam: public ModelParamBase {
 		virtual void init();
 };
 
-DcorrParam::calculate(ModelPairStatsBase* pab, ModelSelfStatsBase* sa, ModelSelfStatsBase* sb) {
+void DcorrParam::calculate(ModelPairStatsBase* pab, ModelSelfStatsBase* sa, ModelSelfStatsBase* sb) {
 	if (pab==NULL) this->nE = 0;
 	else this->nE = ((DcorrPairStats*) pab)->nE;
 	this->numT = ((DcorrSelfStats*) sa)->degree * ((DcorrSelfStats*) sb)->degree;
@@ -217,7 +217,7 @@ void DcorrParam::collapse(ModelParamBase* pa, ModelParamBase* pb) {
 
 void DcorrParam::cleanup() {
 	this->lambda = this->nE / this->numT;
-	if (std::isnan(lambda)) p=0;
+	if (std::isnan(lambda)) lambda=0;
 }
 
 void DcorrParam::init() {
@@ -239,6 +239,9 @@ bool DcorrParam::isZero() {
 }
 
 
+float DcorrParam::predict(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb) {
+	return ((DcorrSelfStats*) sa)->degree * this->lambda * ((DcorrSelfStats*) sb)->degree;
+}
 
 
 
