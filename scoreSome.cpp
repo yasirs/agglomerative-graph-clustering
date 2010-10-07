@@ -111,7 +111,7 @@ int main(int argc, char* argv[]) {
 		en->initializeScores();
 		std::cout << "running on the residual\n";
 		en->runML();
-		en->passFB();
+		//en->passFB();
 		lp.attach(en);
 		fnout = fnstem + ".scores" + sres;
 		std::cout << "done!\nPrinting out the " << residint <<"th heirarchical network\n";
