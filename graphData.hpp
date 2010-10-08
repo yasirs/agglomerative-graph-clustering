@@ -128,10 +128,10 @@ void graphData::writeSingle(const char* fn) {
 					file << uname <<'\t' << vname << '\t' << weight <<'\n';
 				}
 				else if (gtype=='p') {
-					file << u <<'\t' << v  << '\t' << weight << '\n';
+					file << uname <<'\t' << vname  << '\t' << weight << '\n';
 				}
 				else if (gtype=='d') {
-					file << u <<'\t' << v  << '\t' << weight << '\n';
+					file << uname <<'\t' << vname  << '\t' << weight << '\n';
 				}
 				else {
 					std::cerr << gtype << " type of graph not recognized in writing graphs\n";

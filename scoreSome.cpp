@@ -104,6 +104,7 @@ int main(int argc, char* argv[]) {
 		//Gnew = getResidual(G, lp);
 		if (residint>1) delete[] Gnew;
 		Gnew = residualDiff(Goriginal, GsoFar, 1);
+		fnout = fnstem + sres + ".residual"; Gnew->writeSingle(fnout.c_str());
 		std::cout << "got the residual\n";
 		std::cout << "Etot = "<< Gnew->Etot << "\n";
 		delete en;
@@ -122,7 +123,6 @@ int main(int argc, char* argv[]) {
 		if (doScores) 
 			Glabel->putSoFar(GsoFar, residint+1);
 		GsoFar->writeSingle(fnout.c_str());
-		fnout = fnstem + sres + ".residual"; Gnew->writeSingle(fnout.c_str());
 		residint++;
 	}
 	fnin = fnstem + ".edges";
