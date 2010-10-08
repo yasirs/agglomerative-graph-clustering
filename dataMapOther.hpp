@@ -28,6 +28,7 @@ class dataMapOther: public dataMap{
 		virtual void addMergedData(int a, int b, int c, std::set<int>& fNeighbours); // done
 		virtual void initVert(unsigned int u);
 		virtual ~dataMapOther();
+		virtual std::string DerivedType() { return std::string("dataMapOther"); }
 };
 
 

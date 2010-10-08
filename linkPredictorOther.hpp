@@ -77,6 +77,7 @@ void linkPredictorOther::attach(Engine* e) {
 	// assign new tree, w
 	tree = e->tree;
 	w = e->w;
+	assert(w->DeriveType().compare("dataMapOther")==0);
 	ww = (dataMapOther*) w;
 	dim = e->dim;
 	D = e->D;
@@ -151,14 +152,14 @@ void linkPredictorOther::updateSoFarLazy(graphData* GsoFar) {
 				ModelSelfStatsBase* su;
 				for (; (! G1.isDone()); ) {
 					u = G1.goNext();
-					su = w[d].oDatvert[u];
+					su = ww[d].oDatvert[u];
 					int v;
 					ModelSelfStatsBase* sv;
 					AllChildVertGenerator G2(tree, n2);
 					for (; (! G2.isDone()); ) {
 						v = G2.goNext();
 						if (u != v) {
-							sv = w[d].oDatvert[v];
+							sv = ww[d].oDatvert[v];
 							//oldpred = par->predict(su,sv);
 							wnew = par->updatedSoFar(su,sv,GsoFar[d].get_uv(u,v));
 							//wnew = 1 - (1 - GsoFar[d].get_uv(u,v))*(1 - wpredicted);
@@ -186,14 +187,14 @@ void linkPredictorOther::updateSoFarLazy(graphData* GsoFar) {
 				ModelSelfStatsBase* su;
 				for (; (! G1.isDone()); ) {
 					u = G1.goNext();
-					su = w[d].oDatvert[u];
+					su = ww[d].oDatvert[u];
 					int v;
 					ModelSelfStatsBase* sv;
 					AllChildVertGenerator G2(tree, n);
 					for (; (! G2.isDone()); ) {
 						v = G2.goNext();
 						if (u != v) {
-							sv = w[d].oDatvert[v];
+							sv = ww[d].oDatvert[v];
 							//wpredicted = par->predict(su,sv);
 							wnew = par->updatedSoFar(su,sv,GsoFar[d].get_uv(u,v));
 							//wnew = 1 - (1 - GsoFar[d].get_uv(u,v))*(1 - wpredicted);
@@ -215,14 +216,14 @@ void linkPredictorOther::updateSoFarLazy(graphData* GsoFar) {
 							ModelSelfStatsBase* su;
 							for (; (! G1.isDone()); ) {
 								u = G1.goNext();
-								su = w[d].oDatvert[u];
+								su = ww[d].oDatvert[u];
 								int v;
 								ModelSelfStatsBase* sv;
 								AllChildVertGenerator G2(tree, *cit2);
 								for (; (! G2.isDone()); ) {
 									v = G2.goNext();
 									if (u != v) {
-										sv = w[d].oDatvert[v];
+										sv = ww[d].oDatvert[v];
 										//wpredicted = par->predict(su,sv);
 										//wnew = 1 - (1 - GsoFar[d].get_uv(u,v))*(1 - wpredicted);
 										wnew = par->updatedSoFar(su,sv,GsoFar[d].get_uv(u,v));
