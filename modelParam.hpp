@@ -12,6 +12,7 @@ class ModelParamBase {
 		virtual float predict(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb)=0;
 		virtual float updatedSoFar(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb, float oldsofar)=0;
 		virtual void init()=0;
+		virtual std::string DerivedType()=0;
 };
 
 class BinomialParam: public ModelParamBase {
@@ -27,6 +28,7 @@ class BinomialParam: public ModelParamBase {
 		virtual float predict(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb);
 		virtual float updatedSoFar(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb, float oldsofar);
 		virtual void init();
+		virtual std::string DerivedType() { return std::string("BinomialParam"); }
 };
 
 void BinomialParam::init() {
@@ -82,6 +84,7 @@ class PoissonParam: public ModelParamBase {
 		virtual float predict(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb);
 		virtual float updatedSoFar(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb, float oldsofar);
 		virtual void init();
+		virtual std::string DerivedType() { return std::string("PoissonParam"); }
 };
 
 void PoissonParam::init() {
@@ -147,6 +150,7 @@ class WParam : public ModelParamBase {
 		virtual float predict(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb);
 		virtual float updatedSoFar(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb, float oldsofar);
 		virtual void init();
+		virtual std::string DerivedType() { return std::string("WParam"); }
 };
 
 void WParam::init() {
@@ -201,6 +205,7 @@ class DcorrParam: public ModelParamBase {
 		virtual float predict(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb);
 		virtual float updatedSoFar(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb, float oldsofar);
 		virtual void init();
+		virtual std::string DerivedType() { return std::string("DcorrParam"); }
 };
 
 void DcorrParam::calculate(ModelPairStatsBase* pab, ModelSelfStatsBase* sa, ModelSelfStatsBase* sb) {

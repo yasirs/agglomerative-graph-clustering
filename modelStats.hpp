@@ -42,6 +42,7 @@ class ModelSelfStatsBase {
 	public:
 		virtual ModelSelfStatsBase* Add2(ModelSelfStatsBase* b2,ModelPairStatsBase* pair)=0;
 		virtual void AddOutGoing(float x) {}
+		virtual std::string DerivedType()=0;
 };
 
 class BinomialSelfStats: public ModelSelfStatsBase {
@@ -51,6 +52,7 @@ class BinomialSelfStats: public ModelSelfStatsBase {
 			this->nV = 1;
 		}
 		virtual BinomialSelfStats* Add2(ModelSelfStatsBase* b2,ModelPairStatsBase* pair);
+		virtual std::string DerivedType() { return std::string("BinomialSelfStats"); }
 };
 
 class WSelfStats: public ModelSelfStatsBase {
@@ -63,6 +65,7 @@ class WSelfStats: public ModelSelfStatsBase {
 			this->degree = 0;
 			this->selfMissing = 0;
 		}
+		virtual std::string DerivedType() { return std::string("WSelfStats"); }
 };
 
 class DcorrSelfStats: public ModelSelfStatsBase {
@@ -77,6 +80,7 @@ class DcorrSelfStats: public ModelSelfStatsBase {
 		}
 		virtual DcorrSelfStats* Add2(ModelSelfStatsBase* b2,ModelPairStatsBase* pair);
 		virtual void AddOutGoing(float x);
+		virtual std::string DerivedType() { return std::string("DcorrSelfStats"); }
 };
 
 
@@ -88,6 +92,7 @@ class PoissonSelfStats: public ModelSelfStatsBase {
 			nV =1;
 		}
 		virtual PoissonSelfStats* Add2(ModelSelfStatsBase* b2,ModelPairStatsBase* pair);
+		virtual std::string DerivedType() { return std::string("PoissonSelfStats"); }
 };
 
 class ModelPairStatsBase {
@@ -100,6 +105,7 @@ class ModelPairStatsBase {
 		virtual float MLdeltascore(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb,ModelSelfStatsBase* sx, ModelPairStatsBase* pax, ModelPairStatsBase* pbx)=0;
 		virtual float FBcenterscore(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb, ModelPairStatsBase* aa, ModelPairStatsBase* bb)=0;
 		virtual float FBdeltascore(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb,ModelSelfStatsBase* sx, ModelPairStatsBase* pax, ModelPairStatsBase* pbx)=0;
+		virtual std::string DerivedType()=0;
 };
 
 class BinomialPairStats: public ModelPairStatsBase {
@@ -116,6 +122,7 @@ class BinomialPairStats: public ModelPairStatsBase {
 		virtual float MLdeltascore(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb,ModelSelfStatsBase* sx, ModelPairStatsBase* pax, ModelPairStatsBase* pbx);
 		virtual float FBcenterscore(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb, ModelPairStatsBase* aa, ModelPairStatsBase* bb);
 		virtual float FBdeltascore(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb,ModelSelfStatsBase* sx, ModelPairStatsBase* pax, ModelPairStatsBase* pbx);
+		virtual std::string DerivedType() { return std::string("BinomialPairStats"); }
 };
 
 class PoissonPairStats: public ModelPairStatsBase {
@@ -133,6 +140,7 @@ class PoissonPairStats: public ModelPairStatsBase {
 		virtual float MLdeltascore(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb,ModelSelfStatsBase* sx, ModelPairStatsBase* pax, ModelPairStatsBase* pbx);
 		virtual float FBcenterscore(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb, ModelPairStatsBase* aa, ModelPairStatsBase* bb);
 		virtual float FBdeltascore(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb,ModelSelfStatsBase* sx, ModelPairStatsBase* pax, ModelPairStatsBase* pbx);
+		virtual std::string DerivedType() { return std::string("PoissonPairStats"); }
 };
 
 class DcorrPairStats: public ModelPairStatsBase {
@@ -150,6 +158,7 @@ class DcorrPairStats: public ModelPairStatsBase {
 		virtual float MLdeltascore(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb,ModelSelfStatsBase* sx, ModelPairStatsBase* pax, ModelPairStatsBase* pbx);
 		virtual float FBcenterscore(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb, ModelPairStatsBase* aa, ModelPairStatsBase* bb);
 		virtual float FBdeltascore(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb,ModelSelfStatsBase* sx, ModelPairStatsBase* pax, ModelPairStatsBase* pbx);
+		virtual std::string DerivedType() { return std::string("DcorrPairStats"); }
 };
 
 
@@ -168,6 +177,7 @@ class WPairStats: public ModelPairStatsBase {
 		virtual float MLdeltascore(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb,ModelSelfStatsBase* sx, ModelPairStatsBase* pax, ModelPairStatsBase* pbx);
 		virtual float FBcenterscore(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb, ModelPairStatsBase* aa, ModelPairStatsBase* bb);
 		virtual float FBdeltascore(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb,ModelSelfStatsBase* sx, ModelPairStatsBase* pax, ModelPairStatsBase* pbx);
+		virtual std::string DerivedType() { return std::string("WPairStats"); }
 };
 
 BinomialSelfStats* BinomialSelfStats::Add2(ModelSelfStatsBase* b2,ModelPairStatsBase* pair) {
