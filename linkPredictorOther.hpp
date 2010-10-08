@@ -151,14 +151,14 @@ void linkPredictorOther::updateSoFarLazy(graphData* GsoFar) {
 				ModelSelfStatsBase* su;
 				for (; (! G1.isDone()); ) {
 					u = G1.goNext();
-					su = w[d].datvert[u];
+					su = w[d].oDatvert[u];
 					int v;
 					ModelSelfStatsBase* sv;
 					AllChildVertGenerator G2(tree, n2);
 					for (; (! G2.isDone()); ) {
 						v = G2.goNext();
 						if (u != v) {
-							sv = w[d].datvert[v];
+							sv = w[d].oDatvert[v];
 							//oldpred = par->predict(su,sv);
 							wnew = par->updatedSoFar(su,sv,GsoFar[d].get_uv(u,v));
 							//wnew = 1 - (1 - GsoFar[d].get_uv(u,v))*(1 - wpredicted);
@@ -186,14 +186,14 @@ void linkPredictorOther::updateSoFarLazy(graphData* GsoFar) {
 				ModelSelfStatsBase* su;
 				for (; (! G1.isDone()); ) {
 					u = G1.goNext();
-					su = w[d].datvert[u];
+					su = w[d].oDatvert[u];
 					int v;
 					ModelSelfStatsBase* sv;
 					AllChildVertGenerator G2(tree, n);
 					for (; (! G2.isDone()); ) {
 						v = G2.goNext();
 						if (u != v) {
-							sv = w[d].datvert[v];
+							sv = w[d].oDatvert[v];
 							//wpredicted = par->predict(su,sv);
 							wnew = par->updatedSoFar(su,sv,GsoFar[d].get_uv(u,v));
 							//wnew = 1 - (1 - GsoFar[d].get_uv(u,v))*(1 - wpredicted);
@@ -215,14 +215,14 @@ void linkPredictorOther::updateSoFarLazy(graphData* GsoFar) {
 							ModelSelfStatsBase* su;
 							for (; (! G1.isDone()); ) {
 								u = G1.goNext();
-								su = w[d].datvert[u];
+								su = w[d].oDatvert[u];
 								int v;
 								ModelSelfStatsBase* sv;
 								AllChildVertGenerator G2(tree, *cit2);
 								for (; (! G2.isDone()); ) {
 									v = G2.goNext();
 									if (u != v) {
-										sv = w[d].datvert[v];
+										sv = w[d].oDatvert[v];
 										//wpredicted = par->predict(su,sv);
 										//wnew = 1 - (1 - GsoFar[d].get_uv(u,v))*(1 - wpredicted);
 										wnew = par->updatedSoFar(su,sv,GsoFar[d].get_uv(u,v));
