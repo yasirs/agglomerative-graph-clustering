@@ -78,7 +78,7 @@ class Engine{
 		~Engine();
 		Engine(graphData* G, int d);
 		Engine(graphData* G, graphData* Goriginal, graphData* GsoFar, int d);
-		bool initializeScores();
+		bool initializeScoresML();
 		int runML();
 		int runFB();
 		void passFB();
@@ -576,7 +576,7 @@ int Engine::runML() {
 };
 
 
-bool Engine::initializeScores() {
+bool Engine::initializeScoresML() {
 	//std::tr1::unordered_set<int> neighbUnion;
 	//std::tr1::unordered_set<int>::iterator unsetit;
 	std::set<int> neighbUnion;

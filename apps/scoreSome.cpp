@@ -64,7 +64,7 @@ int main(int argc, char* argv[]) {
 	}
 	Goriginal[0].copyNoEdges(GsoFar[0]);
 	en = new Engine(Goriginal,Goriginal, GsoFar, 1);
-	en->initializeScores();
+	en->initializeScoresML();
 	
 	// let us write the competing scores
 	std::cout << "writing degree product\n";
@@ -109,7 +109,7 @@ int main(int argc, char* argv[]) {
 		std::cout << "Etot = "<< Gnew->Etot << "\n";
 		delete en;
 		en = new Engine(Gnew,Goriginal,GsoFar,1);
-		en->initializeScores();
+		en->initializeScoresML();
 		std::cout << "running on the residual\n";
 		en->runML();
 		//en->passFB();
