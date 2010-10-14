@@ -86,37 +86,10 @@ Node::~Node() {
 bool Node::writeThetaforMerged(int a, int b, dataMap* w, TreeClass* tree, graphData* D) {
 	for (int d=0;d<(tree->dim);d++) {
 		this->params[d]->calculate(w[d].get_uv(a,b),w[d].datvert[a],w[d].datvert[b]);
-		//wc = w[d].get_uv(a,a) + w[d].get_uv(b,b) + w[d].get_uv(a,b);
-		//assert(w[d].AddPair(this->nid,this->nid,wc));
-		//w[d].degrees[this->nid] = w[d].degrees[a] + w[d].degrees[b];
-		//w[d].selfMissing[this->nid] = w[d].selfMissing[a] + w[d].selfMissing[b] + (w[d].degrees[a] * w[d].degrees[b]) - w[d].get_uv(a,b);
-		//w[d].nV[this->nid] = w[d].nV[a] + w[d].nV[b];
-		//w[d].nV.push_back(w[d].nV[a] + w[d].nV[b]);
-		/*if (D[d].gtype=='w') {
-			wab = w[d].get_uv(a,b);
-			this->thNum[d] = wab;
-			this->thDen[d] = w[d].degrees[a] * w[d].degrees[b];
-		} else if (D[d].gtype=='b') {
-			wab = w[d].get_uv(a,b);
-			this->thNum[d] = wab;
-			this->thDen[d] = w[d].nV[a] * w[d].nV[b];
-		} else {
-			std::cerr << "graph type "<<D[d].gtype<<" not yet supported (during theta calculation).\n";
-			throw 1;
-		}*/
 		if (this->collapsed) {
 			this->params[d]->collapse(tree->nodeMap[a]->params[d],tree->nodeMap[b]->params[d]);
-			//this->thNum[d] += tree->nodeMap[a]->thNum[d] + tree->nodeMap[b]->thNum[d];
-			//this->thDen[d] += tree->nodeMap[a]->thDen[d] + tree->nodeMap[b]->thDen[d];
 		}
 		this->params[d]->cleanup();
-		/*x = this->thNum[d] / this->thDen[d];
-		if (std::isnan(x)) x = 0;
-		this->theta[d] = x;
-		//TODO:: delete the following, only for debugging
-		if (theta<0) {
-			std::cerr << "bad theta being written!\n";
-		}*/
 	}
 	return 1;
 }
