@@ -17,6 +17,11 @@
 
 class dataMap{
 	public:
+                virtual void dbgcheck() {
+                        std::cout << "Inside dataMap object!\n";
+                        std::cout << "datpair length = "<< datpair.size() << "\n";
+                }
+
 		std::tr1::unordered_map<int, std::tr1::unordered_map<int,ModelPairStatsBase*> > datpair;
 		//std::tr1::unordered_map<int, ModelSelfStatsBase*> datvert;
 		std::vector<ModelSelfStatsBase*> datvert;

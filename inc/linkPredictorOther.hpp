@@ -13,7 +13,7 @@ class linkPredictorOther: public linkPredictor {
 	public:
 		//std::map<int,std::map<int, float*> > topThetas;
 		//int dim;
-		dataMapOther* ww;
+		dataMapOther** ww;
 		TreeClassOther* ttree;
 		//graphData* D;
 		//bool attached;
@@ -61,54 +61,64 @@ void linkPredictorOther::updateSoFar(graphData* GsoFar) {
 void linkPredictorOther::attach(Engine* e) {
 	// delete old topParams, if any
 	int d;
-	std::map<int, std::map<int, ModelParamBase**> >::iterator outit;
-	std::map<int, ModelParamBase**>::iterator init;
-	for (outit = topParams.begin(); outit != topParams.end(); ++outit) {
-		for (init = (*outit).second.begin(); init != (*outit).second.end(); ++init) {
-			for (d=0;d<dim;d++) {
-				delete init->second[d];
+	ModelParamBase **tp;
+	if (attached) {
+		std::map<int, std::map<int, ModelParamBase**> >::iterator outit;
+		std::map<int, ModelParamBase**>::iterator init;
+		for (outit = topParams.begin(); outit != topParams.end(); ++outit) {
+			for (init = (*outit).second.begin(); init != (*outit).second.end(); ++init) {
+				for (d=0;d<dim;d++) {
+					delete init->second[d];
+				}
+				delete[] (*init).second;
 			}
-			delete[] (*init).second;
+			topParams[(*outit).first].clear();
 		}
-		topParams[(*outit).first].clear();
+		topParams.clear();
 	}
-	topParams.clear();
-	ModelParamBase *oriP, *sofP;
+	ModelParamBase **oriP, **sofP;
+		
 	// assign new tree, w
 	tree = e->tree;
 	w = e->w;
-	assert(w->DerivedType().compare("dataMapOther")==0);
-	ww = (dataMapOther*) w;
 	dim = e->dim;
+	assert(w[0]->DerivedType().compare("dataMapOther")==0);
+	ww = new dataMapOther*[dim];
+	for (d=0;d<dim;d++) { ww[d] = (dataMapOther*) w[d]; }
 	D = e->D;
-	// compute new topThetas
-	int n1, n2;
-	std::set<int>::iterator intit1, intit2, intit3;
+	
+	oriP = new ModelParamBase*[dim];
+	sofP = new ModelParamBase*[dim];
 	for (d=0;d<dim;d++) {
 		if (D[d].gtype=='w') {
-			oriP = new WParam;
-			sofP = new WParam;
+			oriP[d] = new WParam;
+			sofP[d] = new WParam;
 		} else if (D[d].gtype=='b') {
-			oriP = new BinomialParam;
-			sofP = new BinomialParam;
+			oriP[d] = new BinomialParam;
+			sofP[d] = new BinomialParam;
 		} else if (D[d].gtype=='p') {
-			oriP = new PoissonParam;
-			sofP = new PoissonParam;
+			oriP[d] = new PoissonParam;
+			sofP[d] = new PoissonParam;
 		} else if (D[d].gtype=='d') {
-			oriP = new DcorrParam;
-			sofP = new DcorrParam;
+			oriP[d] = new DcorrParam;
+			sofP[d] = new DcorrParam;
 		} else {
 			std::cerr << "graph type "<<D[d].gtype<<" not yet supported for link prediction (top Params).\n";
 			throw 1;
 		}
-		
-		for (intit1 = tree->topLevel.begin(); intit1 != tree->topLevel.end(); ++intit1) {
-			n1 = (*intit1);
-			topParams[n1] = std::map<int, ModelParamBase**>();
-			for (intit2 = tree->topLevel.begin(); intit2 != tree->topLevel.end(); ++intit2) {
-				n2 = (*intit2);
-				if (n1 != n2) {
-					topParams[n1][n2] = new ModelParamBase* [dim];
+	}
+	// compute new topThetas
+	int n1, n2;
+	std::set<int>::iterator intit1, intit2, intit3;
+	for (intit1 = tree->topLevel.begin(); intit1 != tree->topLevel.end(); ++intit1) {
+		n1 = (*intit1);
+		topParams[n1] = std::map<int, ModelParamBase**>();
+		for (intit2 = tree->topLevel.begin(); intit2 != tree->topLevel.end(); ++intit2) {
+			n2 = (*intit2);
+			if (n1 != n2) {
+				tp = new ModelParamBase*[dim];
+				topParams[n1][n2] = tp; 
+				for (d=0;d<dim;d++) {
 					if (D[d].gtype=='w') {
 						topParams[n1][n2][d] = new WParam;
 					} else if (D[d].gtype=='b') {
@@ -121,19 +131,22 @@ void linkPredictorOther::attach(Engine* e) {
 						std::cerr << "graph type "<<D[d].gtype<<" not yet supported for link prediction (top Params).\n";
 						throw 1;
 					}
-					oriP->calculate(ww[d].get_uvOriginal(n1,n2),ww[d].oDatvert[n1],ww[d].oDatvert[n2]);
-					oriP->cleanup();
-					sofP->calculate(ww[d].get_uvSoFar(n1,n2),ww[d].sDatvert[n1],ww[d].sDatvert[n2]);
-					sofP->cleanup();
-					topParams[n1][n2][d]->bestfromSoFar(oriP,sofP);
-					//topParams[n1][n2][d]->cleanup();
+					oriP[d]->calculate(ww[d]->get_uvOriginal(n1,n2),ww[d]->oDatvert[n1],ww[d]->oDatvert[n2]);
+					oriP[d]->cleanup();
+					sofP[d]->calculate(ww[d]->get_uvSoFar(n1,n2),ww[d]->sDatvert[n1],ww[d]->sDatvert[n2]);
+					sofP[d]->cleanup();
+					topParams[n1][n2][d]->bestfromSoFar(oriP[d],sofP[d]);
 				}
 			}
 		}
-		delete oriP;
-		delete sofP;
 	}
 	attached = 1;
+	for (d=0;d<dim;d++) {
+		delete oriP[d];
+		delete sofP[d];
+	}
+	delete[] sofP;
+	delete[] oriP;
 };
 
 void linkPredictorOther::updateSoFarLazy(graphData* GsoFar) {
@@ -152,14 +165,14 @@ void linkPredictorOther::updateSoFarLazy(graphData* GsoFar) {
 				ModelSelfStatsBase* su;
 				for (; (! G1.isDone()); ) {
 					u = G1.goNext();
-					su = ww[d].oDatvert[u];
+					su = ww[d]->oDatvert[u];
 					int v;
 					ModelSelfStatsBase* sv;
 					AllChildVertGenerator G2(tree, n2);
 					for (; (! G2.isDone()); ) {
 						v = G2.goNext();
 						if (u != v) {
-							sv = ww[d].oDatvert[v];
+							sv = ww[d]->oDatvert[v];
 							//oldpred = par->predict(su,sv);
 							wnew = par->updatedSoFar(su,sv,GsoFar[d].get_uv(u,v));
 							//wnew = 1 - (1 - GsoFar[d].get_uv(u,v))*(1 - wpredicted);
@@ -187,14 +200,14 @@ void linkPredictorOther::updateSoFarLazy(graphData* GsoFar) {
 				ModelSelfStatsBase* su;
 				for (; (! G1.isDone()); ) {
 					u = G1.goNext();
-					su = ww[d].oDatvert[u];
+					su = ww[d]->oDatvert[u];
 					int v;
 					ModelSelfStatsBase* sv;
 					AllChildVertGenerator G2(tree, n);
 					for (; (! G2.isDone()); ) {
 						v = G2.goNext();
 						if (u != v) {
-							sv = ww[d].oDatvert[v];
+							sv = ww[d]->oDatvert[v];
 							//wpredicted = par->predict(su,sv);
 							wnew = par->updatedSoFar(su,sv,GsoFar[d].get_uv(u,v));
 							//wnew = 1 - (1 - GsoFar[d].get_uv(u,v))*(1 - wpredicted);
@@ -216,14 +229,14 @@ void linkPredictorOther::updateSoFarLazy(graphData* GsoFar) {
 							ModelSelfStatsBase* su;
 							for (; (! G1.isDone()); ) {
 								u = G1.goNext();
-								su = ww[d].oDatvert[u];
+								su = ww[d]->oDatvert[u];
 								int v;
 								ModelSelfStatsBase* sv;
 								AllChildVertGenerator G2(tree, *cit2);
 								for (; (! G2.isDone()); ) {
 									v = G2.goNext();
 									if (u != v) {
-										sv = ww[d].oDatvert[v];
+										sv = ww[d]->oDatvert[v];
 										//wpredicted = par->predict(su,sv);
 										//wnew = 1 - (1 - GsoFar[d].get_uv(u,v))*(1 - wpredicted);
 										wnew = par->updatedSoFar(su,sv,GsoFar[d].get_uv(u,v));

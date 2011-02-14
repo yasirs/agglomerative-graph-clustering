@@ -61,7 +61,7 @@ class Engine{
 		graphData *D;
 		int dim;
 		int curLev;
-		dataMap* w;
+		dataMap** w;
 		scoremap sm;
 		int* NodeMembership;
 		TreeClass *tree;
@@ -98,16 +98,6 @@ class Engine{
 		void printCommonNeighbFile(const char* filename, int d, bool edges);
 };
 
-/*
-float Engine::debug_getscore(int d,int a,int b) {
-	float s = 0;
-	for(std::set<int>::iterator nit (tree->topLevel.begin()); nit != tree->topLevel.end(); ++nit) {
-		if (! ((*nit==a)|(*nit==b))  )
-		s = s + deltascore(d,a,b,*nit);
-	}
-	return s;
-}
-*/
 
 void Engine::printCommonNeighbFile(const char* fn, int d, bool edges) {
 	int u,v, c;
@@ -196,12 +186,13 @@ void Engine::printDegreeProdFile(const char* fn, int d, bool edges) {
 Engine::Engine(graphData* G, graphData* Goriginal, graphData* GsoFar, int d) {
 	D = G;
 	dim = d;
-	w = new dataMapOther[dim];
-	tree = new TreeClassOther(G,d);
+	w = new dataMap*[dim];
+	tree = new TreeClassOther(G,dim);
 	int x,y;
 	// initialize weights, degrees, selfMissing and first neighbors, and nV
-	for (d=0; d<dim; d++) {
-		( (dataMapOther*)  &w[d]   )->initialize(D[d], Goriginal[d], GsoFar[d], firstNeighbors);
+	for (int dd=0; dd<dim; dd++) {
+		w[dd] = new dataMapOther;
+		( (dataMapOther*)  w[dd]   )->initialize(D[dd], Goriginal[dd], GsoFar[dd], firstNeighbors);
 	}
 	std::set<int> emptySet;
 	// initialize 2nd neighbors
@@ -231,36 +222,15 @@ Engine::Engine(graphData* G, graphData* Goriginal, graphData* GsoFar, int d) {
 Engine::Engine(graphData* G, int d) {
 	D = G;
 	dim = d;
-	w = new dataMap[dim];
+	w = new dataMap*[dim];
 	tree = new TreeClass(G,d);
 	int x,y;
 	// initialize weights, degrees, selfMissing and first neighbors, and nV
 	for (d=0; d<dim; d++) {
-		w[d].initialize(D[d], firstNeighbors);
+		w[d] = new dataMap;
+		w[d]->initialize(D[d], firstNeighbors);
 	}
 	std::set<int> emptySet;
-	/*for (d=0;d<dim;d++) {
-		for (it1 = D[d].edgeList.begin(); it1 != D[d].edgeList.end(); ++it1) {
-			u = (*it1).first;
-			w[d].nV[u]=1;
-			if (firstNeighbors.find(u)==firstNeighbors.end()) firstNeighbors[u] = emptySet;
-			if (w[d].degrees.find(u)==w[d].degrees.end()) w[d].degrees[u]=0;
-			if (w[d].selfMissing.find(u)==w[d].selfMissing.end()) w[d].selfMissing[u]=0;
-			for (it2 = (*it1).second->begin(); it2 != (*it1).second->end(); ++it2) {
-				v = (*it2).first;
-				w[d].nV[v]=1;
-				w[d].AddPair(u,v,(*it2).second);
-				w[d].AddPair(v,u,(*it2).second);
-				if (w[d].degrees.find(v)==w[d].degrees.end()) w[d].degrees[v]=0;
-				if (w[d].selfMissing.find(v)==w[d].selfMissing.end()) w[d].selfMissing[v]=0;
-				w[d].degrees[u] += (*it2).second;
-				w[d].degrees[v] += (*it2).second;
-				if (firstNeighbors.find(v)==firstNeighbors.end()) firstNeighbors[v] = emptySet;
-				firstNeighbors[u].insert(v);
-				firstNeighbors[v].insert(u);
-			}
-		}
-	}*/
 	// initialize 2nd neighbors
 	std::map<int, Node*>::iterator itnode;
 	std::set<int>::iterator neighbit;
@@ -278,6 +248,9 @@ Engine::Engine(graphData* G, int d) {
 
 
 Engine::~Engine() {
+	for (int i=0; i<dim; i++) {
+		delete w[i];
+	}
 	delete[] w;
 	delete tree;
 };
@@ -285,26 +258,26 @@ Engine::~Engine() {
 
 float Engine::centerscoreFB(int d, int a, int b) {
 	assert(a!=b);
-	return this->w[d].FBcenterscore(a,b);
+	return this->w[d]->FBcenterscore(a,b);
 };
 
 
 float Engine::deltascoreFB(int d, int a, int b, int x) {
 	assert((a!=b)&&(a!=x)&&(b!=x));
-	return this->w[d].FBdeltascore(a,b,x);
+	return this->w[d]->FBdeltascore(a,b,x);
 };
 
 
 
 float Engine::centerscoreML(int d, int a, int b) {
 	assert(a!=b);
-	return this->w[d].MLcenterscore(a,b);
+	return this->w[d]->MLcenterscore(a,b);
 };
 
 
 float Engine::deltascoreML(int d, int a, int b, int x) {
 	assert((a!=b)&&(a!=x)&&(b!=x));
-	return this->w[d].MLdeltascore(a,b,x);
+	return this->w[d]->MLdeltascore(a,b,x);
 };
 
 
@@ -348,7 +321,7 @@ int Engine::runML() {
 		// compute d,w,n,m for c
 
 		for (d=0;d<dim;d++) {
-			w[d].addMergedData(a,b,c,firstNeighbors[c]);
+			w[d]->addMergedData(a,b,c,firstNeighbors[c]);
 		}
 
 		tree->nodeMap[c]->writeThetaforMerged(a,b,w,tree,D);
@@ -526,11 +499,6 @@ int Engine::runML() {
 			}
 		}
 
-		// delete a,b from weights (and degrees) in all dimensions
-		//for (d=0; d<dim; d++) {
-		//	assert(w[d].allErase(a,b, D[d].numV));
-		//}
-		// delete a,b from neighbors
 		for (intit = firstNeighbors[a].begin(); intit != firstNeighbors[a].end(); ++intit) {
 			x = *intit;
 			firstNeighbors[x].erase(a);
@@ -558,15 +526,19 @@ int Engine::runML() {
 		numJoins++;
 		this->mergeList.push_back(mergeRecord(a,b,c));
 		if (DEBUGMODE) {
-			std::cout << "joined "<<a<<" and "<<b<<" to form "<<c<<"\n";
+			std::cout << "joined ";
+			if (D->int2Name.find(a) == D->int2Name.end()) std::cout << a; else std::cout << D->int2Name[a];
+			std::cout  <<" and ";
+			if (D->int2Name.find(b) == D->int2Name.end()) std::cout << b; else std::cout << D->int2Name[b];
+			std::cout <<" to form "<< c <<", for score = "<< pscore.s.joinScore <<"\n";
 			tint = sm.has_u(a);
 			if (tint!=-1) {
-				std::cerr << "Error! deleted vertex "<<a<<" has score with "<<tint<<" !\n";
+				std::cerr << "Error! deleted vertex number "<< a <<" has score with "<<tint<<" !\n";
 				throw 1;
 			}
 			tint = sm.has_u(b);
 			if (tint!=-1) {
-				std::cerr << "Error! deleted vertex "<<b<<" has score with "<<tint<<" !\n";
+				std::cerr << "Error! deleted vertex number "<< b <<" has score with "<<tint<<" !\n";
 				throw 1;
 			
 			}
@@ -590,23 +562,6 @@ bool Engine::initializeScoresML() {
 	std::map<int, Node*>::iterator itnode;
 	std::set<int>::iterator neighbit;
 	std::set<int>::iterator intsetit;
-	/*for (i=0;i<D[0].numV;i++) { //TODO do the tree making inside the tree constructor
-		pn = new Node(i,-1,1);
-		pn->theta = new float[dim];
-		pn->thNum = new float[dim];
-		pn->thDen = new float[dim];
-		for (d=0;d<dim;d++) {
-			pn->theta[d] = 0;
-			pn->thDen[d] = 0;
-			pn->thNum[d] = 0;
-		}
-		tree->nodeMap[i] = pn;
-		tree->numNodes = i+1;
-		tree->topLevel.insert(i);
-		pn->vertexSet.insert(i);
-		pn->collapsed = 1;
-		pn->vertsComputed = 1;
-	}*/
 	// initialize scores
 	for (itnode = tree->nodeMap.begin(); itnode != tree->nodeMap.end(); ++itnode) {
 		x = (*itnode).second->nid;
@@ -708,6 +663,26 @@ void Engine::passFB() {
 		} else {
 			// break out of the loop
 			break;
+		}
+		if (DEBUGMODE) {
+			if (dsc>=0) {
+				std::cout << "passFB: joined ";
+				if (D->int2Name.find(a) == D->int2Name.end()) std::cout << a; else std::cout << D->int2Name[a];
+				std::cout  <<" and ";
+				if (D->int2Name.find(b) == D->int2Name.end()) std::cout << b; else std::cout << D->int2Name[b];
+				std::cout <<" to form "<< c <<", for score = "<< dsc <<"\n";
+				if (csc>=0) {
+					std::cout << "passFB: collapsed "<< c << ", for centerscore = " << csc <<"\n";
+				}
+			}
+			else {
+				std::cout << "passFB: did not join ";
+				if (D->int2Name.find(a) == D->int2Name.end()) std::cout << a; else std::cout << D->int2Name[a];
+				std::cout  <<" and ";
+				if (D->int2Name.find(b) == D->int2Name.end()) std::cout << b; else std::cout << D->int2Name[b];
+				std::cout <<" to form "<< c <<", for score = "<< dsc <<"\n";
+			
+			}
 		}
 	}
 					

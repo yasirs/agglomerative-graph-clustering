@@ -65,16 +65,17 @@ int main(int argc, char* argv[]) {
 	Goriginal[0].copyNoEdges(GsoFar[0]);
 	en = new Engine(Goriginal,Goriginal, GsoFar, 1);
 	en->initializeScoresML();
-	
-	// let us write the competing scores
-	std::cout << "writing degree product\n";
-	fnout = fnstem + ".dprod"; en->printDegreeProdFile(fnout.c_str(), 0, 0);
-	//std::cout << "writing hyper geom\n";
-	//fnout = fnstem + ".hyperg"; en->printHyperGeomFile(fnout.c_str(), 0, 0);
-	std::cout << "writing jaccard\n";
-	fnout = fnstem + ".jaccard"; en->printJaccardFile(fnout.c_str(), 0, 0);
-	std::cout << "writing comm neigh\n";
-	fnout = fnstem + ".cneighb"; en->printCommonNeighbFile(fnout.c_str(), 0, 0);
+	if (doScores) {
+		// let us write the competing scores
+		//std::cout << "writing degree product\n";
+		//fnout = fnstem + ".dprod"; en->printDegreeProdFile(fnout.c_str(), 0, 0);
+		//std::cout << "writing hyper geom\n";
+		//fnout = fnstem + ".hyperg"; en->printHyperGeomFile(fnout.c_str(), 0, 0);
+		//std::cout << "writing jaccard\n";
+		//fnout = fnstem + ".jaccard"; en->printJaccardFile(fnout.c_str(), 0, 0);
+		//std::cout << "writing comm neigh\n";
+		//fnout = fnstem + ".cneighb"; en->printCommonNeighbFile(fnout.c_str(), 0, 0);
+	}
 
 	// run the agglomerative algorithm
 	std::cout << "starting to run\n";
@@ -83,14 +84,14 @@ int main(int argc, char* argv[]) {
 	std::cout << "done running\n";
 	lp.attach(en); // attached the engine
 	std::cout << "Attached!\n";
-	fnout = fnstem + ".nodes";
+	//fnout = fnstem + ".nodes";
 	//en->tree->writeNodeTypes(fnout.c_str());
 	
-	fnout = fnstem + "0.clusters";
-	en->tree->writeCollapsedHierEdges(fnout.c_str());
+	//fnout = fnstem + "0.clusters";
+	//en->tree->writeCollapsedHierEdges(fnout.c_str());
 	lp.updateSoFarLazy(GsoFar);
-	fnout = fnstem + "0.soFar";
-	GsoFar->writeSingle(fnout.c_str());
+	//fnout = fnstem + "0.soFar";
+	//GsoFar->writeSingle(fnout.c_str());
 	if (doScores)
 		Glabel->putSoFar(GsoFar, 1);
 
@@ -104,7 +105,7 @@ int main(int argc, char* argv[]) {
 		//Gnew = getResidual(G, lp);
 		if (residint>1) delete[] Gnew;
 		Gnew = residualDiff(Goriginal, GsoFar, 1);
-		fnout = fnstem + sres + ".residual"; Gnew->writeSingle(fnout.c_str());
+		//fnout = fnstem + sres + ".residual"; Gnew->writeSingle(fnout.c_str());
 		std::cout << "got the residual\n";
 		std::cout << "Etot = "<< Gnew->Etot << "\n";
 		delete en;
@@ -114,15 +115,15 @@ int main(int argc, char* argv[]) {
 		en->runML();
 		en->passFB();
 		lp.attach(en);
-		fnout = fnstem + ".scores" + sres;
-		std::cout << "done!\nPrinting out the " << residint <<"th heirarchical network\n";
-		fnout = fnstem + sres + ".clusters";
-		en->tree->writeCollapsedHierEdges(fnout.c_str());
+		//fnout = fnstem + ".scores" + sres;
+		//std::cout << "done!\nPrinting out the " << residint <<"th heirarchical network\n";
+		//fnout = fnstem + sres + ".clusters";
+		//en->tree->writeCollapsedHierEdges(fnout.c_str());
 		lp.updateSoFarLazy(GsoFar);
-		fnout = fnstem + sres + ".soFar";
+		//fnout = fnstem + sres + ".soFar";
 		if (doScores) 
 			Glabel->putSoFar(GsoFar, residint+1);
-		GsoFar->writeSingle(fnout.c_str());
+		//GsoFar->writeSingle(fnout.c_str());
 		residint++;
 	}
 	fnin = fnstem + ".edges";

@@ -37,7 +37,7 @@ class Node{
 		Node(int nodeID, int parentID, bool isTerminal, int vertID, int dimension, graphData* D);
 		Node(int nodeID, int parentID, bool isTerminal, int dimension, graphData* D);
 		bool collapseNode(std::map<int,Node*> &nmap);
-		virtual bool writeThetaforMerged(int a, int b, dataMap* w, TreeClass* tree, graphData* D);
+		virtual bool writeThetaforMerged(int a, int b, dataMap** w, TreeClass* tree, graphData* D);
 		virtual void destroy(int di);
 		virtual ~Node();
 };
@@ -83,9 +83,9 @@ Node::~Node() {
 
 
 
-bool Node::writeThetaforMerged(int a, int b, dataMap* w, TreeClass* tree, graphData* D) {
+bool Node::writeThetaforMerged(int a, int b, dataMap** w, TreeClass* tree, graphData* D) {
 	for (int d=0;d<(tree->dim);d++) {
-		this->params[d]->calculate(w[d].get_uv(a,b),w[d].datvert[a],w[d].datvert[b]);
+		this->params[d]->calculate(w[d]->get_uv(a,b),w[d]->datvert[a],w[d]->datvert[b]);
 		if (this->collapsed) {
 			this->params[d]->collapse(tree->nodeMap[a]->params[d],tree->nodeMap[b]->params[d]);
 		}

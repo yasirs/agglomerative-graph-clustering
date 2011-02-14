@@ -12,11 +12,12 @@ class linkPredictor {
 	public:
 		std::map<int,std::map<int, ModelParamBase**> > topParams;
 		int dim;
-		dataMap* w;
+		dataMap** w;
 		TreeClass* tree;
 		graphData* D;
 		bool attached;
 		linkPredictor() {
+			dim = 0;
 			attached = 0;
 		}
 		virtual void attach(Engine* e);
@@ -181,19 +182,20 @@ void linkPredictor::addPredstoGraph(graphData* PD) {
 void linkPredictor::attach(Engine* e) {
 	// delete old topParams, if any
 	int d;
-	std::map<int, std::map<int, ModelParamBase**> >::iterator outit;
-	std::map<int, ModelParamBase**>::iterator init;
-	for (outit = topParams.begin(); outit != topParams.end(); ++outit) {
-		for (init = (*outit).second.begin(); init != (*outit).second.end(); ++init) {
-			for (d=0;d<dim;d++) {
-				delete init->second[d];
+	if (attached) {
+		std::map<int, std::map<int, ModelParamBase**> >::iterator outit;
+		std::map<int, ModelParamBase**>::iterator init;
+		for (outit = topParams.begin(); outit != topParams.end(); ++outit) {
+			for (init = (*outit).second.begin(); init != (*outit).second.end(); ++init) {
+				for (d=0;d<dim;d++) {
+					delete init->second[d];
+				}
+				delete[] (*init).second;
 			}
-			delete[] (*init).second;
+			topParams[(*outit).first].clear();
 		}
-		topParams[(*outit).first].clear();
+		topParams.clear();
 	}
-	topParams.clear();
-
 	// assign new tree, w
 	tree = e->tree;
 	w = e->w;
@@ -223,7 +225,7 @@ void linkPredictor::attach(Engine* e) {
 						throw 1;
 					}
 					
-					topParams[n1][n2][d]->calculate(w[d].get_uv(n1,n2),w[d].datvert[n1],w[d].datvert[n2]);
+					topParams[n1][n2][d]->calculate(w[d]->get_uv(n1,n2),w[d]->datvert[n1],w[d]->datvert[n2]);
 					topParams[n1][n2][d]->cleanup();
 				}
 			}
@@ -254,7 +256,7 @@ float linkPredictor::predictEdge(int u, int v, int d) {
 	} else {
 		param = topParams[ipair.first][ipair.second][d];
 	}
-	return param->predict(w[d].datvert[u],w[d].datvert[v]);
+	return param->predict(w[d]->datvert[u],w[d]->datvert[v]);
 };
 
 linkPredictor::~linkPredictor() {

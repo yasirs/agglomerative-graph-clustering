@@ -1,7 +1,8 @@
 PATHTOLIBS = /opt/local/lib
 MYGPP = /opt/local/bin/g++-mp-4.4
 NATIVEGPP = /usr/bin/g++-4.2
-OUTPATH = ~/temp
+# OUTPATH = ~/temp
+OUTPATH = ~/work/netregpaper/running
 
 default: scoreSome.cpp ../inc/nodetree.hpp ../inc/nodetreeOther.hpp ../inc/dataMap.hpp ../inc/dataMapOther.hpp \
 	../inc/mysetfuncs.hpp ../inc/mygenerators.hpp ../inc/linkPredictor.hpp ../inc/linkPredictorOther.hpp \

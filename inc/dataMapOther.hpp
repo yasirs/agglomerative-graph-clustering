@@ -6,6 +6,13 @@
 
 class dataMapOther: public dataMap{
 	public:
+		virtual void dbgcheck() {
+			std::cout << "Inside dataMapOther object!\n";
+			std::cout << "oDatpair length = " << oDatpair.size() << ", datpair length = "  << datpair.size() << "\n";
+		}
+		dataMapOther() { 
+			std::cout << "inside dataMapOther constructor!\n";
+		}
 		
 		std::tr1::unordered_map<int, std::tr1::unordered_map<int, ModelPairStatsBase*> > oDatpair;
 		std::vector<ModelSelfStatsBase*> oDatvert;
@@ -347,6 +354,7 @@ bool dataMapOther::allErase(int a, int b, int numV) {
 */
 
 void dataMapOther::initialize(graphData& D, graphData& Doriginal, graphData& DsoFar, std::map<int,std::set<int> >& fNeighbours) {
+	std::cout << "inside dataMapOther initialize\n";
 	assert(D.gtype==Doriginal.gtype);
 	assert(D.gtype==DsoFar.gtype);
 	this->gtype = D.gtype;
