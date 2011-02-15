@@ -190,8 +190,11 @@ void linkPredictorOther::updateSoFarLazy(graphData* GsoFar) {
 		int n;
 		for (; (! NodeGen.isDone()); ) {
 			n = NodeGen.goNext();
+			//NodeOther* pnode = (NodeOther*) tree->nodeMap[n];
 			Node* pnode = tree->nodeMap[n];
+			assert(pnode->isOther());
 			ModelParamBase* par = pnode->params[d];
+			//ModelParamBase* par = ((NodeOther*) pnode)->paramsOriginal[d];
 			if (pnode->collapsed) {
 				// need to go over the vertices
 				assert(pnode->vertsComputed);

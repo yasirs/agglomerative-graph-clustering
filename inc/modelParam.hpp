@@ -42,7 +42,8 @@ float BinomialParam::updatedSoFar(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb
 }
 
 void BinomialParam::bestfromSoFar(ModelParamBase* Ori, ModelParamBase* Sof) {
-	this->p = std::max(0.0f,(((BinomialParam*) Ori)->p - ((BinomialParam*) Sof)->p)/(1 - ((BinomialParam*) Sof)->p));
+	//this->p = std::max(0.0f,(((BinomialParam*) Ori)->p - ((BinomialParam*) Sof)->p)/(1 - ((BinomialParam*) Sof)->p));
+	this->p = 1.0f - (1.0f-((BinomialParam*) Ori)->p) * (1.0f - ((BinomialParam*) Sof)->p);
 }
 
 void BinomialParam::collapse(ModelParamBase* pa, ModelParamBase* pb) {

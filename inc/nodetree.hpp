@@ -40,6 +40,7 @@ class Node{
 		virtual bool writeThetaforMerged(int a, int b, dataMap** w, TreeClass* tree, graphData* D);
 		virtual void destroy(int di);
 		virtual ~Node();
+		virtual bool isOther() {return 0;}
 };
 
 class TreeClass{
