@@ -34,6 +34,8 @@ class linkPredictorOther: public linkPredictor {
 
 
 linkPredictorOther::~linkPredictorOther() {
+	if (attached)
+		delete[] ww;
 	// do nothing, the base class function does it for us
 }
 
@@ -63,6 +65,7 @@ void linkPredictorOther::attach(Engine* e) {
 	int d;
 	ModelParamBase **tp;
 	if (attached) {
+		delete[] ww;
 		std::map<int, std::map<int, ModelParamBase**> >::iterator outit;
 		std::map<int, ModelParamBase**>::iterator init;
 		for (outit = topParams.begin(); outit != topParams.end(); ++outit) {
@@ -190,11 +193,9 @@ void linkPredictorOther::updateSoFarLazy(graphData* GsoFar) {
 		int n;
 		for (; (! NodeGen.isDone()); ) {
 			n = NodeGen.goNext();
-			//NodeOther* pnode = (NodeOther*) tree->nodeMap[n];
 			Node* pnode = tree->nodeMap[n];
 			assert(pnode->isOther());
 			ModelParamBase* par = pnode->params[d];
-			//ModelParamBase* par = ((NodeOther*) pnode)->paramsOriginal[d];
 			if (pnode->collapsed) {
 				// need to go over the vertices
 				assert(pnode->vertsComputed);
@@ -211,9 +212,7 @@ void linkPredictorOther::updateSoFarLazy(graphData* GsoFar) {
 						v = G2.goNext();
 						if (u != v) {
 							sv = ww[d]->oDatvert[v];
-							//wpredicted = par->predict(su,sv);
 							wnew = par->updatedSoFar(su,sv,GsoFar[d].get_uv(u,v));
-							//wnew = 1 - (1 - GsoFar[d].get_uv(u,v))*(1 - wpredicted);
 							if (wnew>EPS) {
 								GsoFar[d].set_uv(u,v,wnew);
 							} else {
@@ -240,8 +239,6 @@ void linkPredictorOther::updateSoFarLazy(graphData* GsoFar) {
 									v = G2.goNext();
 									if (u != v) {
 										sv = ww[d]->oDatvert[v];
-										//wpredicted = par->predict(su,sv);
-										//wnew = 1 - (1 - GsoFar[d].get_uv(u,v))*(1 - wpredicted);
 										wnew = par->updatedSoFar(su,sv,GsoFar[d].get_uv(u,v));
 										if (wnew>EPS) {
 											GsoFar[d].set_uv(u,v,wnew);

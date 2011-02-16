@@ -43,7 +43,8 @@ float BinomialParam::updatedSoFar(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb
 
 void BinomialParam::bestfromSoFar(ModelParamBase* Ori, ModelParamBase* Sof) {
 	//this->p = std::max(0.0f,(((BinomialParam*) Ori)->p - ((BinomialParam*) Sof)->p)/(1 - ((BinomialParam*) Sof)->p));
-	this->p = 1.0f - (1.0f-((BinomialParam*) Ori)->p) * (1.0f - ((BinomialParam*) Sof)->p);
+	//this->p = 1.0f - (1.0f-((BinomialParam*) Ori)->p) * (1.0f - ((BinomialParam*) Sof)->p);
+	this->p = ((BinomialParam*) Ori)->p;
 }
 
 void BinomialParam::collapse(ModelParamBase* pa, ModelParamBase* pb) {
@@ -101,7 +102,8 @@ float PoissonParam::updatedSoFar(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb,
 
 void PoissonParam::bestfromSoFar(ModelParamBase* Ori, ModelParamBase* Sof) {
 	//this->p = std::max(0.0f,(((PoissonParam*) Ori)->p - ((PoissonParam*) Sof)->p)/(1 - ((PoissonParam*) Sof)->p));
-	this->lambda = std::max(0.0f,(((PoissonParam*) Ori)->lambda - ((PoissonParam*) Sof)->lambda));
+	this->lambda = ((PoissonParam*) Ori)->lambda;
+	//this->lambda = std::max(0.0f,(((PoissonParam*) Ori)->lambda - ((PoissonParam*) Sof)->lambda));
 }
 
 void PoissonParam::collapse(ModelParamBase* pa, ModelParamBase* pb) {
@@ -165,7 +167,8 @@ float WParam::updatedSoFar(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb, float
 }
 
 void WParam::bestfromSoFar(ModelParamBase* Ori, ModelParamBase* Sof) {
-	this->p = std::max(0.0f,(((WParam*) Ori)->p - ((WParam*) Sof)->p)/(1 - ((WParam*) Sof)->p));
+	//this->p = std::max(0.0f,(((WParam*) Ori)->p - ((WParam*) Sof)->p)/(1 - ((WParam*) Sof)->p));
+	this->p = ((WParam*) Ori)->p;
 }
 
 void WParam::collapse(ModelParamBase* pa, ModelParamBase* pb) {
@@ -237,7 +240,8 @@ float DcorrParam::updatedSoFar(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb, f
 }
 
 void DcorrParam::bestfromSoFar(ModelParamBase* Ori, ModelParamBase* Sof) {
-	this->lambda = std::max(0.0f, ((DcorrParam*) Ori)->lambda - ((DcorrParam*) Sof)->lambda);
+	//this->lambda = std::max(0.0f, ((DcorrParam*) Ori)->lambda - ((DcorrParam*) Sof)->lambda);
+	this->lambda = ((DcorrParam*) Ori)->lambda; 
 }
 
 bool DcorrParam::isZero() {
