@@ -63,8 +63,11 @@ int main(int argc, char* argv[]) {
 		Glabel = new labelData(& Goriginal[0], fnin.c_str(), numResids+1+3);
 	}
 	Goriginal[0].copyNoEdges(GsoFar[0]);
+	std::cout << "Initializing Engine, scores\n";
 	en = new Engine(Goriginal,Goriginal, GsoFar, 1);
 	en->initializeScoresML();
+	std::cout << "writing hyper geom\n";
+	fnout = fnstem + ".hyperg"; en->printHyperGeomFile(fnout.c_str(), 0, 0);
 	if (doScores) {
 		// let us write the competing scores
 		//std::cout << "writing degree product\n";
@@ -90,8 +93,8 @@ int main(int argc, char* argv[]) {
 	//fnout = fnstem + "0.clusters";
 	//en->tree->writeCollapsedHierEdges(fnout.c_str());
 	lp.updateSoFarLazy(GsoFar);
-	//fnout = fnstem + "0.soFar";
-	//GsoFar->writeSingle(fnout.c_str());
+	fnout = fnstem + "0.soFar";
+	GsoFar->writeSingle(fnout.c_str());
 	if (doScores)
 		Glabel->putSoFar(GsoFar, 1);
 
@@ -102,7 +105,6 @@ int main(int argc, char* argv[]) {
 		std::string sres;
 		dummy >> sres;
 		std::cout << "getting the residual graph\n";
-		//Gnew = getResidual(G, lp);
 		if (residint>1) delete[] Gnew;
 		Gnew = residualDiff(Goriginal, GsoFar, 1);
 		//fnout = fnstem + sres + ".residual"; Gnew->writeSingle(fnout.c_str());
@@ -120,10 +122,10 @@ int main(int argc, char* argv[]) {
 		//fnout = fnstem + sres + ".clusters";
 		//en->tree->writeCollapsedHierEdges(fnout.c_str());
 		lp.updateSoFarLazy(GsoFar);
-		//fnout = fnstem + sres + ".soFar";
+		fnout = fnstem + sres + ".soFar";
 		if (doScores) 
 			Glabel->putSoFar(GsoFar, residint+1);
-		//GsoFar->writeSingle(fnout.c_str());
+		GsoFar->writeSingle(fnout.c_str());
 		residint++;
 	}
 	fnin = fnstem + ".edges";

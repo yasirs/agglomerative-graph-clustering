@@ -21,6 +21,8 @@
 #include <cassert>
 #include <cmath>
 #include <algorithm>
+#include <gsl/gsl_cdf.h>
+
 // #include <boost/math/special_functions/gamma.hpp>
 
 struct FPairHash {
@@ -92,89 +94,86 @@ class Engine{
 		float centerscoreFB(int d, int a, int b);
 		std::set<int> getNeighborsVertex(int i);
 		std::set<int> getNeighborsNode(int i);
-		void printJaccardFile(const char* filename, int d, bool edges);
-		void printHyperGeomFile(const char* filename, int d, bool edges);
-		void printDegreeProdFile(const char* filename, int d, bool edges);
-		void printCommonNeighbFile(const char* filename, int d, bool edges);
+		void printJaccardFile(const char* filename, int d, bool skipEdges);
+		void printHyperGeomFile(const char* filename, int d, bool skipEdges);
+		void printDegreeProdFile(const char* filename, int d, bool skipEdges);
+		void printCommonNeighbFile(const char* filename, int d, bool skipEdges);
 };
 
 
-void Engine::printCommonNeighbFile(const char* fn, int d, bool edges) {
+void Engine::printCommonNeighbFile(const char* fn, int d, bool skipEdges) {
 	int u,v, c;
 	std::ofstream file;
 	file.open(fn,std::ios::out);
 	for (u=0; u<D[d].numV; u++) {
 		for (v=u+1; v<D[d].numV; v++) {
-			if ((edges)||(! D[d].has_uv(u,v))) {
-				c = num_common_keys( *(D[d].edgeList[u]), *(D[d].edgeList[v]) );
-				file << D[d].int2Name[u] << '\t' << D[d].int2Name[v] << '\t' << c << '\n';
-			}
+			if (skipEdges) if (D[d].has_uv(u,v)) continue;
+			c = num_common_keys( *(D[d].edgeList[u]), *(D[d].edgeList[v]) );
+			file << D[d].int2Name[u] << '\t' << D[d].int2Name[v] << '\t' << c << '\n';
 		}
 	}
 	file.close();
 };
 
 
-void Engine::printJaccardFile(const char* fn, int d, bool edges) {
+void Engine::printJaccardFile(const char* fn, int d, bool skipEdges) {
 	int u,v, aub, aib, ad;
 	std::ofstream file;
 	file.open(fn,std::ios::out);
 	for (u=0; u<D[d].numV; u++) {
 		ad = D[d].degree(u);
 		for (v=u+1; v<D[d].numV; v++) {
-			if ((edges)||(! D[d].has_uv(u,v))) {
-				aib = num_common_keys( *(D[d].edgeList[u]), *(D[d].edgeList[v]) );
-				aub = (ad * D[d].degree(v)) - aib;
-				file << D[d].int2Name[u] << '\t' << D[d].int2Name[v] << '\t' << (aib+0.0f)/aub << '\n';
-			}
+			if (skipEdges) if (D[d].has_uv(u,v)) continue;
+			aib = num_common_keys( *(D[d].edgeList[u]), *(D[d].edgeList[v]) );
+			aub = (ad * D[d].degree(v)) - aib;
+			file << D[d].int2Name[u] << '\t' << D[d].int2Name[v] << '\t' << (aib+0.0f)/aub << '\n';
 		}
 	}
 	file.close();
 };
 
-void Engine::printHyperGeomFile(const char* fn, int d, bool edges) {
-	int u, v, m, n, c, t, x, dmin;
-	float s,dummy;
+void Engine::printHyperGeomFile(const char* fn, int d, bool skipEdges) {
+	unsigned int u, v, m, n, c, t;
+	float s;
 	std::ofstream file;
 	file.open(fn,std::ios::out);
 	t = D[d].numV-2;
 	for (u=0; u<D[d].numV; u++) {
 		n = D[d].degree(u);
 		for (v=u+1; v<D[d].numV; v++) {
-			if ((edges)||(! D[d].has_uv(u,v))) {
-				m = D[d].degree(v);
-				dmin = std::min(m,n);
-				c = num_common_keys( *(D[d].edgeList[u]), *(D[d].edgeList[v]) );
-				s = 0;
-				for (x = c; x<= dmin; x++) {
-					dummy = 1.0;
-					dummy = dummy / gammaFunction(1+x);
-					dummy = dummy / gammaFunction(1+m-x);
-					dummy = dummy / gammaFunction(1+n-x);
-					dummy = dummy / gammaFunction(1+t-m-n+x);
-					s = s + dummy;
-					
-				}
-				s = s * gammaFunction(1+m) * gammaFunction(1+n) * gammaFunction(1+t-m) * gammaFunction(1+t-n) / gammaFunction(1+t);
-				s = -log10(s);
-				file << D[d].int2Name[u] << '\t' << D[d].int2Name[v] << '\t' << s << '\n';
+			if (skipEdges) if (D[d].has_uv(u,v)) continue;
+			m = D[d].degree(v);
+			//dmin = std::min(m,n);
+			c = num_common_keys( *(D[d].edgeList[u]), *(D[d].edgeList[v]) );
+			s = gsl_cdf_hypergeometric_Q(c, n, t-n, m);
+			/*s = 0;
+			for (x = c; x<= dmin; x++) {
+				dummy = 1.0;
+				dummy = dummy / gammaFunction(1+x);
+				dummy = dummy / gammaFunction(1+m-x);
+				dummy = dummy / gammaFunction(1+n-x);
+				dummy = dummy / gammaFunction(1+t-m-n+x);
+				s = s + dummy;
+				
 			}
+			s = s * gammaFunction(1+m) * gammaFunction(1+n) * gammaFunction(1+t-m) * gammaFunction(1+t-n) / gammaFunction(1+t);*/
+			s = -log10(s);
+			file << D[d].int2Name[u] << '\t' << D[d].int2Name[v] << '\t' << s << '\n';
 		}
 	}
 	file.close();
 };
 
-void Engine::printDegreeProdFile(const char* fn, int d, bool edges) {
+void Engine::printDegreeProdFile(const char* fn, int d, bool skipEdges) {
 	int u,v, ad, bd;
 	std::ofstream file;
 	file.open(fn,std::ios::out);
 	for (u=0; u<D[d].numV; u++) {
 		ad = D[d].degree(u);
 		for (v=u+1; v<D[d].numV; v++) {
-			if ((edges)||(! D[d].has_uv(u,v))) {
-				bd = D[d].degree(v);
-				file << D[d].int2Name[u] << '\t' << D[d].int2Name[v] << '\t' << ad*bd << '\n';
-			}
+			if (skipEdges) if (D[d].has_uv(u,v)) continue;
+			bd = D[d].degree(v);
+			file << D[d].int2Name[u] << '\t' << D[d].int2Name[v] << '\t' << ad*bd << '\n';
 		}
 	}
 	file.close();
