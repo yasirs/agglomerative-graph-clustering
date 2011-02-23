@@ -218,8 +218,10 @@ void linkPredictor::attach(Engine* e) {
 						topParams[n1][n2][d] = new BinomialParam;
 					} else if (D[d].gtype=='p') {
 						topParams[n1][n2][d] = new PoissonParam;
-					} else if (D[d].gtype=='b') {
+					} else if (D[d].gtype=='d') {
 						topParams[n1][n2][d] = new DcorrParam;
+					} else if (D[d].gtype=='g') {
+						topParams[n1][n2][d] = new GaussianParam;
 					} else {
 						std::cerr << "graph type "<<D[d].gtype<<" not yet supported for link prediction (top Params).\n";
 						throw 1;

@@ -135,6 +135,8 @@ Node::Node(int nodeID, int parentID, bool isTerminal, int dimension, graphData* 
 			this->params[d] = new WParam;
 		} else if (D[d].gtype == 'd') {
 			this->params[d] = new DcorrParam;
+		} else if (D[d].gtype == 'g') {
+			this->params[d] = new GaussianParam;
 		} else {
 			std::cerr << "dont know what to do with graph type "<<D[d].gtype<<" while making node\n";
 			throw(1);
@@ -165,6 +167,8 @@ Node::Node(int nodeID, int parentID, bool isTerminal, int vertID, int dimension,
 			this->params[d] = new WParam;
 		} else if (D[d].gtype =='d') {
 			this->params[d] = new DcorrParam;
+		} else if (D[d].gtype =='g') {
+			this->params[d] = new GaussianParam;
 		} else {
 			std::cerr << "dont know what to do with graph type "<<D[d].gtype<<" while making node\n";
 			throw(1);

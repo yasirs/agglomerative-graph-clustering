@@ -70,7 +70,66 @@ void BinomialParam::cleanup() {
 	p = numE/numT;
 	if (std::isnan(p)) p=0;
 }
-	
+
+
+class GaussianParam: public ModelParamBase {
+	public:
+		float mu;
+		float sumE;
+		float numT;
+		virtual void calculate(ModelPairStatsBase* pab, ModelSelfStatsBase* sa, ModelSelfStatsBase* sb);
+		virtual void collapse(ModelParamBase* pa, ModelParamBase* pb);
+		virtual void cleanup();
+		virtual void bestfromSoFar(ModelParamBase* Ori, ModelParamBase* Sof);
+		virtual bool isZero();
+		virtual float predict(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb);
+		virtual float updatedSoFar(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb, float oldsofar);
+		virtual void init();
+		virtual std::string DerivedType() { return std::string("GaussianParam"); }
+};
+
+void GaussianParam::init() {
+	mu = 0;
+	sumE = 0;
+	numT = 0;
+}
+
+float GaussianParam::updatedSoFar(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb, float oldsofar) {
+	return (oldsofar + this->predict(sa,sb));
+}
+
+void GaussianParam::bestfromSoFar(ModelParamBase* Ori, ModelParamBase* Sof) {
+	//this->p = std::max(0.0f,(((GaussianParam*) Ori)->p - ((GaussianParam*) Sof)->p)/(1 - ((GaussianParam*) Sof)->p));
+	//this->p = 1.0f - (1.0f-((GaussianParam*) Ori)->p) * (1.0f - ((GaussianParam*) Sof)->p);
+	this->mu = ((GaussianParam*) Ori)->mu;
+}
+
+void GaussianParam::collapse(ModelParamBase* pa, ModelParamBase* pb) {
+	this->sumE += ((GaussianParam*) pa)->sumE + ((GaussianParam*) pb)->sumE;
+	this->numT += ((GaussianParam*) pa)->numT + ((GaussianParam*) pb)->numT;
+}
+
+float GaussianParam::predict(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb) {
+	return ((GaussianSelfStats*) sa)->nV * this->mu * ((GaussianSelfStats*) sb)->nV;
+}
+
+bool GaussianParam::isZero() {
+	return (mu==0);
+}
+
+void GaussianParam::calculate(ModelPairStatsBase* pab, ModelSelfStatsBase* sa, ModelSelfStatsBase* sb) {
+	if (pab==NULL) this->sumE = 0;
+	else this->sumE = ((GaussianPairStats*) pab)->sumE;
+	this->numT = ((GaussianSelfStats*) sa)->nV * ((GaussianSelfStats*) sb)->nV;
+}
+
+void GaussianParam::cleanup() {
+	mu = sumE/numT;
+	if (std::isnan(mu)) mu=0;
+}
+
+
+
 
 class PoissonParam: public ModelParamBase {
 	public:

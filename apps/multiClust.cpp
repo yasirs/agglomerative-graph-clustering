@@ -79,13 +79,13 @@ int main(int argc, char* argv[]) {
 	if (doScores) {
 		Glabel = new labelData(& Goriginal[0], fnin.c_str(), numResids+1+3);
 	}
-	en = new Engine(Goriginal,Goriginal, GsoFar, nGraphs);
+	en = new Engine(Goriginal, Goriginal, GsoFar, nGraphs);
 	en->initializeScoresML();
 
 	// run the agglomerative algorithm
 	std::cout << "starting to run\n";
 	en->runML();
-	//en->passFB();
+	en->passFB();
 	std::cout << "done running\n";
 	lp.attach(en); // attached the engine
 	std::cout << "Attached!\n";
@@ -108,7 +108,6 @@ int main(int argc, char* argv[]) {
 		dummy >> sres;
 		std::cout << "getting the residual graph\n";
 		//Gnew = getResidual(G, lp);
-		if (residint>1) delete[] Gnew;
 		Gnew = residualDiff(Goriginal, GsoFar, nGraphs);
 		fnout = fnstem + sres + ".residual"; Gnew[nGraphs-1].writeSingle(fnout.c_str());
 		std::cout << "got the residual\n";
@@ -120,7 +119,7 @@ int main(int argc, char* argv[]) {
 		en->initializeScoresML();
 		std::cout << "running on the residual\n";
 		en->runML();
-		//en->passFB();
+		en->passFB();
 		lp.attach(en);
 		//fnout = fnstem + ".scores" + sres;
 		std::cout << "done!\nPrinting out the " << residint <<"th heirarchical network\n";
@@ -131,6 +130,7 @@ int main(int argc, char* argv[]) {
 		GsoFar[nGraphs-1].writeSingle(fnout.c_str());
 		if (doScores) 
 			Glabel->putSoFar(GsoFar, residint+1);
+		if (residint>1) delete[] Gnew;
 		residint++;
 	}
 	fnin = fnstem + ".edges";
@@ -142,7 +142,7 @@ int main(int argc, char* argv[]) {
 	std::cout << "done!\n";
 	delete[] Goriginal;
 	delete[] GsoFar;
-	delete[] Gnew;
+	//delete[] Gnew;
 	delete en;
 	//delete G;
 	return 1;

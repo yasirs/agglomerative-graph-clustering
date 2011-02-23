@@ -3,6 +3,9 @@
 #include <cstdlib>
 #include <cmath>
 
+#ifndef GAUSS_SIGMA
+#define GAUSS_SIGMA 1.0
+#endif
 
 #if (! NOGSL)
 #include "gsl/gsl_sf.h"
@@ -53,6 +56,16 @@ class BinomialSelfStats: public ModelSelfStatsBase {
 		}
 		virtual BinomialSelfStats* Add2(ModelSelfStatsBase* b2,ModelPairStatsBase* pair);
 		virtual std::string DerivedType() { return std::string("BinomialSelfStats"); }
+};
+
+class GaussianSelfStats: public ModelSelfStatsBase {
+	public:
+		float nV;
+		GaussianSelfStats() {
+			this->nV = 1;
+		}
+		virtual GaussianSelfStats* Add2(ModelSelfStatsBase* b2,ModelPairStatsBase* pair);
+		virtual std::string DerivedType() { return std::string("GaussianSelfStats"); }
 };
 
 class WSelfStats: public ModelSelfStatsBase {
@@ -125,6 +138,24 @@ class BinomialPairStats: public ModelPairStatsBase {
 		virtual std::string DerivedType() { return std::string("BinomialPairStats"); }
 };
 
+class GaussianPairStats: public ModelPairStatsBase {
+	public:
+		float sumE, sumEsquare;
+		GaussianPairStats() {
+			this->sumE = 0;
+			this->sumEsquare = 0;
+		}
+		virtual float simple() { return sumE; }
+		virtual GaussianPairStats* Add3(ModelPairStatsBase* b2, ModelPairStatsBase* b3);
+		virtual GaussianPairStats* Add2(ModelPairStatsBase* b2);
+		virtual void AddEdge(float x);
+		virtual float MLcenterscore(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb, ModelPairStatsBase* aa, ModelPairStatsBase* bb);
+		virtual float MLdeltascore(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb,ModelSelfStatsBase* sx, ModelPairStatsBase* pax, ModelPairStatsBase* pbx);
+		virtual float FBcenterscore(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb, ModelPairStatsBase* aa, ModelPairStatsBase* bb);
+		virtual float FBdeltascore(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb,ModelSelfStatsBase* sx, ModelPairStatsBase* pax, ModelPairStatsBase* pbx);
+		virtual std::string DerivedType() { return std::string("GaussianPairStats"); }
+};
+
 class PoissonPairStats: public ModelPairStatsBase {
 	public:
 		float sumE;
@@ -183,6 +214,12 @@ class WPairStats: public ModelPairStatsBase {
 BinomialSelfStats* BinomialSelfStats::Add2(ModelSelfStatsBase* b2,ModelPairStatsBase* pair) {
 	BinomialSelfStats* p = new BinomialSelfStats;
 	p->nV = this->nV + ((BinomialSelfStats*) b2)->nV;
+	return p;
+}
+
+GaussianSelfStats* GaussianSelfStats::Add2(ModelSelfStatsBase* b2,ModelPairStatsBase* pair) {
+	GaussianSelfStats* p = new GaussianSelfStats;
+	p->nV = this->nV + ((GaussianSelfStats*) b2)->nV;
 	return p;
 }
 
@@ -323,8 +360,128 @@ BinomialPairStats* BinomialPairStats::Add2(ModelPairStatsBase* b2) {
 
 BinomialPairStats* BinomialPairStats::Add3(ModelPairStatsBase* b2, ModelPairStatsBase* b3) {
 	BinomialPairStats* p = new BinomialPairStats;
+	p->nE = this->nE;
 	if (b2 != NULL) p->nE += ((BinomialPairStats*) b2)->nE;
 	if (b3 != NULL) p->nE += ((BinomialPairStats*) b3)->nE;
+	return p;
+}
+
+
+float GaussianPairStats::FBcenterscore(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb, ModelPairStatsBase* aa, ModelPairStatsBase* bb) {
+	float Tab, Taa, Tbb, Eab, Eaa, Ebb, Eab2, Eaa2, Ebb2, ans;
+	Eab = this->sumE; Eab2 = this->sumEsquare;
+	if (aa==NULL) { Eaa = 0; Eaa2 = 0; }
+	else { Eaa = ((GaussianPairStats* )aa)->sumE; Eaa2 = ((GaussianPairStats* )aa)->sumEsquare; }
+
+	if (bb==NULL) { Ebb = 0; Ebb2 = 0; }
+	else { Ebb = ((GaussianPairStats* )bb)->sumE; Ebb2 = ((GaussianPairStats* )bb)->sumEsquare; }
+
+	Tab = ((GaussianSelfStats*) sa)->nV * ((GaussianSelfStats*) sb)->nV - Eab;
+	Taa = ((GaussianSelfStats*) sa)->nV * (((GaussianSelfStats*) sa)->nV - 1)/2.0f;
+	Tbb = ((GaussianSelfStats*) sb)->nV * (((GaussianSelfStats*) sb)->nV - 1)/2.0f;
+
+	float Etot = Eaa+Ebb+Eab;
+	float Etot2 = Eaa2+Ebb2+Eab2;
+	float Ttot = Taa+Tbb+Tab;
+
+	ans = -0.5*log(2*M_PI*GAUSS_SIGMA/Ttot) - 0.5/(GAUSS_SIGMA)*(Etot2 - (Etot*Etot)/Ttot) 
+		+0.5*log(2*M_PI*GAUSS_SIGMA/Taa) + 0.5/(GAUSS_SIGMA)*(Eaa2 - (Eaa*Eaa)/Taa)
+		+0.5*log(2*M_PI*GAUSS_SIGMA/Tab) + 0.5/(GAUSS_SIGMA)*(Eab2 - (Eab*Eab)/Tab)
+		+0.5*log(2*M_PI*GAUSS_SIGMA/Tbb) + 0.5/(GAUSS_SIGMA)*(Ebb2 - (Ebb*Ebb)/Tbb);
+	return ans;
+}
+
+float GaussianPairStats::MLcenterscore(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb, ModelPairStatsBase* aa, ModelPairStatsBase* bb) { //need to fix
+	float Tab, Taa, Tbb, Eab, Eaa, Ebb, Eab2, Eaa2, Ebb2, ans;
+	Eab = this->sumE; Eab2 = this->sumEsquare;
+	if (aa==NULL) { Eaa = 0; Eaa2 = 0; }
+	else { Eaa = ((GaussianPairStats* )aa)->sumE; Eaa2 = ((GaussianPairStats* )aa)->sumEsquare; }
+
+	if (bb==NULL) { Ebb = 0; Ebb2 = 0; }
+	else { Ebb = ((GaussianPairStats* )bb)->sumE; Ebb2 = ((GaussianPairStats* )bb)->sumEsquare; }
+
+	Tab = ((GaussianSelfStats*) sa)->nV * ((GaussianSelfStats*) sb)->nV - Eab;
+	Taa = ((GaussianSelfStats*) sa)->nV * (((GaussianSelfStats*) sa)->nV - 1)/2.0f;
+	Tbb = ((GaussianSelfStats*) sb)->nV * (((GaussianSelfStats*) sb)->nV - 1)/2.0f;
+
+
+	float Etot = Eaa+Ebb+Eab;
+	float Etot2 = Eaa2+Ebb2+Eab2;
+	float Ttot = Taa+Tbb+Tab;
+	ans = - 0.5/(GAUSS_SIGMA)*(Etot2 - (Etot*Etot)/Ttot) 
+		+ 0.5/(GAUSS_SIGMA)*(Eaa2 - (Eaa*Eaa)/Taa)
+		+ 0.5/(GAUSS_SIGMA)*(Eab2 - (Eab*Eab)/Tab)
+		+ 0.5/(GAUSS_SIGMA)*(Ebb2 - (Ebb*Ebb)/Tbb);
+	return ans;
+}
+
+
+float GaussianPairStats::MLdeltascore(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb,ModelSelfStatsBase* sx, ModelPairStatsBase* pax, ModelPairStatsBase* pbx) {
+	float Eax, Ebx, Tax, Tbx, ans, da, db, dx, Eax2, Ebx2;
+	if (pax==NULL) { Eax = 0; Eax2 = 0; }
+	else { Eax = ((GaussianPairStats*) pax)->sumE;  ((GaussianPairStats*) pax)->sumEsquare; }
+
+	if (pbx==NULL) { Ebx = 0; Ebx2 = 0; }
+	else { Ebx = ((GaussianPairStats*) pbx)->sumE;  ((GaussianPairStats*) pbx)->sumEsquare; }
+
+	da = ((GaussianSelfStats*) sa)->nV;
+	db = ((GaussianSelfStats*) sb)->nV;
+	dx = ((GaussianSelfStats*) sx)->nV;
+	Tax = da * dx;
+	Tbx = db * dx;
+	float Etot = Eax+Ebx;
+	float Etot2 = Eax2+Ebx2;
+	float Ttot = Tax+Tbx;
+	ans = - 0.5/(GAUSS_SIGMA)*(Etot2 - (Etot*Etot)/Ttot) 
+		+ 0.5/(GAUSS_SIGMA)*(Eax2 - (Eax*Eax)/Tax)
+		+ 0.5/(GAUSS_SIGMA)*(Ebx2 - (Ebx*Ebx)/Tbx);
+	return ans;
+}
+
+
+float GaussianPairStats::FBdeltascore(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb,ModelSelfStatsBase* sx, ModelPairStatsBase* pax, ModelPairStatsBase* pbx) {
+	float Eax, Ebx, Tax, Tbx, ans, da, db, dx, Eax2, Ebx2;
+	if (pax==NULL) { Eax = 0; Eax2 = 0; }
+	else { Eax = ((GaussianPairStats*) pax)->sumE;  ((GaussianPairStats*) pax)->sumEsquare; }
+
+	if (pbx==NULL) { Ebx = 0; Ebx2 = 0; }
+	else { Ebx = ((GaussianPairStats*) pbx)->sumE;  ((GaussianPairStats*) pbx)->sumEsquare; }
+
+	da = ((GaussianSelfStats*) sa)->nV;
+	db = ((GaussianSelfStats*) sb)->nV;
+	dx = ((GaussianSelfStats*) sx)->nV;
+	Tax = da * dx;
+	Tbx = db * dx;
+	float Etot = Eax+Ebx;
+	float Etot2 = Eax2+Ebx2;
+	float Ttot = Tax+Tbx;
+	ans = -0.5*log(2*M_PI*GAUSS_SIGMA/Ttot) - 0.5/(GAUSS_SIGMA)*(Etot2 - (Etot*Etot)/Ttot) 
+		+0.5*log(2*M_PI*GAUSS_SIGMA/Tax) + 0.5/(GAUSS_SIGMA)*(Eax2 - (Eax*Eax)/Tax)
+		+0.5*log(2*M_PI*GAUSS_SIGMA/Tbx) + 0.5/(GAUSS_SIGMA)*(Ebx2 - (Ebx*Ebx)/Tbx);
+	return ans;
+}
+
+void GaussianPairStats::AddEdge(float x) {
+	this->sumE += x;
+	this->sumEsquare += x*x;
+}
+
+
+GaussianPairStats* GaussianPairStats::Add2(ModelPairStatsBase* b2) {
+	GaussianPairStats* p = new GaussianPairStats;
+	p->sumE = this->sumE;
+	p->sumEsquare = this->sumEsquare;
+	if (b2 != NULL) { p->sumE += ((GaussianPairStats*) b2)->sumE;  p->sumEsquare += ((GaussianPairStats*) b2)->sumEsquare; }
+	return p;
+}
+
+
+GaussianPairStats* GaussianPairStats::Add3(ModelPairStatsBase* b2, ModelPairStatsBase* b3) {
+	GaussianPairStats* p = new GaussianPairStats;
+	p->sumE = this->sumE;
+	p->sumEsquare = this->sumEsquare;
+	if (b2 != NULL) { p->sumE += ((GaussianPairStats*) b2)->sumE;  p->sumEsquare += ((GaussianPairStats*) b2)->sumEsquare; }
+	if (b3 != NULL) { p->sumE += ((GaussianPairStats*) b3)->sumE;  p->sumEsquare += ((GaussianPairStats*) b3)->sumEsquare; }
 	return p;
 }
 

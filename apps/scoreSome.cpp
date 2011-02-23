@@ -90,10 +90,10 @@ int main(int argc, char* argv[]) {
 	//fnout = fnstem + ".nodes";
 	//en->tree->writeNodeTypes(fnout.c_str());
 	
-	//fnout = fnstem + "0.clusters";
-	//en->tree->writeCollapsedHierEdges(fnout.c_str());
+	fnout = fnstem + "0.clusters";
+	en->tree->writeCollapsedHierEdges(fnout.c_str());
 	lp.updateSoFarLazy(GsoFar);
-	fnout = fnstem + "0.soFar";
+	fnout = fnstem + ".0soFar";
 	GsoFar->writeSingle(fnout.c_str());
 	if (doScores)
 		Glabel->putSoFar(GsoFar, 1);
@@ -105,7 +105,6 @@ int main(int argc, char* argv[]) {
 		std::string sres;
 		dummy >> sres;
 		std::cout << "getting the residual graph\n";
-		if (residint>1) delete[] Gnew;
 		Gnew = residualDiff(Goriginal, GsoFar, 1);
 		//fnout = fnstem + sres + ".residual"; Gnew->writeSingle(fnout.c_str());
 		std::cout << "got the residual\n";
@@ -119,13 +118,14 @@ int main(int argc, char* argv[]) {
 		lp.attach(en);
 		//fnout = fnstem + ".scores" + sres;
 		//std::cout << "done!\nPrinting out the " << residint <<"th heirarchical network\n";
-		//fnout = fnstem + sres + ".clusters";
-		//en->tree->writeCollapsedHierEdges(fnout.c_str());
+		fnout = fnstem + sres + ".clusters";
+		en->tree->writeCollapsedHierEdges(fnout.c_str());
 		lp.updateSoFarLazy(GsoFar);
-		fnout = fnstem + sres + ".soFar";
+		fnout = fnstem +  "." + sres + "soFar";
 		if (doScores) 
 			Glabel->putSoFar(GsoFar, residint+1);
 		GsoFar->writeSingle(fnout.c_str());
+		if (residint>1) delete[] Gnew;
 		residint++;
 	}
 	fnin = fnstem + ".edges";

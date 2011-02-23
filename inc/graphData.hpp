@@ -95,6 +95,9 @@ void graphData::writeSingle_noname(const char* fn) {
 				else if (gtype=='d') {
 					file << u <<'\t' << v  << '\t' << weight << '\n';
 				}
+				else if (gtype=='g') {
+					file << u <<'\t' << v  << '\t' << weight << '\n';
+				}
 				else {
 					std::cerr << gtype << " type of graph not recognized in writing graphs\n";
 					throw 1;
@@ -134,6 +137,9 @@ void graphData::writeSingle(const char* fn) {
 				else if (gtype=='d') {
 					file << uname <<'\t' << vname  << '\t' << weight << '\n';
 				}
+				else if (gtype=='g') {
+					file << uname <<'\t' << vname  << '\t' << weight << '\n';
+				}
 				else {
 					std::cerr << gtype << " type of graph not recognized in writing graphs\n";
 					throw 1;
@@ -168,6 +174,9 @@ void graphData::writeBoth(const char* fn) {
 				file << int2Name[u] <<'\t' << int2Name[v] << '\t' << weight << '\n';
 			}
 			else if (gtype=='d') {
+				file << int2Name[u] <<'\t' << int2Name[v] << '\t' << weight << '\n';
+			}
+			else if (gtype=='g') {
 				file << int2Name[u] <<'\t' << int2Name[v] << '\t' << weight << '\n';
 			}
 			else {
