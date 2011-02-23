@@ -8,6 +8,7 @@
 #include <sstream>
 #include <iostream>
 #include <tr1/unordered_map>
+#include <boost/lexical_cast.hpp>
 
 void my_Tokenize(const std::string& str,std::vector<std::string>& tokens,const std::string& delimiter);
 
@@ -29,16 +30,17 @@ class graphData{
 		std::map<int, std::string> int2Name;
 		std::map<std::string, int> name2Int;
 		std::map<int, destList*> edgeList;
+		std::map<int, int> typeList;
 		float get_uv(int u, int v);
 		void set_uv(int u, int v, float w);
 		bool has_uv(int u, int v);
 		bool delete_uv(int u, int v);
 		int Add_uv(int u, int v, float w); 
 		bool readBinaryBasedOnOld(graphData* Gorginal, const char* filename);
-		bool readGeneralBasedOnOld(graphData* Gorginal, const char* filename, int nsoFar);
+		bool readGeneralBasedOnOld(graphData* Gorginal, const char* filename, int nsoFar, const char* sep =" \t");
 		bool readWeighted(const char* filename);
 		bool readBinary(const char* filename);
-		bool readGeneral(const char* filename); //something wrong here, doesnt work
+		bool readGeneral(const char* filename, const char* sep=" \t"); //something wrong here, doesnt work??
 		void writeBoth(const char* filename);
 		void writeSingle(const char* filename);
 		void writeSingle_noname(const char* filename);
@@ -212,9 +214,135 @@ float graphData::get_uv(int u, int v) {
 	return 0;
 };
 
+bool graphData::readGeneralBasedOnOld(graphData* Goriginal, const char* filename, int nsoFar, const char* sep) {
+	// NOTE: remember to set the graph type
+	this->gtype = 'u'; // u for unknown, it is a placeholder
+	this->Etot = 0.0f;
+	std::string strline;
+	std::ifstream file;
+	std::vector<std::string> tok;
+	destList* pdl;
+	int u,v,ii;
+	float sum = 0;
+	float weight;
+	std::string Vt1, Vt2;
+	int Vg1, Vg2;
+	this->int2Name = Goriginal[0].int2Name;
+	this->name2Int = Goriginal[0].name2Int;
+	this->typeList = Goriginal[0].typeList;
+	this->numV = Goriginal->numV;
+	file.open(filename,std::ios::in);
+	if (! file.is_open()) return 0;
+	while (!file.eof()) {
+		getline(file,strline);
+		tok.clear();
+		my_Tokenize(strline,tok,sep);
+		if (tok.size()==2) {
+			Vt1 = tok[0];
+			Vt2 = tok[1];
+			weight = 1; Vg1=0; Vg2=0;
+		} else if (tok.size()==3) {
+			Vt1 = tok[0];
+			Vt2 = tok[1];
+			weight = boost::lexical_cast<float>(tok[2]);
+			Vg1 = 0; Vg2 = 0;
+		} else if (tok.size()==4) {
+			Vt1 = tok[0];
+			Vt2 = tok[2];
+			weight = 1;
+			Vg1 = boost::lexical_cast<int>(tok[1]);
+			Vg2 = boost::lexical_cast<int>(tok[3]);
+		} else if (tok.size()==5) {
+			Vt1 = tok[0];
+			Vt2 = tok[2];
+			weight = boost::lexical_cast<float>(tok[4]);
+			Vg1 = boost::lexical_cast<int>(tok[1]);
+			Vg2 = boost::lexical_cast<int>(tok[3]);
+		} else {
+			// nothing to do for this line
+			if (DEBUGMODE) std::cout << "Error: don't know what to do with a line of "<<tok.size()<<"tokens!\n";
+			continue;
+		}
+		
+		if (name2Int.find(Vt1)==name2Int.end()) {
+			u = name2Int.size();
+			name2Int[Vt1] = u;
+			int2Name[u] = Vt1;
+			for (ii=0;ii<nsoFar;ii++) {
+				Goriginal[ii].int2Name[u] = Vt1;
+				Goriginal[ii].name2Int[Vt1] = u;
+			}
+		} else {
+			u = name2Int[Vt1];
+		}
+		if (name2Int.find(Vt2)==name2Int.end()) {
+			v = name2Int.size();
+			name2Int[Vt2] = v;
+			int2Name[v] = Vt2;
+			for (ii=0;ii<nsoFar;ii++) {
+				Goriginal[ii].int2Name[v] = Vt2;
+				Goriginal[ii].name2Int[Vt2] = v;
+			}
+		} else {
+			v = name2Int[Vt2];
+		}
+		if (edgeList.find(u)==edgeList.end()) {
+			pdl = new destList;
+			edgeList[u] = pdl;
+		}
+		if (edgeList[u]->find(v)==edgeList[u]->end()) {
+			(*edgeList[u])[v] = weight;
+		} else {
+			(*edgeList[u])[v] += weight;
+		}
 
 
-bool graphData::readGeneralBasedOnOld(graphData* Goriginal, const char* filename, int nsoFar) {
+		if (edgeList.find(v)==edgeList.end()) {
+			pdl = new destList;
+			edgeList[v] = pdl;
+		}
+		if (edgeList[u]->find(v)==edgeList[u]->end()) {
+			(*edgeList[u])[v] = weight;
+		} else {
+			(*edgeList[u])[v] += weight;
+		}
+		if (typeList.find(u)==typeList.end()) {
+			typeList[u] = Vg1;
+			for (ii=0;ii<nsoFar;ii++) {
+				Goriginal[ii].typeList[u] = Vg1;
+			}
+		} else if ((typeList[u]==0)and(Vg1 != 0)) {
+			typeList[u] = Vg1;
+			for (ii=0;ii<nsoFar;ii++) {
+				Goriginal[ii].typeList[u] = Vg1;
+			}
+		}
+		if (typeList.find(v)==typeList.end()) {
+			typeList[v] = Vg2;
+			for (ii=0;ii<nsoFar;ii++) {
+				Goriginal[ii].typeList[v] = Vg2;
+			}
+		} else if ((typeList[v]==0)and(Vg2 != 0)) {
+			typeList[v] = Vg2;
+			for (ii=0;ii<nsoFar;ii++) {
+				Goriginal[ii].typeList[v] = Vg2;
+			}
+		}
+
+		sum += 2; // NOTE : this shouldn't really matter as the sum isn't used for
+				// weighted graphs
+		Etot += weight;
+	}
+	numV = name2Int.size();
+	aveP = sum/(numV * numV); // shouldn't matter because aveP is to be used for binary
+	return 1;
+};
+
+
+
+
+
+/*bool graphData::readGeneralBasedOnOld(graphData* Goriginal, const char* filename, int nsoFar) {
 	//gtype = 'b';
 	Etot = 0.0f;
 	std::string strline;
@@ -279,9 +407,13 @@ bool graphData::readGeneralBasedOnOld(graphData* Goriginal, const char* filename
 		}
 	}
 	numV = name2Int.size();
+	for (ii=0;ii<nsoFar;ii++) {
+		Goriginal[ii].numV = Goriginal[ii].name2Int.size();
+	}
+	
 	aveP = sum/(numV * numV); // shouldn't matter because aveP is to be used for binary
 	return 1;
-};
+};*/
 
 
 
@@ -345,7 +477,7 @@ bool graphData::readBinaryBasedOnOld(graphData* Goriginal, const char* filename)
 };
 
 
-bool graphData::readGeneral(const char* fn) {
+bool graphData::readGeneral(const char* fn, const char* sep) {
 	// NOTE: remember to set the graph type
 	this->gtype = 'u'; // u for unknown, it is a placeholder
 	this->Etot = 0.0f;
@@ -356,57 +488,90 @@ bool graphData::readGeneral(const char* fn) {
 	int u,v;
 	float sum = 0;
 	float weight;
-	std::string St1, St2;
+	std::string Vt1, Vt2;
+	int Vg1, Vg2;
 	//std::istringstream temp;
 	file.open(fn,std::ios::in);
 	if (! file.is_open()) return 0;
 	while (!file.eof()) {
 		getline(file,strline);
 		tok.clear();
-		my_Tokenize(strline,tok," \t");
-		if (tok.size()>1) {
-			if (name2Int.find(tok[0])==name2Int.end()) {
-				u = name2Int.size();
-				name2Int[tok[0]] = u;
-				int2Name[u] = tok[0];
-			} else {
-				u = name2Int[tok[0]];
-			}
-			if (name2Int.find(tok[1])==name2Int.end()) {
-				v = name2Int.size();
-				name2Int[tok[1]] = v;
-				int2Name[v] = tok[1];
-			} else {
-				v = name2Int[tok[1]];
-			}
-			if (tok.size()>2) {
-				std::istringstream(tok[2]) >> weight;
-			} else weight = 1;
-			if (edgeList.find(u)==edgeList.end()) {
-				pdl = new destList;
-				edgeList[u] = pdl;
-			}
-			if (edgeList[u]->find(v)==edgeList[u]->end()) {
-				(*edgeList[u])[v] = weight;
-			} else {
-				(*edgeList[u])[v] += weight;
-			}
-
-
-			if (edgeList.find(v)==edgeList.end()) {
-				pdl = new destList;
-				edgeList[v] = pdl;
-			}
-			if (edgeList[u]->find(v)==edgeList[u]->end()) {
-				(*edgeList[u])[v] = weight;
-			} else {
-				(*edgeList[u])[v] += weight;
-			}
-
-			sum += 2; // NOTE : this shouldn't really matter as the sum isn't used for
-					// weighted graphs
-			Etot += weight;
+		my_Tokenize(strline,tok,sep);
+		if (tok.size()==2) {
+			Vt1 = tok[0];
+			Vt2 = tok[1];
+			weight = 1; Vg1=0; Vg2=0;
+		} else if (tok.size()==3) {
+			Vt1 = tok[0];
+			Vt2 = tok[1];
+			weight = boost::lexical_cast<float>(tok[2]);
+			Vg1 = 0; Vg2 = 0;
+		} else if (tok.size()==4) {
+			Vt1 = tok[0];
+			Vt2 = tok[2];
+			weight = 1;
+			Vg1 = boost::lexical_cast<int>(tok[1]);
+			Vg2 = boost::lexical_cast<int>(tok[3]);
+		} else if (tok.size()==5) {
+			Vt1 = tok[0];
+			Vt2 = tok[2];
+			weight = boost::lexical_cast<float>(tok[4]);
+			Vg1 = boost::lexical_cast<int>(tok[1]);
+			Vg2 = boost::lexical_cast<int>(tok[3]);
+		} else {
+			// nothing to do for this line
+			if (DEBUGMODE) std::cout << "Error: don't know what to do with a line of "<<tok.size()<<"tokens!\n";
+			continue;
 		}
+		
+		if (name2Int.find(Vt1)==name2Int.end()) {
+			u = name2Int.size();
+			name2Int[Vt1] = u;
+			int2Name[u] = Vt1;
+		} else {
+			u = name2Int[Vt1];
+		}
+		if (name2Int.find(Vt2)==name2Int.end()) {
+			v = name2Int.size();
+			name2Int[Vt2] = v;
+			int2Name[v] = Vt2;
+		} else {
+			v = name2Int[Vt2];
+		}
+		if (edgeList.find(u)==edgeList.end()) {
+			pdl = new destList;
+			edgeList[u] = pdl;
+		}
+		if (edgeList[u]->find(v)==edgeList[u]->end()) {
+			(*edgeList[u])[v] = weight;
+		} else {
+			(*edgeList[u])[v] += weight;
+		}
+
+
+		if (edgeList.find(v)==edgeList.end()) {
+			pdl = new destList;
+			edgeList[v] = pdl;
+		}
+		if (edgeList[u]->find(v)==edgeList[u]->end()) {
+			(*edgeList[u])[v] = weight;
+		} else {
+			(*edgeList[u])[v] += weight;
+		}
+		if (typeList.find(u)==typeList.end()) {
+			typeList[u] = Vg1;
+		} else if ((typeList[u]==0)and(Vg1 != 0)) {
+			typeList[u] = Vg1;
+		}
+		if (typeList.find(v)==typeList.end()) {
+			typeList[v] = Vg2;
+		} else if ((typeList[v]==0)and(Vg2 != 0)) {
+			typeList[v] = Vg2;
+		}
+
+		sum += 2; // NOTE : this shouldn't really matter as the sum isn't used for
+				// weighted graphs
+		Etot += weight;
 	}
 	numV = name2Int.size();
 	aveP = sum/(numV * numV); // shouldn't matter because aveP is to be used for binary
