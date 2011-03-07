@@ -17,8 +17,8 @@ class NodeOther: public Node {
 		float *thDenSoFar;
 		float *thNumSoFar;*/
 		virtual bool writeThetaforMerged(int a, int b, dataMap** w, TreeClass* tree, graphData* D);
-		NodeOther(int nodeID, int parentID, bool isTerminal, int vertID, int dimension, graphData* D);
-		NodeOther(int nodeID, int parentID, bool isTerminal, int dimension, graphData* D);
+		NodeOther(int nodeID, int parentID, int partytype, bool isTerminal, int vertID, int dimension, graphData* D);
+		NodeOther(int nodeID, int parentID, int partytype, bool isTerminal, int dimension, graphData* D);
 		virtual void destroy(int di);
 		virtual ~NodeOther();
 		virtual bool isOther() {return 1;}
@@ -44,7 +44,9 @@ TreeClassOther::~TreeClassOther() {
 int TreeClassOther::makeMergeNode(int a, int b) {
 	int c = this->numNodes;
 	this->numNodes = c + 1;
-	NodeOther* pnode = new NodeOther(c, -1, 0, dim, D);
+	int ptype = this->nodeMap[a]->party;
+	assert(ptype == this->nodeMap[b]->party);
+	NodeOther* pnode = new NodeOther(c, -1, ptype, 0, dim, D);
 	this->nodeMap[c] = pnode;
 	this->nodeMap[a]->parent = c;
 	this->nodeMap[b]->parent = c;
@@ -62,13 +64,13 @@ TreeClassOther::TreeClassOther(graphData* G, int dimension) {
 	this->dim = dimension;
 	D = G;
 	for (int i=0; i<D[0].numV; i++) {
-		this->nodeMap[i] = new NodeOther(i, -1, 1, i, this->dim, D);
+		this->nodeMap[i] = new NodeOther(i, -1, D[0].typeList[i], 1, i, this->dim, D);
 		this->topLevel.insert(i);
 	}
 	this->numNodes = D[0].numV;
 }
 
-NodeOther::NodeOther(int nodeID, int parentID, bool isTerminal, int dimension, graphData* D) :Node(nodeID, parentID, isTerminal, dimension, D) {
+NodeOther::NodeOther(int nodeID, int parentID, int partytype, bool isTerminal, int dimension, graphData* D) :Node(nodeID, parentID, partytype, isTerminal, dimension, D) {
 	this->paramsOriginal = new ModelParamBase*[dimension];
 	this->paramsSoFar = new ModelParamBase*[dimension];
 	for (int d=0; d<dimension; d++) {
@@ -113,7 +115,7 @@ NodeOther::NodeOther(int nodeID, int parentID, bool isTerminal, int dimension, g
 	*/
 }
 
-NodeOther::NodeOther(int nodeID, int parentID, bool isTerminal, int vertID, int dimension, graphData* D): Node(nodeID, parentID, isTerminal, vertID, dimension, D) {
+NodeOther::NodeOther(int nodeID, int parentID, int partytype, bool isTerminal, int vertID, int dimension, graphData* D): Node(nodeID, parentID, partytype, isTerminal, vertID, dimension, D) {
 	if (! isTerminal) {
 		std::cerr << "bad call to NodeOther constructor!, given vertex ID for non-terminal node!\n";
 		throw(1);

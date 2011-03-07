@@ -19,6 +19,7 @@ class Node{
 	public:
 		int parent;
 		int nid;
+		int party;
 		std::set<int> childSet;
 		std::set<int> vertexSet;
 		bool isTerm;
@@ -29,13 +30,14 @@ class Node{
 		//float *thDen;
 		//float *thNum;
 		std::set<int>* getAllVerts(std::map<int, Node*>& mp);
-		Node(int i, int j, bool ist) {
+		Node(int i, int j, int partytype, bool ist) {
 			nid = i;
 			parent = j;
 			isTerm = ist;
+			party = partytype;
 		}
-		Node(int nodeID, int parentID, bool isTerminal, int vertID, int dimension, graphData* D);
-		Node(int nodeID, int parentID, bool isTerminal, int dimension, graphData* D);
+		Node(int nodeID, int parentID, int partytype, bool isTerminal, int vertID, int dimension, graphData* D);
+		Node(int nodeID, int parentID, int partytype, bool isTerminal, int dimension, graphData* D);
 		bool collapseNode(std::map<int,Node*> &nmap);
 		virtual bool writeThetaforMerged(int a, int b, dataMap** w, TreeClass* tree, graphData* D);
 		virtual void destroy(int di);
@@ -121,7 +123,8 @@ bool Node::collapseNode(std::map<int,Node*> &nmap) {
 	return 0;
 };
 
-Node::Node(int nodeID, int parentID, bool isTerminal, int dimension, graphData* D) {
+Node::Node(int nodeID, int parentID, int partytype, bool isTerminal, int dimension, graphData* D) {
+	this->party = partytype;
 	this->nid = nodeID;
 	this->parent = parentID;
 	this->isTerm = isTerminal;
@@ -149,7 +152,8 @@ Node::Node(int nodeID, int parentID, bool isTerminal, int dimension, graphData* 
 	}
 }
 
-Node::Node(int nodeID, int parentID, bool isTerminal, int vertID, int dimension, graphData* D) {
+Node::Node(int nodeID, int parentID, int partytype, bool isTerminal, int vertID, int dimension, graphData* D) {
+	this->party = partytype;
 	if (! isTerminal) {
 		std::cerr << "bad call to Node constructor!, given vertex ID for non-terminal node!\n";
 		throw(1);
@@ -187,7 +191,9 @@ Node::Node(int nodeID, int parentID, bool isTerminal, int vertID, int dimension,
 int TreeClass::makeMergeNode(int a, int b) {
 	int c = this->numNodes;
 	this->numNodes = c + 1;
-	Node* pnode = new Node(c, -1, 0, dim,D);
+	int ptype = this->nodeMap[a]->party;
+	assert(ptype == this->nodeMap[b]->party);
+	Node* pnode = new Node(c, -1, ptype, 0, dim,D);
 	this->nodeMap[c] = pnode;
 	this->nodeMap[a]->parent = c;
 	this->nodeMap[b]->parent = c;
@@ -204,7 +210,7 @@ TreeClass::TreeClass(graphData* G, int dimension) {
 	this->dim = dimension;
 	D = G;
 	for (int i=0; i<D[0].numV; i++) {
-		this->nodeMap[i] = new Node(i, -1, 1, i, this->dim, D);
+		this->nodeMap[i] = new Node(i, -1, D[0].typeList[i], 1, i, this->dim, D);
 		this->topLevel.insert(i);
 	}
 	this->numNodes = D[0].numV;

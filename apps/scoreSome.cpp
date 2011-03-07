@@ -1,4 +1,4 @@
-#define DEBUGMODE 0
+#define DEBUGMODE 1
 #define NOGSL 1
 #define NOREFERENCE 0
 #define ISVC 0
@@ -54,7 +54,7 @@ int main(int argc, char* argv[]) {
 	Engine *en;
 	Goriginal = new graphData[1];
 	GsoFar = new graphData[1];
-	Goriginal[0].readWeighted(fnin.c_str());
+	Goriginal[0].readGeneral(fnin.c_str());
 	Goriginal[0].gtype = gtype;
 	std::cout << "read file!\n";
 	fnin = fnstem + ".labels";
@@ -83,7 +83,7 @@ int main(int argc, char* argv[]) {
 	// run the agglomerative algorithm
 	std::cout << "starting to run\n";
 	en->runML();
-	en->passFB();
+	//en->passFB();
 	std::cout << "done running\n";
 	lp.attach(en); // attached the engine
 	std::cout << "Attached!\n";
@@ -114,7 +114,7 @@ int main(int argc, char* argv[]) {
 		en->initializeScoresML();
 		std::cout << "running on the residual\n";
 		en->runML();
-		en->passFB();
+		//en->passFB();
 		lp.attach(en);
 		//fnout = fnstem + ".scores" + sres;
 		//std::cout << "done!\nPrinting out the " << residint <<"th heirarchical network\n";
@@ -125,7 +125,7 @@ int main(int argc, char* argv[]) {
 		if (doScores) 
 			Glabel->putSoFar(GsoFar, residint+1);
 		GsoFar->writeSingle(fnout.c_str());
-		if (residint>1) delete[] Gnew;
+		delete[] Gnew;
 		residint++;
 	}
 	fnin = fnstem + ".edges";
@@ -137,7 +137,6 @@ int main(int argc, char* argv[]) {
 	std::cout << "done!\n";
 	delete[] Goriginal;
 	delete[] GsoFar;
-	delete[] Gnew;
 	delete en;
 	//delete G;
 	return 1;

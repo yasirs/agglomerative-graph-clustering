@@ -22,7 +22,7 @@ void putstvec(std::vector<std::string> a, int i, const char* st) {
 
 class graphData{
 	public:
-		int numV;
+		int numV,multiPartite;
 		char gtype;
 		float aveP;
 		float Etot;
@@ -37,10 +37,10 @@ class graphData{
 		bool delete_uv(int u, int v);
 		int Add_uv(int u, int v, float w); 
 		bool readBinaryBasedOnOld(graphData* Gorginal, const char* filename);
-		bool readGeneralBasedOnOld(graphData* Gorginal, const char* filename, int nsoFar, const char* sep =" \t");
+		bool readGeneralBasedOnOld(graphData* Gorginal, const char* filename, int nsoFar, const char* sep ="\t");
 		bool readWeighted(const char* filename);
 		bool readBinary(const char* filename);
-		bool readGeneral(const char* filename, const char* sep=" \t"); //something wrong here, doesnt work??
+		bool readGeneral(const char* filename, const char* sep="\t"); //something wrong here, doesnt work??
 		void writeBoth(const char* filename);
 		void writeSingle(const char* filename);
 		void writeSingle_noname(const char* filename);
@@ -231,6 +231,7 @@ bool graphData::readGeneralBasedOnOld(graphData* Goriginal, const char* filename
 	this->name2Int = Goriginal[0].name2Int;
 	this->typeList = Goriginal[0].typeList;
 	this->numV = Goriginal->numV;
+	this->multiPartite = 0;
 	file.open(filename,std::ios::in);
 	if (! file.is_open()) return 0;
 	while (!file.eof()) {
@@ -252,12 +253,14 @@ bool graphData::readGeneralBasedOnOld(graphData* Goriginal, const char* filename
 			weight = 1;
 			Vg1 = boost::lexical_cast<int>(tok[1]);
 			Vg2 = boost::lexical_cast<int>(tok[3]);
+			this->multiPartite = 1;
 		} else if (tok.size()==5) {
 			Vt1 = tok[0];
 			Vt2 = tok[2];
 			weight = boost::lexical_cast<float>(tok[4]);
 			Vg1 = boost::lexical_cast<int>(tok[1]);
 			Vg2 = boost::lexical_cast<int>(tok[3]);
+			this->multiPartite = 1;
 		} else {
 			// nothing to do for this line
 			if (DEBUGMODE) std::cout << "Error: don't know what to do with a line of "<<tok.size()<<"tokens!\n";
@@ -301,10 +304,10 @@ bool graphData::readGeneralBasedOnOld(graphData* Goriginal, const char* filename
 			pdl = new destList;
 			edgeList[v] = pdl;
 		}
-		if (edgeList[u]->find(v)==edgeList[u]->end()) {
-			(*edgeList[u])[v] = weight;
+		if (edgeList[v]->find(u)==edgeList[v]->end()) {
+			(*edgeList[v])[u] = weight;
 		} else {
-			(*edgeList[u])[v] += weight;
+			(*edgeList[v])[u] += weight;
 		}
 		if (typeList.find(u)==typeList.end()) {
 			typeList[u] = Vg1;
@@ -334,6 +337,9 @@ bool graphData::readGeneralBasedOnOld(graphData* Goriginal, const char* filename
 		Etot += weight;
 	}
 	numV = name2Int.size();
+	for (ii=0;ii<nsoFar;ii++) {
+		Goriginal[ii].numV = numV;
+	}
 	aveP = sum/(numV * numV); // shouldn't matter because aveP is to be used for binary
 	return 1;
 };
@@ -481,6 +487,7 @@ bool graphData::readGeneral(const char* fn, const char* sep) {
 	// NOTE: remember to set the graph type
 	this->gtype = 'u'; // u for unknown, it is a placeholder
 	this->Etot = 0.0f;
+	this->multiPartite = 0;
 	std::string strline;
 	std::ifstream file;
 	std::vector<std::string> tok;
@@ -512,12 +519,14 @@ bool graphData::readGeneral(const char* fn, const char* sep) {
 			weight = 1;
 			Vg1 = boost::lexical_cast<int>(tok[1]);
 			Vg2 = boost::lexical_cast<int>(tok[3]);
+			this->multiPartite = 1;
 		} else if (tok.size()==5) {
 			Vt1 = tok[0];
 			Vt2 = tok[2];
 			weight = boost::lexical_cast<float>(tok[4]);
 			Vg1 = boost::lexical_cast<int>(tok[1]);
 			Vg2 = boost::lexical_cast<int>(tok[3]);
+			this->multiPartite = 1;
 		} else {
 			// nothing to do for this line
 			if (DEBUGMODE) std::cout << "Error: don't know what to do with a line of "<<tok.size()<<"tokens!\n";
@@ -553,10 +562,10 @@ bool graphData::readGeneral(const char* fn, const char* sep) {
 			pdl = new destList;
 			edgeList[v] = pdl;
 		}
-		if (edgeList[u]->find(v)==edgeList[u]->end()) {
-			(*edgeList[u])[v] = weight;
+		if (edgeList[v]->find(u)==edgeList[v]->end()) {
+			(*edgeList[v])[u] = weight;
 		} else {
-			(*edgeList[u])[v] += weight;
+			(*edgeList[v])[u] += weight;
 		}
 		if (typeList.find(u)==typeList.end()) {
 			typeList[u] = Vg1;

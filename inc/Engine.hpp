@@ -300,13 +300,12 @@ int Engine::runML() {
 		sm.erase(b,a);
 		// let us create new group c and create heirarchical relations
                 c = tree->makeMergeNode(a,b);
-		if ((tree->nodeMap[a]->collapsed)&&(tree->nodeMap[b]->collapsed)&&(pscore.s.centerMscore>=0)) {
-                        assert( tree->nodeMap[c]->collapseNode(tree->nodeMap) );
-		} else {
+		//if ((tree->nodeMap[a]->collapsed)&&(tree->nodeMap[b]->collapsed)&&(pscore.s.centerMscore>=0)) {
+                //        assert( tree->nodeMap[c]->collapseNode(tree->nodeMap) );
+		//} else {
 			tree->nodeMap[c]->collapsed = 0;
 			tree->nodeMap[c]->vertsComputed = 0;
-
-		}
+		//}
 		// compute neighbours
 		firstNeighbors[c] = emptySet;
 		secondNeighbors[c] = emptySet;
@@ -328,28 +327,28 @@ int Engine::runML() {
 		// delete a,b scores
 		for (intit = firstNeighbors[a].begin(); intit != firstNeighbors[a].end(); ++intit) {
 			x = *intit;
-			if (b!=x) {
+			if ((b!=x)&&(this->tree->nodeMap[x]->party == this->tree->nodeMap[a]->party)) {
 				sm.erase(a,x);
 				sm.erase(x,a);
 			}
 		}
 		for (intit = secondNeighbors[a].begin(); intit != secondNeighbors[a].end(); ++intit) {
 			x = *intit;
-			if (b!=x) {
+			if ((b!=x)&&(this->tree->nodeMap[x]->party == this->tree->nodeMap[a]->party)) {
 				sm.erase(a,x);
 				sm.erase(x,a);
 			}
 		}
 		for (intit = firstNeighbors[b].begin(); intit != firstNeighbors[b].end(); ++intit) {
 			x = *intit;
-			if (a!=x) {
+			if ((a!=x)&&(this->tree->nodeMap[x]->party == this->tree->nodeMap[b]->party)) {
 				sm.erase(b,x);
 				sm.erase(x,b);
 			}
 		}
 		for (intit = secondNeighbors[b].begin(); intit != secondNeighbors[b].end(); ++intit) {
 			x = *intit;
-			if (a!=x) {
+			if ((a!=x)&&(this->tree->nodeMap[x]->party == this->tree->nodeMap[b]->party)) {
 				sm.erase(b,x);
 				sm.erase(x,b);
 			}
@@ -374,7 +373,8 @@ int Engine::runML() {
 					if (y!=c) {
 						jscore =0;
 						for (d=0;d<dim;d++) {
-							jscore = jscore + deltascoreML(d,x,y,c)-deltascoreML(d,x,y,a)-deltascoreML(d,x,y,b);
+							if ((not D[d].multiPartite)or(this->tree->nodeMap[x]->party != this->tree->nodeMap[c]->party))
+								jscore = jscore + deltascoreML(d,x,y,c)-deltascoreML(d,x,y,a)-deltascoreML(d,x,y,b);
 						}
 						if (firstNeighbors[c].count(y)) {
 							assert(sm.AddTo(x,y,jscore/2));
@@ -393,7 +393,7 @@ int Engine::runML() {
 		// create new c,x scores
 		for (intit = firstNeighbors[c].begin(); intit != firstNeighbors[c].end(); ++intit) {
 			x = *intit;
-			if ((x!=a)&&(x!=b)) {
+			if ((x!=a)&&(x!=b)&&(this->tree->nodeMap[x]->party == this->tree->nodeMap[c]->party)) {
 				cscore = 0;
 				jscore = 0;
 				for (d=0;d<dim;d++) {
@@ -404,8 +404,10 @@ int Engine::runML() {
 					for (int z; neighbEnum.next(z);) {
 					//for (intsetit = neighbUnion.begin(); intsetit != neighbUnion.end(); ++intsetit) {
 						//z = *intsetit;
-						if (! ((x==z)||(c==z)||(a==z)||(b==z)) ) {
-							jscore = jscore + deltascoreML(d,c,x,z);
+						if ((not D[d].multiPartite)or(this->tree->nodeMap[z]->party != this->tree->nodeMap[c]->party)) {
+							if (! ((x==z)||(c==z)||(a==z)||(b==z)) ) {
+								jscore = jscore + deltascoreML(d,c,x,z);
+							}
 						}
 					}
 					cscore += centerscoreML(d,c,x);
@@ -420,7 +422,7 @@ int Engine::runML() {
 		for (intit = secondNeighbors[c].begin(); intit != secondNeighbors[c].end(); ++intit) {
 			x = *intit;
 			secondNeighbors[x].insert(c);
-			if ((x!=a)&&(x!=b)) {
+			if ((x!=a)&&(x!=b)&&(this->tree->nodeMap[x]->party == this->tree->nodeMap[c]->party)) {
 				cscore = 0;
 				jscore = 0;
 				for (d=0;d<dim;d++) {
@@ -431,8 +433,10 @@ int Engine::runML() {
 					for (int z; neighbEnum.next(z);) {
 					//for (intsetit = neighbUnion.begin(); intsetit != neighbUnion.end(); ++intsetit) {
 						//z = *intsetit;
-						if (! ((x==z)||(c==z)||(a==z)||(b==z)) ) {
-							jscore = jscore + deltascoreML(d,x,c,z);
+						if ((not D[d].multiPartite)or(this->tree->nodeMap[z]->party != this->tree->nodeMap[c]->party)) {
+							if (! ((x==z)||(c==z)||(a==z)||(b==z)) ) {
+								jscore = jscore + deltascoreML(d,x,c,z);
+							}
 						}
 					}
 					cscore += centerscoreML(d,c,x);
@@ -453,7 +457,7 @@ int Engine::runML() {
 					y = *intit2;
 					if (y!=a) {
 						// x && y may have just become 2nd neighbors
-						if ((x!=y)&&(secondNeighbors[x].find(y)==secondNeighbors[x].end())&&(firstNeighbors[x].find(y)==firstNeighbors[x].end())) {
+						if ((x!=y)&&(secondNeighbors[x].find(y)==secondNeighbors[x].end())&&(firstNeighbors[x].find(y)==firstNeighbors[x].end())&&(this->tree->nodeMap[x]->party == this->tree->nodeMap[y]->party)) {
 							// make second neighbors and add the score
 							secondNeighbors[x].insert(y);
 							cscore = 0; jscore = 0;
@@ -466,14 +470,16 @@ int Engine::runML() {
 								//for (intsetit = neighbUnion.begin(); intsetit != neighbUnion.end(); ++intsetit) {
 									//z = *intsetit;
 									if (! ((x==z)||(y==z)) ) {
-										jscore = jscore + deltascoreML(d,x,y,z);
+										if ((not D[d].multiPartite)or(this->tree->nodeMap[z]->party != this->tree->nodeMap[x]->party)) {
+											jscore = jscore + deltascoreML(d,x,y,z);
+										}
 									}
 								}
 								cscore = cscore + centerscoreML(d,x,y);
 							}
 							assert(sm.AddPair(x,y,jscore,cscore));
 						}
-						if ((x!=y)&&(secondNeighbors[y].find(x)==secondNeighbors[y].end())&&(firstNeighbors[y].find(x)==firstNeighbors[y].end())) {
+						if ((x!=y)&&(secondNeighbors[y].find(x)==secondNeighbors[y].end())&&(firstNeighbors[y].find(x)==firstNeighbors[y].end())&&(this->tree->nodeMap[x]->party == this->tree->nodeMap[y]->party)) {
 							// make second neighbors and add the score
 							secondNeighbors[y].insert(x);
 							cscore = 0; jscore = 0;
@@ -486,7 +492,9 @@ int Engine::runML() {
 								//for (intsetit = neighbUnion.begin(); intsetit != neighbUnion.end(); ++intsetit) {
 									//z = *intsetit;
 									if (! ((x==z)||(y==z)) ) {
-										jscore = jscore + deltascoreML(d,y,x,z);
+										if ((not D[d].multiPartite)or(this->tree->nodeMap[z]->party != this->tree->nodeMap[x]->party)) {
+											jscore = jscore + deltascoreML(d,y,x,z);
+										}
 									}
 								}
 								cscore = cscore + centerscoreML(d,y,x);
@@ -567,7 +575,7 @@ bool Engine::initializeScoresML() {
 		for (neighbit = firstNeighbors[x].begin(); neighbit != firstNeighbors[x].end(); ++neighbit) {
 			y = *neighbit;
 			// if score(x,y) doesnt exist, compute it
-			if (! sm.has_uv(x,y)) {
+			if ((! sm.has_uv(x,y))&&(this->tree->nodeMap[x]->party == this->tree->nodeMap[y]->party)) {
 				// add up score contributions
 				jscore = 0; cscore = 0;
 				// go through all dimensions
@@ -578,7 +586,9 @@ bool Engine::initializeScoresML() {
 					for (unsetit = neighbUnion.begin(); unsetit != neighbUnion.end(); ++unsetit) {
 						z = *unsetit;
 						if (! ((x==z)||(y==z)) ) {
-							jscore = jscore + deltascoreML(d,x,y,z);
+							if ((not D[d].multiPartite)or(this->tree->nodeMap[z]->party != this->tree->nodeMap[x]->party)) {
+								jscore = jscore + deltascoreML(d,x,y,z);
+							}
 						}
 					}
 					cscore = cscore + centerscoreML(d,x,y);
@@ -589,7 +599,7 @@ bool Engine::initializeScoresML() {
 		for (neighbit = secondNeighbors[x].begin(); neighbit != secondNeighbors[x].end(); ++neighbit) {
 			y = *neighbit;
 			// if score(x,y) doesnt exist, compute it
-			if (! sm.has_uv(x,y)) {
+			if ((! sm.has_uv(x,y))&&(this->tree->nodeMap[x]->party == this->tree->nodeMap[y]->party)) {
 				// add up score contributions
 				jscore = 0; cscore = 0;
 				// go through all dimensions
@@ -600,7 +610,9 @@ bool Engine::initializeScoresML() {
 					for (unsetit = neighbUnion.begin(); unsetit != neighbUnion.end(); ++unsetit) {
 						z = *unsetit;
 						if (! ((x==z)||(y==z)) ) {
-							jscore = jscore + deltascoreML(d,x,y,z);
+							if ((not D[d].multiPartite)or(this->tree->nodeMap[z]->party != this->tree->nodeMap[x]->party)) {
+								jscore = jscore + deltascoreML(d,x,y,z);
+							}
 						}
 					}
 					cscore = cscore + centerscoreML(d,x,y);
@@ -633,7 +645,9 @@ void Engine::passFB() {
 			for (intit = tree->topLevel.begin(); intit != tree->topLevel.end(); intit++) {
 				z = *intit;
 				if ((a!=z) & (b!=z) & (c!=z)) {
-					dsc += deltascoreFB(d,a,b,z);
+					if ((not D[d].multiPartite)or(this->tree->nodeMap[z]->party != this->tree->nodeMap[a]->party)) {
+						dsc += deltascoreFB(d,a,b,z);
+					}
 				}
 			}
 		}

@@ -67,7 +67,7 @@ int main(int argc, char* argv[]) {
 		sss >> iis;
 		fnin = fnstem + iis + ".edges";
 		if (ii==0)
-			Goriginal[ii].readWeighted(fnin.c_str());
+			Goriginal[ii].readGeneral(fnin.c_str());
 		else
 			Goriginal[ii].readGeneralBasedOnOld(Goriginal, fnin.c_str(), ii);
 		Goriginal[ii].gtype = gtype;

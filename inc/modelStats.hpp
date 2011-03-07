@@ -4,7 +4,7 @@
 #include <cmath>
 
 #ifndef GAUSS_SIGMA
-#define GAUSS_SIGMA 1.0
+#define GAUSS_SIGMA 0.2
 #endif
 
 #if (! NOGSL)
