@@ -148,19 +148,6 @@ void dataMap::initialize(graphData& D, std::map<int,std::set<int> >& fNeighbours
 	int u, v;
 	for (u=0; u != D.numV; u++) {
 		this->initVert(u);
-		/*
-		assert(datvert.size()==u);
-		if (this->gtype=='b') {
-			datvert.push_back(new BinomialSelfStats);
-		} else if (this->gtype=='p') {
-			datvert.push_back(new PoissonSelfStats);
-		} else if (this->gtype=='w') {
-			datvert.push_back(new WSelfStats);
-		} else {
-			std::cerr << "Error! "<<this->gtype<<" graph not recognised while initializing datamap\n";
-			throw(0);
-		}
-		*/
 	}
 	std::set<int> emptySet;
 	for (std::map<int, graphData::destList*>::iterator it1 (D.edgeList.begin()); it1 != D.edgeList.end(); ++it1) {
@@ -196,20 +183,12 @@ dataMap::~dataMap() {
 
 void dataMap::addMergedData(int a, int b, int c, std::set<int>& fNeighbours) {
 	assert(this->AddPair(c,c, this->get_uv(a,a)->Add3(this->get_uv(a,b), this->get_uv(b,b)) ) );
-	//assert(this->AddPair(c,c,this->get_uv(a,a) + this->get_uv(b,b) + this->get_uv(a,b)));
 	this->datvert.push_back(this->datvert[a]->Add2(this->datvert[b],this->get_uv(a,b)));
-	//this->nV.push_back(this->nV[a]+this->nV[b]);
-	//this->degrees[c] = this->degrees[a] + this->degrees[b];
-	//this->selfMissing[c] = this->selfMissing[a] + this->selfMissing[b] + (this->degrees[a] * this->degrees[b]) - this->get_uv(a,b);
 	int x;
 	for (std::set<int>::iterator intit (fNeighbours.begin()) ; intit != fNeighbours.end(); ++intit) {
 		x = (*intit);
-
 		this->AddPair(c,x,this->MyNullPairStat->Add3(this->get_uv(a,x),this->get_uv(b,x)));
 		this->AddPair(x,c,this->MyNullPairStat->Add3(this->get_uv(x,a),this->get_uv(x,b)));
-
-		//this->AddPair(c,x,this->get_uv(a,x) + this->get_uv(b,x));
-		//this->AddPair(x,c,this->get_uv(x,a) + this->get_uv(b,x));
 	}
 }
 	
@@ -217,58 +196,11 @@ void dataMap::addMergedData(int a, int b, int c, std::set<int>& fNeighbours) {
 
 
 
-/*bool dataMap::allErase(int a, int b, int numV) {
-	int x;
-	std::tr1::unordered_map<int, std::tr1::unordered_map<int,float> >::iterator outIt(this->dat.find(a));
-	if (outIt == this->dat.end()) {
-		return 0;
-	}
-	std::tr1::unordered_map<int,float>::iterator innerIt( (*outIt).second.begin() );
-	for (; innerIt != (*outIt).second.end(); ++innerIt) {
-		x = (*innerIt).first;
-		if ((x != b) and (x != a)) {
-			this->dat[x].erase(a);
-		}
-	}
-	this->dat.erase(a);
-	outIt = this->dat.find(b);
-	if (outIt == this->dat.end()) {
-		return 0;
-	}
-	innerIt=  (*outIt).second.begin();
-	for (; innerIt != (*outIt).second.end(); ++innerIt) {
-		x = (*innerIt).first;
-		if ((x != b) and (x != a)) {
-			this->dat[x].erase(b);
-		}
-	}
-	this->dat.erase(b);
-	if (a>=numV) { // why check for this? because we need nv etc. to compute scores for the vertex edges
-		this->degrees.erase(a);
-		//this->nV.erase(a);
-		this->selfMissing.erase(a);
-	}
-	if (b>=numV) {
-		this->degrees.erase(b);
-		//this->nV.erase(b);
-		this->selfMissing.erase(b);
-	}
-	//this->degrees.erase(a); this->degrees.erase(b);
-	//this->nV.erase(a); this->nV.erase(b);
-	//this->selfMissing.erase(a); this->selfMissing.erase(b);
-	return 1;
-}*/
-
-
-
-/*float dataMap::getDegree(int i) {
-	return degrees[i];
-};*/
 
 
 
 float dataMap::get_uvSimple(int u, int v) {
-	//NOTE: returns NULL if not present
+	//NOTE: returns 0 if not present
 	temp_outIt = datpair.find(u);
 	if (temp_outIt!=datpair.end()) {
 		temp_inIt = (*temp_outIt).second.find(v);

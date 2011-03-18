@@ -20,11 +20,9 @@ class dataMapOther: public dataMap{
 		std::vector<ModelSelfStatsBase*> sDatvert;
 		bool AddPairSoFar(int u, int v, ModelPairStatsBase* p);
 		bool AddEdgeSoFar(int u, int v, float x);
-		bool AddtoSoFar(int u, int v, float d); // done
 		ModelPairStatsBase* get_uvSoFar(int u, int v); // done
 		bool AddPairOriginal(int u, int v, ModelPairStatsBase* p); // done
 		bool AddEdgeOriginal(int u, int v, float x);
-		bool AddtoOriginal(int u, int v, float d); // done
 		ModelPairStatsBase* get_uvOriginal(int u, int v); // done
 		//virtual bool allErase(int a, int b, int numV); // done
 		virtual void initialize(graphData& D, std::map<int,std::set<int> >& fNeighbours) {
@@ -131,40 +129,6 @@ void dataMapOther::addMergedData(int a, int b, int c, std::set<int>& fNeighbours
 	}
 }
 
-/*
-bool dataMapOther::AddtoOriginal(int u, int v, float d) {
-	if (oDatpair.find(u) != oDatpair.end()) {
-		if (oDatpair[u].find(v) != oDatpair[u].end()) {
-			oDatpair[u][v] = oDatpair[u][v]+d;
-			return 1;
-		} else {
-			oDatpair[u][v]=d;
-		}
-	} else {
-		std::tr1::unordered_map<int,float> mnew;
-		mnew[v] = d;
-		oDatpair[u] = mnew;
-	}
-	return 0;
-};
-
-
-
-bool dataMapOther::AddtoSoFar(int u, int v, float d) {
-	if (sDatpair.find(u) != sDatpair.end()) {
-		if (sDatpair[u].find(v) != sDatpair[u].end()) {
-			sDatpair[u][v] = sDatpair[u][v]+d;
-			return 1;
-		} else {
-			sDatpair[u][v]=d;
-		}
-	} else {
-		std::tr1::unordered_map<int,float> mnew;
-		mnew[v] = d;
-		sDatpair[u] = mnew;
-	}
-	return 0;
-};*/
 
 bool dataMapOther::AddPairOriginal(int u, int v, ModelPairStatsBase* p) {
 	temp_outIt = oDatpair.find(u);
@@ -297,69 +261,6 @@ ModelPairStatsBase* dataMapOther::get_uvSoFar(int u, int v) {
 	}
 };
 
-/*
-bool dataMapOther::allErase(int a, int b, int numV) {
-	int x;
-	std::tr1::unordered_map<int, std::tr1::unordered_map<int,float> >::iterator outIt(this->dat.find(a));
-	if (outIt == this->dat.end()) {
-		return 0;
-	}
-	std::tr1::unordered_map<int,float>::iterator innerIt( (*outIt).second.begin() );
-	for (; innerIt != (*outIt).second.end(); ++innerIt) {
-		x = (*innerIt).first;
-		if ((x != b) and (x != a)) {
-			this->dat[x].erase(a);
-			this->oDat[x].erase(a);
-			this->sDat[x].erase(a);
-		}
-	}
-	this->dat.erase(a);
-	this->oDat.erase(a);
-	this->sDat.erase(a);
-	outIt = this->dat.find(b);
-	if (outIt == this->dat.end()) {
-		return 0;
-	}
-	innerIt=  (*outIt).second.begin();
-	for (; innerIt != (*outIt).second.end(); ++innerIt) {
-		x = (*innerIt).first;
-		if ((x != b) and (x != a)) {
-			this->dat[x].erase(b);
-			this->oDat[x].erase(b);
-			this->sDat[x].erase(b);
-		}
-	}
-	this->dat.erase(b);
-	this->oDat.erase(b);
-	this->sDat.erase(b);
-	if (a>=numV) { // why check for this? I forgot
-		this->oDegrees.erase(a);
-		this->oNV.erase(a);
-		this->oSelfMissing.erase(a);
-		this->sDegrees.erase(a);
-		this->sNV.erase(a);
-		this->sSelfMissing.erase(a);
-		this->degrees.erase(a);
-		//this->nV.erase(a);
-		this->selfMissing.erase(a);
-	}
-	if (b>=numV) {
-		this->oDegrees.erase(b);
-		this->oNV.erase(b);
-		this->oSelfMissing.erase(b);
-		this->sDegrees.erase(b);
-		this->sNV.erase(b);
-		this->sSelfMissing.erase(b);
-		this->degrees.erase(b);
-		//this->nV.erase(b);
-		this->selfMissing.erase(b);
-	}
-	//this->degrees.erase(a); this->degrees.erase(b);
-	//this->nV.erase(a); this->nV.erase(b);
-	//this->selfMissing.erase(a); this->selfMissing.erase(b);
-	return 1;
-}
-*/
 
 void dataMapOther::initialize(graphData& D, graphData& Doriginal, graphData& DsoFar, std::map<int,std::set<int> >& fNeighbours) {
 	std::cout << "inside dataMapOther initialize\n";
@@ -378,41 +279,6 @@ void dataMapOther::initialize(graphData& D, graphData& Doriginal, graphData& Dso
 	std::set<int> emptySet;
 	for (u=0; u != D.numV; u++) {
 		this->initVert(u);
-		/*
-		assert(datvert.size()==u);
-		if (D.gtype=='b') {
-			datvert.push_back(new BinomialSelfStats);
-		} else if (D.gtype=='p') {
-			datvert.push_back(new PoissonSelfStats);
-		} else if (D.gtype=='w') {
-			datvert.push_back(new WSelfStats);
-		} else {
-			std::cerr << "Error! "<<D.gtype<<" graph not recognised while initializing datamap\n";
-			throw(0);
-		}
-		assert(oDatvert.size()==u);
-		if (Doriginal.gtype=='b') {
-			oDatvert.push_back(new BinomialSelfStats);
-		} else if (Doriginal.gtype=='p') {
-			oDatvert.push_back(new PoissonSelfStats);
-		} else if (Doriginal.gtype=='w') {
-			oDatvert.push_back(new WSelfStats);
-		} else {
-			std::cerr << "Error! "<<Doriginal.gtype<<" graph not recognised while initializing oDatamap\n";
-			throw(0);
-		}
-		assert(sDatvert.size()==u);
-		if (DsoFar.gtype=='b') {
-			sDatvert.push_back(new BinomialSelfStats);
-		} else if (DsoFar.gtype=='p') {
-			sDatvert.push_back(new PoissonSelfStats);
-		} else if (DsoFar.gtype=='w') {
-			sDatvert.push_back(new WSelfStats);
-		} else {
-			std::cerr << "Error! "<<DsoFar.gtype<<" graph not recognised while initializing sDatamap\n";
-			throw(0);
-		}
-		*/
 	}
 	std::map<int, graphData::destList*>::iterator it1 (D.edgeList.begin());
 	for (; it1 != D.edgeList.end(); ++it1) {
