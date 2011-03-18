@@ -26,9 +26,6 @@ class Node{
 		bool collapsed;
 		bool vertsComputed;
 		ModelParamBase** params;
-		//float *theta;
-		//float *thDen;
-		//float *thNum;
 		std::set<int>* getAllVerts(std::map<int, Node*>& mp);
 		Node(int i, int j, int partytype, bool ist) {
 			nid = i;
@@ -57,10 +54,7 @@ class TreeClass{
 		bool writeNodeTypes(const char* fn);
 		std::pair<int,int> getLCA(const int i, const int j);
 		int dim;
-		/*TreeClass(graphData* G) {
-			D = G;
-			numNodes=0;
-		};*/
+
 		TreeClass(graphData* G, int dimension);
 		TreeClass() {}
 		virtual ~TreeClass();

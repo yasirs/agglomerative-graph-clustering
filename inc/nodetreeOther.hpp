@@ -10,12 +10,6 @@ class NodeOther: public Node {
 	public:
 		ModelParamBase** paramsOriginal;
 		ModelParamBase** paramsSoFar;
-		/*float *thetaOriginal;
-		float *thDenOriginal;
-		float *thNumOriginal;
-		float *thetaSoFar;
-		float *thDenSoFar;
-		float *thNumSoFar;*/
 		virtual bool writeThetaforMerged(int a, int b, dataMap** w, TreeClass* tree, graphData* D);
 		NodeOther(int nodeID, int parentID, int partytype, bool isTerminal, int vertID, int dimension, graphData* D);
 		NodeOther(int nodeID, int parentID, int partytype, bool isTerminal, int dimension, graphData* D);
@@ -27,7 +21,6 @@ class NodeOther: public Node {
 
 class TreeClassOther: public TreeClass {
 	public:
-		//std::map<int, NodeOther*> nodeMap;	
 		virtual int makeMergeNode(int a, int b);
 		TreeClassOther(graphData* G, int dimension);
 		virtual ~TreeClassOther();
@@ -98,21 +91,6 @@ NodeOther::NodeOther(int nodeID, int parentID, int partytype, bool isTerminal, i
 			this->paramsSoFar[d]->init();
 		}
 	}
-	/*this->thetaOriginal = new float[dimension];
-	this->thDenOriginal = new float[dimension];
-	this->thNumOriginal = new float[dimension];
-	this->thetaSoFar = new float[dimension];
-	this->thDenSoFar = new float[dimension];
-	this->thNumSoFar = new float[dimension];
-	for (int d=0;d<dimension; d++) {
-		this->thetaOriginal[d] = 0;
-		this->thDenOriginal[d] = 0;
-		this->thNumOriginal[d] = 0;
-		this->thetaSoFar[d] = 0;
-		this->thDenSoFar[d] = 0;
-		this->thNumSoFar[d] = 0;
-	}
-	*/
 }
 
 NodeOther::NodeOther(int nodeID, int parentID, int partytype, bool isTerminal, int vertID, int dimension, graphData* D): Node(nodeID, parentID, partytype, isTerminal, vertID, dimension, D) {
@@ -145,21 +123,6 @@ NodeOther::NodeOther(int nodeID, int parentID, int partytype, bool isTerminal, i
 		paramsOriginal[d]->init();
 		paramsSoFar[d]->init();
 	}
-	/*
-	this->thetaOriginal = new float[dimension];
-	this->thDenOriginal = new float[dimension];
-	this->thNumOriginal = new float[dimension];
-	this->thetaSoFar = new float[dimension];
-	this->thDenSoFar = new float[dimension];
-	this->thNumSoFar = new float[dimension];
-	for (int d=0;d<dimension; d++) {
-		this->thetaOriginal[d] = 0;
-		this->thDenOriginal[d] = 0;
-		this->thNumOriginal[d] = 0;
-		this->thetaSoFar[d] = 0;
-		this->thDenSoFar[d] = 0;
-		this->thNumSoFar[d] = 0;
-	}*/
 }
 
 
@@ -175,16 +138,8 @@ void NodeOther::destroy(int di) {
 
 
 NodeOther::~NodeOther() {
-	//delete[] params;
 	delete[] paramsSoFar;
 	delete[] paramsOriginal;
-	/*delete[] thetaSoFar;
-	delete[] thNumSoFar;
-	delete[] thDenSoFar;
-	delete[] thetaOriginal;
-	delete[] thNumOriginal;
-	delete[] thDenOriginal;
-	*/
 }
 
 bool NodeOther::writeThetaforMerged(int a, int b, dataMap** ww, TreeClass* tree, graphData* D) {
