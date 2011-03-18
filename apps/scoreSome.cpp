@@ -1,4 +1,4 @@
-#define DEBUGMODE 1
+#define DEBUGMODE 0
 #define NOGSL 1
 #define NOREFERENCE 0
 #define ISVC 0
@@ -83,7 +83,7 @@ int main(int argc, char* argv[]) {
 	// run the agglomerative algorithm
 	std::cout << "starting to run\n";
 	en->runML();
-	//en->passFB();
+	en->passFB();
 	std::cout << "done running\n";
 	lp.attach(en); // attached the engine
 	std::cout << "Attached!\n";
@@ -114,7 +114,7 @@ int main(int argc, char* argv[]) {
 		en->initializeScoresML();
 		std::cout << "running on the residual\n";
 		en->runML();
-		//en->passFB();
+		en->passFB();
 		lp.attach(en);
 		//fnout = fnstem + ".scores" + sres;
 		//std::cout << "done!\nPrinting out the " << residint <<"th heirarchical network\n";

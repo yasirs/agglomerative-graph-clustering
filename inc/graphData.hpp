@@ -45,6 +45,7 @@ class graphData{
 		void writeSingle(const char* filename);
 		void writeSingle_noname(const char* filename);
 		int degree(int i);
+		int get_int_from_name(const char * vname);
 		//std::set<int> neighbors(int i);
 		~graphData() {
 			std::map<int, destList*>::iterator it;
@@ -56,6 +57,15 @@ class graphData{
 		}
 		void copyNoEdges(graphData& Dnew);
 };
+
+int graphData::get_int_from_name(const char* vname) {
+	if (name2Int.find(std::string(vname))==name2Int.end()) {
+		std::cout << "Error:: not found vertex named " << vname << "in the graph!\n";
+		return 0;
+	} else {
+		return name2Int[std::string(vname)];
+	}
+}
 
 void graphData::copyNoEdges(graphData& Dnew) {
 	Dnew.int2Name = this->int2Name;
