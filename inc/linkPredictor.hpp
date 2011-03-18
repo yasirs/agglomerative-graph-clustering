@@ -156,25 +156,6 @@ graphData* linkPredictor::makeNonEdgePred(graphData* Dref) {
 };
 
 
-/* redefinition?
-void linkPredictor::addPredstoGraph(graphData* PD) {
-	// this add predictions for existing edges in PD
-	int d,u,v;
-	float weight;
-	graphData::destList::iterator eit;
-	std::map<int, graphData::destList*>::iterator dit;
-	for (d=0; d<dim; d++) {
-		for (dit = PD[d].edgeList.begin(); dit != PD[d].edgeList.end(); ++dit) {
-			u = (*dit).first;
-			for (eit = PD[d].edgeList[u]->begin(); eit != PD[d].edgeList[u]->end(); eit++) {
-				v = (*eit).first;
-				weight = this->predictEdge(u,v,d);
-				assert ( PD[d].Add_uv(u,v,weight));
-			}
-		}
-	}
-};
-*/
 
 
 

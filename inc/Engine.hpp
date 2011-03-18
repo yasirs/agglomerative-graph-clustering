@@ -146,17 +146,6 @@ void Engine::printHyperGeomFile(const char* fn, int d, bool skipEdges) {
 			//dmin = std::min(m,n);
 			c = num_common_keys( *(D[d].edgeList[u]), *(D[d].edgeList[v]) );
 			s = gsl_cdf_hypergeometric_Q(c, n, t-n, m);
-			/*s = 0;
-			for (x = c; x<= dmin; x++) {
-				dummy = 1.0;
-				dummy = dummy / gammaFunction(1+x);
-				dummy = dummy / gammaFunction(1+m-x);
-				dummy = dummy / gammaFunction(1+n-x);
-				dummy = dummy / gammaFunction(1+t-m-n+x);
-				s = s + dummy;
-				
-			}
-			s = s * gammaFunction(1+m) * gammaFunction(1+n) * gammaFunction(1+t-m) * gammaFunction(1+t-n) / gammaFunction(1+t);*/
 			s = -log10(s);
 			file << D[d].int2Name[u] << '\t' << D[d].int2Name[v] << '\t' << s << '\n';
 		}
@@ -398,12 +387,8 @@ int Engine::runML() {
 				jscore = 0;
 				for (d=0;d<dim;d++) {
 					// go through the union set of neighbors
-					//std::set<int> neighbUnion;
-					//set_union_update(neighbUnion, firstNeighbors[x], firstNeighbors[c]);
 					set_union_Enumerator<int> neighbEnum(firstNeighbors[x],firstNeighbors[c]);
 					for (int z; neighbEnum.next(z);) {
-					//for (intsetit = neighbUnion.begin(); intsetit != neighbUnion.end(); ++intsetit) {
-						//z = *intsetit;
 						if ((not D[d].multiPartite)or(this->tree->nodeMap[z]->party != this->tree->nodeMap[c]->party)) {
 							if (! ((x==z)||(c==z)||(a==z)||(b==z)) ) {
 								jscore = jscore + deltascoreML(d,c,x,z);
@@ -427,12 +412,8 @@ int Engine::runML() {
 				jscore = 0;
 				for (d=0;d<dim;d++) {
 					// go through the union set of neighbors
-					//std::set<int> neighbUnion;
-					//set_union_update(neighbUnion, firstNeighbors[x], firstNeighbors[c]);
 					set_union_Enumerator<int> neighbEnum(firstNeighbors[x],firstNeighbors[c]);
 					for (int z; neighbEnum.next(z);) {
-					//for (intsetit = neighbUnion.begin(); intsetit != neighbUnion.end(); ++intsetit) {
-						//z = *intsetit;
 						if ((not D[d].multiPartite)or(this->tree->nodeMap[z]->party != this->tree->nodeMap[c]->party)) {
 							if (! ((x==z)||(c==z)||(a==z)||(b==z)) ) {
 								jscore = jscore + deltascoreML(d,x,c,z);
@@ -463,12 +444,8 @@ int Engine::runML() {
 							cscore = 0; jscore = 0;
 							for (d=0;d<dim;d++) {
 								// go through the union set of neighbors
-								//std::set<int> neighbUnion;
-								//set_union_update(neighbUnion, firstNeighbors[x], firstNeighbors[y]);
 								set_union_Enumerator<int> neighbEnum(firstNeighbors[x],firstNeighbors[y]);
 								for (int z; neighbEnum.next(z);) {
-								//for (intsetit = neighbUnion.begin(); intsetit != neighbUnion.end(); ++intsetit) {
-									//z = *intsetit;
 									if (! ((x==z)||(y==z)) ) {
 										if ((not D[d].multiPartite)or(this->tree->nodeMap[z]->party != this->tree->nodeMap[x]->party)) {
 											jscore = jscore + deltascoreML(d,x,y,z);
@@ -485,12 +462,8 @@ int Engine::runML() {
 							cscore = 0; jscore = 0;
 							for (d=0;d<dim;d++) {
 								// go through the union set of neighbors
-								//std::set<int> neighbUnion;
-								//set_union_update(neighbUnion, firstNeighbors[x], firstNeighbors[y]);
 								set_union_Enumerator<int> neighbEnum(firstNeighbors[x],firstNeighbors[y]);
 								for (int z; neighbEnum.next(z);) {
-								//for (intsetit = neighbUnion.begin(); intsetit != neighbUnion.end(); ++intsetit) {
-									//z = *intsetit;
 									if (! ((x==z)||(y==z)) ) {
 										if ((not D[d].multiPartite)or(this->tree->nodeMap[z]->party != this->tree->nodeMap[x]->party)) {
 											jscore = jscore + deltascoreML(d,y,x,z);
@@ -556,8 +529,6 @@ int Engine::runML() {
 
 
 bool Engine::initializeScoresML() {
-	//std::tr1::unordered_set<int> neighbUnion;
-	//std::tr1::unordered_set<int>::iterator unsetit;
 	std::set<int> neighbUnion;
 	std::set<int>::iterator unsetit;
 	std::set<int> emptySet;
