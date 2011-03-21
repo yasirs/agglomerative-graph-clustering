@@ -22,6 +22,7 @@
 #include <cmath>
 #include <algorithm>
 #include <gsl/gsl_cdf.h>
+#include <gsl/gsl_randist.h>
 
 // #include <boost/math/special_functions/gamma.hpp>
 
@@ -145,7 +146,7 @@ void Engine::printHyperGeomFile(const char* fn, int d, bool skipEdges) {
 			m = D[d].degree(v);
 			//dmin = std::min(m,n);
 			c = num_common_keys( *(D[d].edgeList[u]), *(D[d].edgeList[v]) );
-			s = gsl_cdf_hypergeometric_Q(c, n, t-n, m);
+			s = gsl_cdf_hypergeometric_Q(c, n, t-n, m) + gsl_ran_hypergeometric_pdf(c, n, t-n, m);
 			s = -log10(s);
 			file << D[d].int2Name[u] << '\t' << D[d].int2Name[v] << '\t' << s << '\n';
 		}
