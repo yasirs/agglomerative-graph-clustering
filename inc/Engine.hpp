@@ -290,12 +290,12 @@ int Engine::runML() {
 		sm.erase(b,a);
 		// let us create new group c and create heirarchical relations
                 c = tree->makeMergeNode(a,b);
-		//if ((tree->nodeMap[a]->collapsed)&&(tree->nodeMap[b]->collapsed)&&(pscore.s.centerMscore>=0)) {
-                //        assert( tree->nodeMap[c]->collapseNode(tree->nodeMap) );
-		//} else {
+		if ((tree->nodeMap[a]->collapsed)&&(tree->nodeMap[b]->collapsed)&&(pscore.s.centerMscore>=0)) {
+                        assert( tree->nodeMap[c]->collapseNode(tree->nodeMap) );
+		} else {
 			tree->nodeMap[c]->collapsed = 0;
 			tree->nodeMap[c]->vertsComputed = 0;
-		//}
+		}
 		// compute neighbours
 		firstNeighbors[c] = emptySet;
 		secondNeighbors[c] = emptySet;
