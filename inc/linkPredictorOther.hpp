@@ -46,8 +46,8 @@ void linkPredictorOther::updateSoFar(graphData* GsoFar) {
 	// TODO:: lazy V^2 computation right now, need to update it to go over only the nonzero thetas
 	float wpredicted, wnew;
 	for (int d=0; d< this->dim;d++) {
-		for (int u= 0; u<GsoFar[d].numV; u++) {
-			for (int v= 0; v<GsoFar[d].numV; v++) {
+		for (unsigned int u= 0; u<GsoFar[d].numV; u++) {
+			for (unsigned int v= 0; v<GsoFar[d].numV; v++) {
 				wpredicted = this->predictEdge(u,v,d);
 				wnew = 1 - (1 - GsoFar[d].get_uv(u,v))*(1 - wpredicted);
 				if (wnew>EPS) {

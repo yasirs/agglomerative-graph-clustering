@@ -418,11 +418,23 @@ float GaussianPairStats::MLcenterscore(ModelSelfStatsBase* sa, ModelSelfStatsBas
 
 float GaussianPairStats::MLdeltascore(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb,ModelSelfStatsBase* sx, ModelPairStatsBase* pax, ModelPairStatsBase* pbx) {
 	float Eax, Ebx, Tax, Tbx, ans, da, db, dx, Eax2, Ebx2;
-	if (pax==NULL) { Eax = 0; Eax2 = 0; }
-	else { Eax = ((GaussianPairStats*) pax)->sumE;  ((GaussianPairStats*) pax)->sumEsquare; }
+	if (pax==NULL) {
+		Eax = 0;
+		Eax2 = 0;
+	}
+	else {
+		Eax = ((GaussianPairStats*) pax)->sumE;
+		Eax2 = ((GaussianPairStats*) pax)->sumEsquare;
+	}
 
-	if (pbx==NULL) { Ebx = 0; Ebx2 = 0; }
-	else { Ebx = ((GaussianPairStats*) pbx)->sumE;  ((GaussianPairStats*) pbx)->sumEsquare; }
+	if (pbx==NULL) {
+		Ebx = 0;
+		Ebx2 = 0;
+	}
+	else {
+		Ebx = ((GaussianPairStats*) pbx)->sumE;
+		Ebx2 = ((GaussianPairStats*) pbx)->sumEsquare;
+	}
 
 	da = ((GaussianSelfStats*) sa)->nV;
 	db = ((GaussianSelfStats*) sb)->nV;
@@ -442,10 +454,10 @@ float GaussianPairStats::MLdeltascore(ModelSelfStatsBase* sa, ModelSelfStatsBase
 float GaussianPairStats::FBdeltascore(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb,ModelSelfStatsBase* sx, ModelPairStatsBase* pax, ModelPairStatsBase* pbx) {
 	float Eax, Ebx, Tax, Tbx, ans, da, db, dx, Eax2, Ebx2;
 	if (pax==NULL) { Eax = 0; Eax2 = 0; }
-	else { Eax = ((GaussianPairStats*) pax)->sumE;  ((GaussianPairStats*) pax)->sumEsquare; }
+	else { Eax = ((GaussianPairStats*) pax)->sumE;  Eax2 = ((GaussianPairStats*) pax)->sumEsquare; }
 
 	if (pbx==NULL) { Ebx = 0; Ebx2 = 0; }
-	else { Ebx = ((GaussianPairStats*) pbx)->sumE;  ((GaussianPairStats*) pbx)->sumEsquare; }
+	else { Ebx = ((GaussianPairStats*) pbx)->sumE;  Ebx2 = ((GaussianPairStats*) pbx)->sumEsquare; }
 
 	da = ((GaussianSelfStats*) sa)->nV;
 	db = ((GaussianSelfStats*) sb)->nV;

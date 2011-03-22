@@ -145,7 +145,7 @@ void dataMap::initialize(graphData& D, std::map<int,std::set<int> >& fNeighbours
 	else if (gtype=='d') MyNullPairStat = new DcorrPairStats;
 	else if (gtype=='g') MyNullPairStat = new GaussianPairStats;
 	else {std::cout << "bad graph type\n";}
-	int u, v;
+	unsigned int u, v;
 	for (u=0; u != D.numV; u++) {
 		this->initVert(u);
 	}

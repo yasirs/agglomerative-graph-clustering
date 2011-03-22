@@ -56,7 +56,7 @@ int TreeClassOther::makeMergeNode(int a, int b) {
 TreeClassOther::TreeClassOther(graphData* G, int dimension) {
 	this->dim = dimension;
 	D = G;
-	for (int i=0; i<D[0].numV; i++) {
+	for (unsigned int i=0; i<D[0].numV; i++) {
 		this->nodeMap[i] = new NodeOther(i, -1, D[0].typeList[i], 1, i, this->dim, D);
 		this->topLevel.insert(i);
 	}

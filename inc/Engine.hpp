@@ -103,7 +103,7 @@ class Engine{
 
 
 void Engine::printCommonNeighbFile(const char* fn, int d, bool skipEdges) {
-	int u,v, c;
+	unsigned int u,v, c;
 	std::ofstream file;
 	file.open(fn,std::ios::out);
 	for (u=0; u<D[d].numV; u++) {
@@ -118,7 +118,7 @@ void Engine::printCommonNeighbFile(const char* fn, int d, bool skipEdges) {
 
 
 void Engine::printJaccardFile(const char* fn, int d, bool skipEdges) {
-	int u,v, aub, aib, ad;
+	unsigned int u,v, aub, aib, ad;
 	std::ofstream file;
 	file.open(fn,std::ios::out);
 	for (u=0; u<D[d].numV; u++) {
@@ -155,7 +155,7 @@ void Engine::printHyperGeomFile(const char* fn, int d, bool skipEdges) {
 };
 
 void Engine::printDegreeProdFile(const char* fn, int d, bool skipEdges) {
-	int u,v, ad, bd;
+	unsigned int u,v, ad, bd;
 	std::ofstream file;
 	file.open(fn,std::ios::out);
 	for (u=0; u<D[d].numV; u++) {
@@ -602,7 +602,7 @@ void Engine::passFB() {
 	float csc, dsc;
 	// initialize toplevel to the vertices
 	this->tree->topLevel.clear();
-	for (int i=0; i<D[0].numV; i++) {
+	for (unsigned int i=0; i<D[0].numV; i++) {
 		tree->topLevel.insert(i);
 	}
 	std::list<mergeRecord>::iterator mergeit(mergeList.begin());
@@ -656,8 +656,10 @@ void Engine::passFB() {
 				std::cout  <<" and ";
 				if (D->int2Name.find(b) == D->int2Name.end()) std::cout << b; else std::cout << D->int2Name[b];
 				std::cout <<" to form "<< c <<", for score = "<< dsc <<"\n";
-				if (csc>=0) {
-					std::cout << "passFB: collapsed "<< c << ", for centerscore = " << csc <<"\n";
+				if ((tree->nodeMap[a]->collapsed) & (tree->nodeMap[b]->collapsed)) {
+					if (csc>=0) {
+						std::cout << "passFB: collapsed "<< c << ", for centerscore = " << csc <<"\n";
+					}
 				}
 			}
 			else {

@@ -21,7 +21,7 @@ class linkPredictor {
 			attached = 0;
 		}
 		virtual void attach(Engine* e);
-		float predictEdge(int u, int v, int d);
+		float predictEdge(unsigned int u, unsigned int v, int d);
 		graphData* makeNonEdgePred(graphData* Dref);
 		graphData* makeEdgePred(graphData* Dref);
 		graphData* makeCompleteEdgePred();
@@ -98,7 +98,8 @@ graphData* linkPredictor::makeCompleteEdgePred() {
 	assert (attached);
 	graphData* PD;
 	float w, NP;
-	int d,u,v;
+	int d;
+	unsigned int u,v;
 	PD = new graphData[dim];
 	for (d=0; d<dim;d++) {
 		NP = 0;
@@ -129,7 +130,8 @@ graphData* linkPredictor::makeNonEdgePred(graphData* Dref) {
 	assert (attached);
 	graphData* PD;
 	float w, NP;
-	int d,u,v;
+	int d;
+	unsigned u,v;
 	PD = new graphData[dim];
 	for (d=0; d<dim;d++) {
 		NP = 0;
@@ -219,7 +221,7 @@ void linkPredictor::attach(Engine* e) {
 
 
 
-float linkPredictor::predictEdge(int u, int v, int d) {
+float linkPredictor::predictEdge(unsigned int u, unsigned int v, int d) {
 	if (!attached) {
 		std::cerr << "can't do link prediction, not attached\n";
 		throw 1;

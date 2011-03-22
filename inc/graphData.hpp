@@ -22,7 +22,7 @@ void putstvec(std::vector<std::string> a, int i, const char* st) {
 
 class graphData{
 	public:
-		int numV,multiPartite;
+		unsigned int numV,multiPartite;
 		char gtype;
 		float aveP;
 		float Etot;
