@@ -1,5 +1,5 @@
 #define DEBUGMODE 1
-#define NOGSL 1
+#define NOGSL 0
 #define NOREFERENCE 0
 #define ISVC 0
 #if ISVC

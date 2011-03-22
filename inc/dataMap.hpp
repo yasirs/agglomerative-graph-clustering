@@ -127,7 +127,7 @@ bool dataMap::AddEdge(int u, int v, float x) {
 		else if (gtype=='w') p = new WPairStats;
 		else if (gtype=='d') p = new DcorrPairStats;	
 		else if (gtype=='g') p = new GaussianPairStats;	
-		else {std::cout << "bad graph type\n";}
+		else {std::cout << "bad graph type\n"; throw(0);}
 		temp_outIt->second[v] = p;
 		temp_inIt = temp_outIt->second.find(v);
 		ans = 1;
