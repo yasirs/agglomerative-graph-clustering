@@ -46,6 +46,7 @@ class graphData{
 		void writeSingle_noname(const char* filename);
 		int degree(int i);
 		int get_int_from_name(const char * vname);
+		void print_name_from_int(int i);
 		//std::set<int> neighbors(int i);
 		~graphData() {
 			std::map<int, destList*>::iterator it;
@@ -57,6 +58,10 @@ class graphData{
 		}
 		void copyNoEdges(graphData& Dnew);
 };
+
+void graphData::print_name_from_int(int i) {
+	std::cout << int2Name[i] << "\n";
+}
 
 int graphData::get_int_from_name(const char* vname) {
 	if (name2Int.find(std::string(vname))==name2Int.end()) {
@@ -275,6 +280,9 @@ bool graphData::readGeneralBasedOnOld(graphData* Goriginal, const char* filename
 			// nothing to do for this line
 			if (DEBUGMODE) std::cout << "Error: don't know what to do with a line of "<<tok.size()<<"tokens!\n";
 			continue;
+		}
+		if (Vt1==Vt2) {
+			std::cout << "self loop in "<<filename<<", line = "<<strline<<"\n";
 		}
 		
 		if (name2Int.find(Vt1)==name2Int.end()) {
@@ -541,6 +549,10 @@ bool graphData::readGeneral(const char* fn, const char* sep) {
 			// nothing to do for this line
 			if (DEBUGMODE) std::cout << "Error: don't know what to do with a line of "<<tok.size()<<"tokens!\n";
 			continue;
+		}
+
+		if (Vt1==Vt2) {
+			std::cout << "self loop in "<<fn<<", line = "<<strline<<"\n";
 		}
 		
 		if (name2Int.find(Vt1)==name2Int.end()) {
