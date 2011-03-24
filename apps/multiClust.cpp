@@ -25,36 +25,40 @@ int main(int argc, char* argv[]) {
 	std::string fnstem,fnin,fnout;
 	linkPredictorOther lp;
 	int numResids;
-	char gtype;
+	char* gtype;
 	bool doScores;
 	labelData* Glabel;
 	int nGraphs;
-	if (argc==1) {
-		std::cout << "Need filename for input graph\n";
-		throw 1;
+	if (argc<5) {
+		std::cout << "Usage :"<<argv[0]<<" FileStem nGraphs Type_1 Type_2 ... Type_nGraphs nResiduals\n";
+		std::cout << "Minimum nGraphs = 1\nMinimum nResiduals = 0\n";
+		throw(1);
 	}
-	if (argc==2) {
-		numResids = 6;
-		std::cout << "Assuming default: "<< numResids << " residuals to compute.\n";
-	} else {
+	{ // block just to have temporary variable ssss
 		std::stringstream ssss;
 		ssss << argv[2];
+		ssss >> nGraphs;
+	}
+	std::cout << "Expecting " << nGraphs << " input graphs.\n";
+	if (nGraphs<1) {
+		std::cout << "Need at least 1 input graph.\n";
+		throw(1);
+	}
+	gtype = new char[nGraphs];
+	if (argc < (3 + nGraphs)) {
+		std::cout << "Usage :"<<argv[0]<<" FileStem nGraphs Type_1 Type_2 ... Type_nGraphs nResiduals\n";
+		std::cout << "Minimum nGraphs = 1\nMinimum nResiduals = 0\n";
+		throw(1);
+	}
+	for (int i=0;i<nGraphs;i++) {
+		gtype[i] = argv[i+3][0];
+	}
+	{
+		std::stringstream ssss;
+		ssss << argv[nGraphs+3];
 		ssss >> numResids;
 	}
-	if (argc>3) {
-		gtype = argv[3][0];
-	} else {
-		gtype = 'b';
-		std::cout << "graph type = " << gtype << '\n';
-	}
-	if (argc>4) {
-		std::stringstream ssss;
-		ssss << argv[4];
-		ssss >> nGraphs;
-		std::cout << "Assuming " << nGraphs << " input graphs.\n";
-	} else {
-		nGraphs = 1;
-	}
+
 	fnstem = argv[1];
 	graphData *Goriginal, *Gnew, *GsoFar;
 	Engine *en;
@@ -69,8 +73,11 @@ int main(int argc, char* argv[]) {
 		if (ii==0)
 			Goriginal[ii].readGeneral(fnin.c_str());
 		else
-			Goriginal[ii].readGeneralBasedOnOld(Goriginal, fnin.c_str(), ii);
-		Goriginal[ii].gtype = gtype;
+			Goriginal[ii].readGeneralBasedOnOld(
+				&(Goriginal[0]), 
+				fnin.c_str(), 
+				ii);
+		Goriginal[ii].gtype = gtype[ii];
 		Goriginal[ii].copyNoEdges(GsoFar[ii]);
 	}
 	std::cout << "read file!\n";
