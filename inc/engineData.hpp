@@ -1,7 +1,6 @@
-#ifndef ENGINE_HPP
-#define ENGINE_HPP
+#ifndef ENGINEDATA_HPP
+#define ENGINEDATA_HPP
 #include <map>
-#include <tr1/unordered_map>
 #include <list>
 #include <set>
 #include "graphData.hpp"
@@ -12,56 +11,7 @@
 #include <iostream>
 #include <cassert>
 #include <cmath>
-#include <algorithm>
-// #include <boost/math/special_functions/gamma.hpp>
 
-
-/*namespace std {	namespace tr1 {
-	template <> 
-		struct hash<std::pair<double, double> >
-		{	 
-			std::size_t operator()(std::pair<double,double>& p) const
-			{
-				return hash<double >() (p.first * p.second + p.first + p.second);
-			} 
-		};
-} }*/
-
-
-struct FPairHash {
-  std::size_t operator() (const std::pair<float,float>& p) const {
-    return ((int) (1000*p.first) + (int) (100*p.second) );
-  }
-};
-
-struct FPairEqual {
-  bool operator() (const std::pair<float,float>& a, const std::pair<float,float>& b) const {
-	if (a.first != b.first) return 0;
-	else if (a.second != b.second) return 0;
-	else return 1;
-  }
-};
-
-
-
-/*
-namespace std
-{
- using namespace __gnu_cxx;
-}
-
-
-namespace __gnu_cxx
-{
-        template<> struct hash< std::string >
-        {
-                size_t operator()( const std::string& x ) const
-                {
-                        return hash< const char* >()( x.c_str() );
-                }
-        };
-}
-*/
 
 
 #if (! NOGSL)
@@ -77,55 +27,7 @@ double gsl_sf_lnbeta(double a, double b) {
 	ans = lgamma(a)+lgamma(b) -lgamma(a+b);
 	return ans;
 };
-double gsl_sf_gamma(double a) {
-	return exp(lgamma(a));
-};
-
 #endif
-
-float lnBetaFunction(float a, float b) {
-	static int nSoFar = 0;
-	static std::tr1::unordered_map<std::pair<float,float>, double, FPairHash, FPairEqual> LUT;
-	static const int nToDo = 5000;
-	static bool keepAdding = 1;
-	if (a==1) {
-		return -log(b);
-	} else if (b==1) {
-		return -log(a);
-	}
-	std::pair<float,float> p(a,b);
-	std::tr1::unordered_map<std::pair<float,float>, double, FPairHash, FPairEqual>::iterator Lit(LUT.find(p));
-	if (Lit!=LUT.end()) {
-		// TODO::DEBUG
-		double ans = (*Lit).second;
-		double ans2 = gsl_sf_lnbeta(a,b);
-		assert(ans==ans2);
-		return (*Lit).second;
-
-	} else {
-		double ans = gsl_sf_lnbeta(a,b);
-		if (keepAdding) {
-			LUT[p] = ans;
-			nSoFar++;
-			if (nSoFar>nToDo) {
-				keepAdding = 0;
-				//TODO::DEBUG
-				std::cout << nSoFar << " entries in the LUT, stopping\n";
-			}
-		return ans;
-		}
-	}
-};
-
-float gammaFunction(float a) {
-	if (a==1) return 1;
-	else return gamma(a);
-};
-
-float gammaFunction(int a) {
-	if (a==1) return 1;
-	else return gamma(a);
-};
 
 #ifndef DEBUGMODE
 #define DEBUGMODE 0
@@ -154,108 +56,12 @@ class Engine{
 		int run();
 		bool doStage();
 		bool cleanUp();
-		float deltascore(int d, int a, int b, int x);
-		float centerscore(int d, int a, int b);
+		double deltascore(int d, int a, int b, int x);
+		double centerscore(int d, int a, int b);
 		std::set<int> getNeighborsVertex(int i);
 		std::set<int> getNeighborsNode(int i);
-		void printJaccardFile(const char* filename, int d, bool edges);
-		void printHyperGeomFile(const char* filename, int d, bool edges);
-		void printDegreeProdFile(const char* filename, int d, bool edges);
-		void printCommonNeighbFile(const char* filename, int d, bool edges);
+		
 };
-
-
-void Engine::printCommonNeighbFile(const char* fn, int d, bool edges) {
-	int u,v, c;
-	std::ofstream file;
-	file.open(fn,std::ios::out);
-	for (u=0; u<D[d].numV; u++) {
-		for (v=u+1; v<D[d].numV; v++) {
-			if ((edges)||(! D[d].has_uv(u,v))) {
-				c = num_common_keys( *(D[d].edgeList[u]), *(D[d].edgeList[v]) );
-				file << D[d].int2Name[u] << '\t' << D[d].int2Name[v] << '\t' << c << '\n';
-			}
-		}
-	}
-	file.close();
-};
-
-
-void Engine::printJaccardFile(const char* fn, int d, bool edges) {
-	int u,v, aub, aib, ad;
-	std::ofstream file;
-	file.open(fn,std::ios::out);
-	for (u=0; u<D[d].numV; u++) {
-		ad = D[d].degree(u);
-		for (v=u+1; v<D[d].numV; v++) {
-			if ((edges)||(! D[d].has_uv(u,v))) {
-				aib = num_common_keys( *(D[d].edgeList[u]), *(D[d].edgeList[v]) );
-				aub = (ad * D[d].degree(v)) - aib;
-				file << D[d].int2Name[u] << '\t' << D[d].int2Name[v] << '\t' << (aib+0.0f)/aub << '\n';
-			}
-		}
-	}
-	file.close();
-};
-
-void Engine::printHyperGeomFile(const char* fn, int d, bool edges) {
-	int u, v, m, n, c, t, x, dmin;
-	float s,dummy;
-	std::ofstream file;
-	file.open(fn,std::ios::out);
-	t = D[d].numV-2;
-	for (u=0; u<D[d].numV; u++) {
-		n = D[d].degree(u);
-		for (v=u+1; v<D[d].numV; v++) {
-			if ((edges)||(! D[d].has_uv(u,v))) {
-				m = D[d].degree(v);
-				dmin = std::min(m,n);
-				c = num_common_keys( *(D[d].edgeList[u]), *(D[d].edgeList[v]) );
-				s = 0;
-				for (x = c; x<= dmin; x++) {
-					dummy = 1.0;
-					dummy = dummy / gammaFunction(1+x);
-					dummy = dummy / gammaFunction(1+m-x);
-					dummy = dummy / gammaFunction(1+n-x);
-					dummy = dummy / gammaFunction(1+t-m-n+x);
-					s = s + dummy;
-					
-				}
-				s = s * gammaFunction(1+m) * gammaFunction(1+n) * gammaFunction(1+t-m) * gammaFunction(1+t-n) / gammaFunction(1+t);
-				s = -log10(s);
-				file << D[d].int2Name[u] << '\t' << D[d].int2Name[v] << '\t' << s << '\n';
-			}
-		}
-	}
-	file.close();
-};
-
-void Engine::printDegreeProdFile(const char* fn, int d, bool edges) {
-	int u,v, ad, bd;
-	std::ofstream file;
-	file.open(fn,std::ios::out);
-	for (u=0; u<D[d].numV; u++) {
-		ad = D[d].degree(u);
-		for (v=u+1; v<D[d].numV; v++) {
-			if ((edges)||(! D[d].has_uv(u,v))) {
-				bd = D[d].degree(v);
-				file << D[d].int2Name[u] << '\t' << D[d].int2Name[v] << '\t' << ad*bd << '\n';
-			}
-		}
-	}
-	file.close();
-};
-
-
-
-
-
-
-
-
-
-
-
 
 
 Engine::Engine(graphData* G, int d) {
@@ -265,15 +71,13 @@ Engine::Engine(graphData* G, int d) {
 	tree = new TreeClass(G);
 };
 
-
 Engine::~Engine() {
 	delete[] w;
 };
 
-
-float Engine::centerscore(int d, int a, int b) {
+double Engine::centerscore(int d, int a, int b) {
 	assert(a!=b);
-	float ans;
+	double ans;
 	if (D[d].gtype=='b') {
 		float Tab, Eab, Eaa, Ebb, Haa, Hbb, Taa, Tbb, Tcc;
 		Tab = w[d].nV[a] * w[d].nV[b];
@@ -285,16 +89,16 @@ float Engine::centerscore(int d, int a, int b) {
 		Ebb = w[d].get_uv(b,b);
 		Haa = Taa - Eaa;
 		Hbb = Tbb - Ebb;
-		ans =   lnBetaFunction(Eaa + Eab + Ebb + 1,Haa + Hbb + Tab - Eab + 1)
-			- lnBetaFunction(Eaa + 1, Haa +1)
-			- lnBetaFunction(Ebb + 1, Hbb +1)
-			- lnBetaFunction(Eab+1,Tab - Eab +1);
+		ans =   gsl_sf_lnbeta(Eaa + Eab + Ebb + 1,Haa + Hbb + Tab - Eab + 1)
+			- gsl_sf_lnbeta(Eaa + 1, Haa +1)
+			- gsl_sf_lnbeta(Ebb + 1, Hbb +1)
+			- gsl_sf_lnbeta(Eab+1,Tab - Eab +1);
 		//for the random reference model
 #if (! NOREFERENCE)
-		ans -=  lnBetaFunction(Tcc*D[d].aveP + 1, Tcc*(1 - D[d].aveP) + 1)
-			- lnBetaFunction(Taa*D[d].aveP + 1, Taa*(1 - D[d].aveP) + 1)
-			- lnBetaFunction(Tbb*D[d].aveP + 1, Tbb*(1 - D[d].aveP) + 1)
-			- lnBetaFunction(Tab*D[d].aveP + 1, Tab*(1 - D[d].aveP) + 1);
+		ans -=  gsl_sf_lnbeta(Tcc*D[d].aveP + 1, Tcc*(1 - D[d].aveP) + 1)
+			- gsl_sf_lnbeta(Taa*D[d].aveP + 1, Taa*(1 - D[d].aveP) + 1)
+			- gsl_sf_lnbeta(Tbb*D[d].aveP + 1, Tbb*(1 - D[d].aveP) + 1)
+			- gsl_sf_lnbeta(Tab*D[d].aveP + 1, Tab*(1 - D[d].aveP) + 1);
 #endif
 	} else if (D[d].gtype=='w') {
 		float Tab, Eab, Eaa, Ebb, Haa, Hbb, Taa, Tbb, Tcc;
@@ -307,10 +111,10 @@ float Engine::centerscore(int d, int a, int b) {
 		Taa = Eaa + Haa;
 		Tbb = Ebb + Hbb;
 		Tcc = Taa + Tbb + Tab;
-		ans =   lnBetaFunction(Eaa + Eab + Ebb + 1,Haa + Hbb + Tab - Eab + 1)
-			- lnBetaFunction(Eaa + 1, Haa +1)
-			- lnBetaFunction(Ebb + 1, Hbb +1)
-			- lnBetaFunction(Eab+1,Tab - Eab +1);
+		ans =   gsl_sf_lnbeta(Eaa + Eab + Ebb + 1,Haa + Hbb + Tab - Eab + 1)
+			- gsl_sf_lnbeta(Eaa + 1, Haa +1)
+			- gsl_sf_lnbeta(Ebb + 1, Hbb +1)
+			- gsl_sf_lnbeta(Eab+1,Tab - Eab +1);
 		//for the random reference model
 #if (! NOREFERENCE)
 		float Ebaraa, Ebarbb, Ebarab, Ebarcc;
@@ -318,44 +122,39 @@ float Engine::centerscore(int d, int a, int b) {
 		Ebaraa = Taa/(2.0f*D[d].Etot);
 		Ebarbb = Tbb/(2.0f*D[d].Etot);
 		Ebarcc = Ebaraa + Ebarbb + Ebarbb;
-		ans -=  lnBetaFunction(Ebarcc + 1, Tcc - Ebarcc + 1)
-			- lnBetaFunction(Ebaraa + 1, Taa - Ebaraa + 1)
-			- lnBetaFunction(Ebarbb + 1, Tbb - Ebarbb + 1)
-			- lnBetaFunction(Ebarab + 1, Tab - Ebarab + 1);	
+		ans -=  gsl_sf_lnbeta(Ebarcc + 1, Tcc - Ebarcc + 1)
+			- gsl_sf_lnbeta(Ebaraa + 1, Taa - Ebaraa + 1)
+			- gsl_sf_lnbeta(Ebarbb + 1, Tbb - Ebarbb + 1)
+			- gsl_sf_lnbeta(Ebarab + 1, Tab - Ebarab + 1);	
 #endif
 	}
 	return ans;
 };
 
-
-float Engine::deltascore(int d, int a, int b, int x) {
+double Engine::deltascore(int d, int a, int b, int x) {
 	assert((a!=b)&&(a!=x)&&(b!=x));
-	float ans;
-	float da, db, dx;
+	double ans;
 	if (D[d].gtype=='b') {
 		float Eax, Ebx, Hax, Hbx, Tax, Tbx;
 		float Ebarax, Ebarbx, Hbarax, Hbarbx;
 		Eax = w[d].get_uv(a,x);
 		Ebx = w[d].get_uv(b,x);
-		da = w[d].nV[a];
-		db = w[d].nV[b];
-		dx = w[d].nV[x];
-		Tax = da * dx;
-		Tbx = db * dx;
+		Tax = w[d].nV[a] * w[d].nV[x] ;
+		Tbx = w[d].nV[b] * w[d].nV[x] ;
 		Hax = Tax - Eax;
 		Hbx = Tbx - Ebx;
 		Ebarax = Tax * D[d].aveP;
 		Ebarbx = Tbx * D[d].aveP;
 		Hbarax = Tax - Ebarax;
 		Hbarbx = Tbx - Ebarbx;
-		ans =    (	lnBetaFunction(Eax+Ebx+1.0f,Hax+Hbx+1.0f)
-				-lnBetaFunction(Eax+1.0f,Hax+1.0f)
-				-lnBetaFunction(Ebx+1.0f,Hbx+1.0f)
+		ans =    (	gsl_sf_lnbeta(Eax+Ebx+1.0f,Hax+Hbx+1.0f)
+				-gsl_sf_lnbeta(Eax+1.0f,Hax+1.0f)
+				-gsl_sf_lnbeta(Ebx+1.0f,Hbx+1.0f)
 			 );
 #if (! NOREFERENCE)
-		ans -=   (	lnBetaFunction(Ebarax+Ebarbx+1.0f,Hbarax+Hbarbx+1.0f)
-				-lnBetaFunction(Ebarax+1.0f,Hbarax+1.0f)
-				-lnBetaFunction(Ebarbx+1.0f,Hbarbx+1.0f)
+		ans -=   (	gsl_sf_lnbeta(Ebarax+Ebarbx+1.0f,Hbarax+Hbarbx+1.0f)
+				-gsl_sf_lnbeta(Ebarax+1.0f,Hbarax+1.0f)
+				-gsl_sf_lnbeta(Ebarbx+1.0f,Hbarbx+1.0f)
 			 );
 #endif
 	} else if (D[d].gtype=='w') {
@@ -363,23 +162,20 @@ float Engine::deltascore(int d, int a, int b, int x) {
 		float Ebarax, Ebarbx, Hbarax, Hbarbx;
 		Eax = w[d].get_uv(a,x);
 		Ebx = w[d].get_uv(b,x);
-		da = w[d].degrees[a];
-		db = w[d].degrees[b];
-		dx = w[d].degrees[x];
-		Hax = da * dx - Eax;
-		Hbx = db * dx - Ebx;
-		Ebarax = da * dx/(2.0f*D[d].Etot);
-		Ebarbx = db * dx/(2.0f*D[d].Etot);
-		Hbarax = da * dx - Ebarax;
-		Hbarbx = db * dx - Ebarbx;
-		ans =    (	lnBetaFunction(Eax+Ebx+1.0f,Hax+Hbx+1.0f)
-				-lnBetaFunction(Eax+1.0f,Hax+1.0f)
-				-lnBetaFunction(Ebx+1.0f,Hbx+1.0f)
+		Hax = w[d].degrees[a] * w[d].degrees[x] - Eax;
+		Hbx = w[d].degrees[b] * w[d].degrees[x] - Ebx;
+		Ebarax = w[d].degrees[a] * w[d].degrees[x]/(2.0f*D[d].Etot);
+		Ebarbx = w[d].degrees[b] * w[d].degrees[x]/(2.0f*D[d].Etot);
+		Hbarax = w[d].degrees[a] * w[d].degrees[x] - Ebarax;
+		Hbarbx = w[d].degrees[b] * w[d].degrees[x] - Ebarbx;
+		ans =    (	gsl_sf_lnbeta(Eax+Ebx+1.0f,Hax+Hbx+1.0f)
+				-gsl_sf_lnbeta(Eax+1.0f,Hax+1.0f)
+				-gsl_sf_lnbeta(Ebx+1.0f,Hbx+1.0f)
 			 );
 #if (! NOREFERENCE)
-		ans -=	 (	lnBetaFunction(Ebarax+Ebarbx+1.0f,Hbarax+Hbarbx+1.0f)
-				-lnBetaFunction(Ebarax+1.0f,Hbarax+1.0f)
-				-lnBetaFunction(Ebarbx+1.0f,Hbarbx+1.0f)
+		ans -=	 (	gsl_sf_lnbeta(Ebarax+Ebarbx+1.0f,Hbarax+Hbarbx+1.0f)
+				-gsl_sf_lnbeta(Ebarax+1.0f,Hbarax+1.0f)
+				-gsl_sf_lnbeta(Ebarbx+1.0f,Hbarbx+1.0f)
 			 );
 #endif
 	}
@@ -393,14 +189,15 @@ int Engine::run() {
 	std::set<int>::iterator intit, intit2, intit3;
 	int numJoins = 0;
 	int a,b,c,x,y,z,d;
-	float wc, theta, wab;
-	float cscore, jscore;
+	float wc;
+	double cscore, jscore;
 	Node* pnode;
 	scoremap::pairScore pscore;
 	std::map<int, scoremap::smap>::iterator smOut;
 	std::map<int, scoremap::twoScores>::iterator smIn;
 	std::map<int, std::map<int,float> >::iterator datOut;
 	std::map<int, float>::iterator datIn;
+
 	while (sm.hasPos()) {
 		// join and do stuff
 		pscore = sm.popBestScore();
@@ -410,10 +207,7 @@ int Engine::run() {
 		c = tree->numNodes;
 		c++;
 		tree->numNodes = c;
-		pnode = new Node(c,-1,0);
-		pnode->theta = new float[dim];
-		pnode->thNum = new float[dim];
-		pnode->thDen = new float[dim];
+		pnode = new Node(-1,c,0);
 		tree->nodeMap[c] = pnode;
 		tree->nodeMap[a]->parent = c;
 		tree->nodeMap[b]->parent = c;
@@ -430,10 +224,8 @@ int Engine::run() {
 			for(intit= tree->nodeMap[b]->vertexSet.begin(); intit!= tree->nodeMap[b]->vertexSet.end(); ++intit) {
 				pnode->vertexSet.insert(*intit);
 			}
-			pnode->vertsComputed = 1;
 		} else {
 			pnode->collapsed = 0;
-			pnode->vertsComputed = 0;
 		}
 		// compute d,w,n,m for c
 		for (d=0;d<dim;d++) {
@@ -442,30 +234,6 @@ int Engine::run() {
 			w[d].degrees[c] = w[d].degrees[a] + w[d].degrees[b];
 			w[d].selfMissing[c] = w[d].selfMissing[a] + w[d].selfMissing[b] + (w[d].degrees[a] * w[d].degrees[b]) - w[d].get_uv(a,b);
 			w[d].nV[c] = w[d].nV[a] + w[d].nV[b];
-			if (D[d].gtype=='w') {
-				wab = w[d].get_uv(a,b);
-				tree->nodeMap[c]->thNum[d] = wab;
-				tree->nodeMap[c]->thDen[d] = w[d].degrees[a] * w[d].degrees[b];
-			} else if (D[d].gtype=='b') {
-				wab = w[d].get_uv(a,b);
-				tree->nodeMap[c]->thNum[d] = wab;
-				tree->nodeMap[c]->thDen[d] = w[d].nV[a] * w[d].nV[b];
-			} else {
-				std::cerr << "graph type "<<D[d].gtype<<" not yet supported (during theta calculation).\n";
-				throw 1;
-			}
-			if (pnode->collapsed) {
-				pnode->thNum[d] += tree->nodeMap[a]->thNum[d] + tree->nodeMap[b]->thNum[d];
-				pnode->thDen[d] += tree->nodeMap[a]->thDen[d] + tree->nodeMap[b]->thDen[d];
-			}
-			theta = pnode->thNum[d] / pnode->thDen[d];
-			if (std::isnan(theta)) theta = 0;
-			tree->nodeMap[c]->theta[d] = theta;
-			//TODO:: delete the following, only for debugging
-			if (theta<0) {
-				std::cerr << "bad theta being written!\n";
-			}
-
 		}
 		firstNeighbors[c] = emptySet;
 		secondNeighbors[c] = emptySet;
@@ -497,6 +265,7 @@ int Engine::run() {
 				sm.erase(x,a);
 			}
 		}
+
 		for (intit = firstNeighbors[b].begin(); intit != firstNeighbors[b].end(); ++intit) {
 			x = *intit;
 			if (a!=x) {
@@ -616,16 +385,12 @@ int Engine::run() {
 
 		// delete a,b from weights (and degrees) in all dimensions
 		for (d=0;d<dim;d++) {
-			if (D[d].numV<(a+1)) {
-				w[d].degrees.erase(a);
-				w[d].selfMissing.erase(a);
-				w[d].nV.erase(a);
-			}
-			if (D[d].numV<(b+1)) {
-				w[d].degrees.erase(b);
-				w[d].selfMissing.erase(b);
-				w[d].nV.erase(b);
-			}
+			w[d].degrees.erase(a);
+			w[d].degrees.erase(b);
+			w[d].selfMissing.erase(a);
+			w[d].selfMissing.erase(b);
+			w[d].nV.erase(a);
+			w[d].nV.erase(b);
 			// now let us go through the neighbors of a
 			for (intit = firstNeighbors[a].begin(); intit != firstNeighbors[a].end(); ++intit) {
 				x = *intit;
@@ -637,6 +402,7 @@ int Engine::run() {
 				w[d].dat[x].erase(a);
 				w[d].dat[a].erase(x);
 			}
+
 			w[d].dat.erase(a);
 			// now let us go through the neighbors of b
 			for (intit = firstNeighbors[b].begin(); intit != firstNeighbors[b].end(); ++intit) {
@@ -691,26 +457,17 @@ bool Engine::initializeFirstLev() {
 	std::set<int> emptySet;
 	curLev = 0;
 	int i,d,u,v,x,y,z;
-	float jscore,cscore;
+	double jscore,cscore;
 	Node* pn;
 	std::map<int, graphData::destList*>::iterator it1;
 	graphData::destList::iterator it2;
 	for (i=0;i<D[0].numV;i++) { //TODO do the tree making inside the tree constructor
 		pn = new Node(i,-1,1);
-		pn->theta = new float[dim];
-		pn->thNum = new float[dim];
-		pn->thDen = new float[dim];
-		for (d=0;d<dim;d++) {
-			pn->theta[d] = 0;
-			pn->thDen[d] = 0;
-			pn->thNum[d] = 0;
-		}
 		tree->nodeMap[i] = pn;
 		tree->numNodes = i+1;
 		tree->topLevel.insert(i);
 		pn->vertexSet.insert(i);
 		pn->collapsed = 1;
-		pn->vertsComputed = 1;
 	}
 	// initialize weights, degrees, selfMissing and first neighbors, and nV
 	for (d=0;d<dim;d++) {
@@ -725,7 +482,7 @@ bool Engine::initializeFirstLev() {
 				w[d].nV[v]=1;
 				w[d].AddPair(u,v,(*it2).second);
 				w[d].AddPair(v,u,(*it2).second);
-				if (w[d].degrees.find(v)==w[d].degrees.end()) w[d].degrees[v]=0;
+				if (w[d].degrees.find(u)==w[d].degrees.end()) w[d].degrees[u]=0;
 				if (w[d].selfMissing.find(v)==w[d].selfMissing.end()) w[d].selfMissing[v]=0;
 				w[d].degrees[u] += (*it2).second;
 				w[d].degrees[v] += (*it2).second;

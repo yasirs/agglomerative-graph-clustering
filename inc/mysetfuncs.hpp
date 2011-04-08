@@ -5,6 +5,11 @@
 #include <iostream>
 #include "nodetree.hpp"
 #include <iterator>
+#if ISVC
+#include <unordered_set>
+#else
+#include <tr1/unordered_set>
+#endif
 
 
 /*
@@ -25,6 +30,31 @@ template<typename T> int num_set_common(const std::set<T>& s1, const std::set<T>
 	set_intersection(s1.begin(), s1.end(), s2.begin(), s2.end(), std::insert_iterator<std::set<T> >(target, target.begin()));
 	return target.size();
 };
+
+
+
+
+template<class K, class V> int num_common_keys(std::tr1::unordered_map<K,V>& m1, std::tr1::unordered_map<K,V>& m2) {
+	std::set<K> s;
+	get_common_keys(m1,m2,s);
+	return s.size();
+};
+
+
+template<class K, class V> void get_common_keys(std::tr1::unordered_map<K,V>& m1, std::tr1::unordered_map<K,V>& m2, std::set<K>& s) {
+	typename std::tr1::unordered_map<K,V>::iterator it1;
+	typename std::tr1::unordered_map<K,V>::iterator it2;
+	K k1, k2;
+	for (it1 = m1.begin(); it1 != m1.end(); it1++) {
+		k1 = it1->first;
+		for (it2 = m2.begin(); it2 != m2.end(); it2++) {
+			k2 = it2->first;
+			if (k1==k2) s.insert(k1);
+		}
+	}
+};
+
+
 
 
 template<class K, class V> int num_common_keys(std::map<K,V>& m1, std::map<K,V>& m2) {
@@ -57,9 +87,62 @@ template<typename T> bool set_update(std::set<T>&  target, const std::set<T>&  s
 
 
 template<typename T> bool set_union_update(std::set<T>& target, const std::set<T>& s1, const std::set<T>& s2) {
-	set_union(s1.begin(), s1.end(), s2.begin(), s2.end(), std::insert_iterator<std::set<T> >(target,target.begin()));
+	std::insert_iterator<std::set<T> > ii(target,target.begin());
+	set_union(s1.begin(), s1.end(), s2.begin(), s2.end(), ii);
 	return 1;
 };
+
+
+template<typename T> class set_union_Enumerator{
+	public:
+		set_union_Enumerator(std::set<T>& s1, std::set<T>& s2);
+		bool next(T& z);
+	private:
+		typename std::set<T>::iterator x1, x2, last1, last2;
+};
+
+template<typename T> set_union_Enumerator<T>::set_union_Enumerator(std::set<T>& s1, std::set<T>& s2) {
+	this->x1 = s1.begin(); this->last1 = s1.end();
+	this->x2 = s2.begin(); this->last2 = s2.end();
+}
+
+
+template<typename T> bool set_union_Enumerator<T>::next(T& result) {
+	if ((x1 != last1)&&(x2 != last2)) {
+		if (*x1 < *x2) {
+			result = *x1;
+			x1++;
+			return 1;
+		} else if (*x2 < *x1) {
+			result = *x2;
+			x2++;
+			return 1;
+		} else {
+			result = *x1;
+			x1++;
+			x2++;
+			return 1;
+		}
+	}
+	if (x1 != last1) {
+		result = *x1;
+		x1++;
+		return 1;
+	}
+	if (x2 != last2) {
+		result = *x2;
+		x2++;
+		return 1;
+	}
+	return 0;
+}
+
+template<typename T> bool set_union_update(std::tr1::unordered_set<T>& target, const std::set<T>& s1, const std::set<T>& s2) {
+	set_union(s1.begin(), s1.end(), s2.begin(), s2.end(), std::insert_iterator<std::tr1::unordered_set<T> >(target,target.begin()));
+	return 1;
+};
+
+
 
 
 template<typename T> bool set_difference_update(std::set<T>& target, const std::set<T>& s1, const std::set<T>& s2) {

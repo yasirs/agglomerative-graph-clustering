@@ -6,6 +6,7 @@
 #include <cmath>
 #include <cassert>
 #include <iostream>
+#include <tr1/unordered_map>
 #include "graphData.hpp"
 #include "nodetree.hpp"
 
@@ -25,10 +26,11 @@ class scoremap{
 			}
 			twoScorestruct() {}
 		} twoScores;
+		typedef std::tr1::unordered_map<int, twoScores> scDestType;
 		typedef struct {
 			twoScores bestP;
 			int bestK;
-			std::map<int, twoScores> scoreDest;
+			scDestType scoreDest;
 		} smap;
 		typedef struct {
 			int u;
@@ -51,17 +53,63 @@ class scoremap{
 		bool isEmpty(); //done
 		int AddPair(int u, int v, float jscore, float cscore); //done
 		int AddPair(int u, int v, twoScores score); 
-		void AddTo(int u, int v, float scorej); // done
+		bool AddTo(int u, int v, float scorej); // done
 		bool eraseAll(); //done
 		bool erase(int u,int v); //done
 		int has_u(int u);
+		int size();
 		std::set<int>* allPartners_u(int u);
 };
 
-void scoremap::AddTo(int u, int v, float scorej) {
+bool operator<(const scoremap::twoScores& s1, const scoremap::twoScores& s2);
+bool operator>(const scoremap::twoScores& s1, const scoremap::twoScores& s2);
+
+
+
+int scoremap::size() {
+	return scores.size();
+}
+
+bool scoremap::AddTo(int u, int v, float scorej) {
+	//TODO:: 
+	//std::cout << "before:"<<scores[u].scoreDest[v].joinScore;
 	std::map<int, smap>::iterator smOut = scores.find(u);
-	std::map<int, twoScores>::iterator smIn = (*smOut).second.scoreDest.find(v);
-	(*smIn).second.joinScore += scorej;
+	scDestType::iterator smIn = (*smOut).second.scoreDest.find(v);
+	if (smIn==(*smOut).second.scoreDest.end()) {
+		return 0;
+	} else {
+		(*smIn).second.joinScore += scorej;
+		twoScores ts1, ts2;
+		if (((*smIn).second) > ((*smOut).second.bestP)) { // new bestP is this one!
+			(*smOut).second.bestP = (*smIn).second;
+			(*smOut).second.bestK = (*smIn).first;
+			if ((*smIn).second > this->bestP) {
+				this->bestP = (*smIn).second;
+				this->bestK = (*smOut).first;
+			}
+		} else {
+			if ( (*smOut).second.bestK == (*smIn).first ) { // this was the old bestP, is it still so?
+				(*smOut).second.bestP = (*smIn).second;
+				for (scDestType::iterator inIt=(*smOut).second.scoreDest.begin();
+					inIt != (*smOut).second.scoreDest.end(); ++inIt ) {
+					if ((*inIt).second > (*smOut).second.bestP) {
+						(*smOut).second.bestP = (*inIt).second;
+						(*smOut).second.bestK = (*inIt).first;
+					}
+				}
+				if (this->bestK == (*smOut).first) {
+					this->bestP = (*smOut).second.bestP;
+					for (std::map<int, smap>::iterator outIt=scores.begin(); outIt != scores.end(); outIt++) {
+						if ((*outIt).second.bestP > this->bestP) {
+							this->bestP = (*outIt).second.bestP;
+							this->bestK = (*outIt).first;
+						}
+					}
+				}
+			}
+		}				
+		return 1;
+	}
 };
 
 
@@ -85,7 +133,7 @@ bool scoremap::has_uv(int u, int v) {
 std::set<int>* scoremap::allPartners_u(int u) {
 	std::set<int>* ans;
 	ans = new std::set<int>;
-	std::map<int, twoScores>::iterator it;
+	scDestType::iterator it;
 	if (scores.find(u)==scores.end()) {std::cout << "doesn't have primary key "<<u<<"\n"; return ans;}
 	for (it=scores[u].scoreDest.begin();it!=scores[u].scoreDest.end(); ++it) {
 		(*ans).insert((*it).first);
@@ -97,7 +145,7 @@ std::set<int>* scoremap::allPartners_u(int u) {
 
 int scoremap::has_u(int u) {
 	std::map<int, smap>::iterator OutIt;
-	std::map<int, twoScores>::iterator InIt;
+	scDestType::iterator InIt;
 	if (scores.find(u)!=scores.end()) return (*(scores[u].scoreDest.begin())).first;
 	for (OutIt = scores.begin(); OutIt != scores.end(); ++OutIt) {
 		for (InIt = (*OutIt).second.scoreDest.begin();InIt != (*OutIt).second.scoreDest.end(); ++InIt) {
@@ -126,19 +174,20 @@ bool operator>(const scoremap::twoScores& s1, const scoremap::twoScores& s2) {
 
 bool scoremap::erase(int u, int v) {
 	std::map<int, scoremap::smap>::iterator it1;
-	std::map<int, twoScores>::iterator it2;
+	scDestType::iterator it2;
+	std::map<int, scoremap::smap>::iterator outIt(scores.find(u));
 	//TODO
-	if (scores.find(u)==scores.end())
+	if (outIt==scores.end())
 		throw 1;
 	if (bestK==u) {
-		if (scores[u].bestK==v) {
-			scores[u].scoreDest.erase(v);
-			scores[u].bestP = twoScorestruct(BIGNEG,BIGNEG);
-			scores[u].bestK = -1;
-			for (it2=scores[u].scoreDest.begin(); it2 != scores[u].scoreDest.end(); ++it2) {
-				if ((*it2).second>scores[u].bestP) {
-					scores[u].bestP = (*it2).second;
-					scores[u].bestK = (*it2).first;
+		if ((*outIt).second.bestK==v) {
+			(*outIt).second.scoreDest.erase(v);
+			(*outIt).second.bestP = twoScorestruct(BIGNEG,BIGNEG);
+			(*outIt).second.bestK = -1;
+			for (it2=(*outIt).second.scoreDest.begin(); it2 != (*outIt).second.scoreDest.end(); ++it2) {
+				if ((*it2).second>(*outIt).second.bestP) {
+					(*outIt).second.bestP = (*it2).second;
+					(*outIt).second.bestK = (*it2).first;
 				}
 			}
 			bestP = twoScorestruct(BIGNEG,BIGNEG);
@@ -150,24 +199,24 @@ bool scoremap::erase(int u, int v) {
 				}
 			}
 		} else {
-			scores[u].scoreDest.erase(v);
+			(*outIt).second.scoreDest.erase(v);
 		}
 	} else {
-		if (scores[u].bestK==v) {
-			scores[u].scoreDest.erase(v);
-			scores[u].bestP =  twoScorestruct(BIGNEG,BIGNEG);
-			scores[u].bestK = -1;
-			for (it2=scores[u].scoreDest.begin(); it2 != scores[u].scoreDest.end(); ++it2) {
-				if ((*it2).second>scores[u].bestP) {
-					scores[u].bestP = (*it2).second;
-					scores[u].bestK = (*it2).first;
+		if ((*outIt).second.bestK==v) {
+			(*outIt).second.scoreDest.erase(v);
+			(*outIt).second.bestP =  twoScorestruct(BIGNEG,BIGNEG);
+			(*outIt).second.bestK = -1;
+			for (it2=(*outIt).second.scoreDest.begin(); it2 != (*outIt).second.scoreDest.end(); ++it2) {
+				if ((*it2).second>(*outIt).second.bestP) {
+					(*outIt).second.bestP = (*it2).second;
+					(*outIt).second.bestK = (*it2).first;
 				}
 			}
 		} else {
-			scores[u].scoreDest.erase(v);
+			(*outIt).second.scoreDest.erase(v);
 		}
 	}
-	if (scores[u].scoreDest.empty()) {
+	if ((*outIt).second.scoreDest.empty()) {
 		scores.erase(u);
 	}
 	if (scores.empty()) {
@@ -258,7 +307,7 @@ scoremap::pairScore scoremap::popBestScore() {
 	ans.v = scores[bestK].bestK;
 	ans.s = scores[bestK].scoreDest[ans.v];
 	std::map<int, scoremap::smap>::iterator it1;
-	std::map<int, twoScores>::iterator it2;
+	scDestType::iterator it2;
 
 	//now let us erase the last best
 	scores[bestK].scoreDest.erase(ans.v);

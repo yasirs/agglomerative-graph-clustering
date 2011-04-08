@@ -4,7 +4,30 @@
 #include <iostream>
 #include <set>
 #include <cstdlib>
-#include "mysetfuncs.hpp"
+#include <vector>
+//#include "mysetfuncs.hpp"
+
+
+
+std::vector<std::string>* splitspaces(const std::string& str, const std::string& delimiters = " ")
+{
+    std::vector<std::string>* tokens = new std::vector<std::string>;
+    // Skip delimiters at beginning.
+    std::string::size_type lastPos = str.find_first_not_of(delimiters, 0);
+    // Find first "non-delimiter".
+    std::string::size_type pos     = str.find_first_of(delimiters, lastPos);
+    while (std::string::npos != pos || std::string::npos != lastPos)
+    {
+        // Found a token, add it to the vector.
+        tokens->push_back(str.substr(lastPos, pos - lastPos));
+        // Skip delimiters.  Note the "not_of"
+        lastPos = str.find_first_not_of(delimiters, pos);
+        // Find next "non-delimiter"
+        pos = str.find_first_of(delimiters, lastPos);
+    }
+    return tokens;
+};
+
 
 class myEdge{
 	public:
@@ -33,7 +56,6 @@ class myEdge{
 	
 
 int main(int argc, char* argv[]) {
-	float holdout;
 	myEdge e;
 	std::vector<std::string> *words;
 	std::string fnstem, fnin, fnout, line;

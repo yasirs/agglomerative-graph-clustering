@@ -6,7 +6,7 @@
 #include "linkPredictor.hpp"
 
 
-void updateSoFar(graphData* Doriginal, linkPredictor& lp, graphData* GsoFar) {
+/*void updateSoFar(graphData* Doriginal, linkPredictor& lp, graphData* GsoFar) {
 	float NE = 0;
 	int u,v,d;
 	float wpredicted, w_old;
@@ -32,13 +32,47 @@ void updateSoFar(graphData* Doriginal, linkPredictor& lp, graphData* GsoFar) {
 		GsoFar[d].aveP = NE/(GsoFar[d].numV * (GsoFar[d].numV-1));
 	}
 };
-
+*/
 			
+graphData* residualDiff(graphData* Doriginal, graphData* GsoFar, int dim) {
+	graphData *Dnew = new graphData[dim];
+	graphData::destList::iterator eit;
+	std::map<int, graphData::destList*>::iterator dit;
+	float NE = 0;
+	int u,v,d;
+	float wpredicted, wthis, thisweight;
+	for (d=0;d<dim;d++) {
+		Dnew[d].int2Name = Doriginal[d].int2Name;
+		Dnew[d].name2Int = Doriginal[d].name2Int;
+		Dnew[d].gtype = Doriginal[d].gtype;
+		//Dnew[d].gtype = 'b';
+		Dnew[d].numV = Doriginal[d].numV;
+	}
+	for (d=0;d<dim;d++) {
+		Dnew[d].Etot = 0;
+		NE = 0;
+		for (dit = Doriginal[d].edgeList.begin(); dit != Doriginal[d].edgeList.end(); dit++) {
+			u = (*dit).first;
+			for (eit = Doriginal[d].edgeList[u]->begin(); eit != Doriginal[d].edgeList[u]->end(); eit++) {
+				v = (*eit).first;
+				wthis = (*eit).second;
+				wpredicted = GsoFar[d].get_uv(u,v);
+				thisweight = wthis - wpredicted;
+				if ((thisweight)>EPS) {
+					Dnew[d].set_uv(u,v,thisweight);
+					Dnew[d].Etot += thisweight;
+					NE += 1;
+				}
+			}
+		}
+		Dnew[d].aveP = NE/(Dnew[d].numV * (Dnew[d].numV-1));
+	}
+	return Dnew;
+};
 
 
 
-
-
+/*
 graphData* getORResidual(graphData* Doriginal, linkPredictor& lp, graphData* GsoFar) {
 	// for now, this is necessary
 	assert(Doriginal->gtype=='b');
@@ -78,7 +112,7 @@ graphData* getORResidual(graphData* Doriginal, linkPredictor& lp, graphData* Gso
 	}
 	return Dnew;
 };
-	
+*/	
 
 
 graphData* getResidual(graphData* D, linkPredictor& lp) {
