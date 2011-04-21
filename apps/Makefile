@@ -2,7 +2,8 @@ PATHTOLIBS = /opt/local/lib
 MYGPP = /opt/local/bin/g++-mp-4.4
 NATIVEGPP = /usr/bin/g++-4.2
 # OUTPATH = ~/temp
-OUTPATH = ~/work/netregpaper/running
+OUTPATH = .
+
 
 default: scoreSome.cpp ../inc/nodetree.hpp ../inc/nodetreeOther.hpp ../inc/dataMap.hpp ../inc/dataMapOther.hpp \
 	../inc/mysetfuncs.hpp ../inc/mygenerators.hpp ../inc/linkPredictor.hpp ../inc/linkPredictorOther.hpp \
@@ -20,6 +21,12 @@ holdOutCV: holdOutCV.cpp ../inc/mysetfuncs.hpp
 writeLabels: writeLabels.cpp ../inc/mysetfuncs.hpp 
 	$(MYGPP) -I../inc/ /opt/local/lib/gcc44/libstdc++.a writeLabels.cpp -o $(OUTPATH)/writeLabels -O3 -Wall
 
+
+
+treeScore: treeScore.cpp ../inc/nodetree.hpp ../inc/nodetreeOther.hpp ../inc/dataMap.hpp ../inc/dataMapOther.hpp \
+	../inc/mysetfuncs.hpp ../inc/mygenerators.hpp ../inc/linkPredictor.hpp ../inc/linkPredictorOther.hpp \
+	../inc/residuals.hpp ../inc/scoremap.hpp ../inc/modelStats.hpp ../inc/modelParam.hpp
+	$(MYGPP) -I../inc/ $(PATHTOLIBS)/libgsl.a treeScore.cpp -o $(OUTPATH)/treeScore -O3
 
 all: default holdOutCV writeLabels
 

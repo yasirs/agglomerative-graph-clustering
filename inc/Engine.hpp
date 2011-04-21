@@ -84,6 +84,7 @@ class Engine{
 		bool initializeScoresML();
 		int runML();
 		int runFB();
+		int readJoins(const char* filename);
 		void passFB();
 		void passML();
 		bool doStage();
@@ -528,6 +529,46 @@ int Engine::runML() {
 	return mergeList.size();
 };
 
+int Engine::readJoins(const char* filename) {
+	std::set<int> emptySet, tempSet;
+	std::set<int> possSet1, possSet2;
+	std::set<int>::iterator intit, intit2, intit3, intsetit;
+	int numJoins = 0;
+	int a,b,c,x,y,d, tint;
+	float cscore, jscore;
+	char strline[512], aname[100], bname[100];
+	std::ifstream file;
+	file.open(filename, std::ios::in);
+	if (! file.is_open()) throw 0;
+	file.getline(strline,512);
+	while (sscanf(strline, "[%s, %s] => %i", aname,bname,c)==3) {
+		a = D[0].name2Int[std::string(aname)];
+		b = D[0].name2Int[std::string(bname)];
+		// let us create new group c and create heirarchical relations
+                assert(c == tree->makeMergeNode(a,b));
+		tree->nodeMap[c]->collapsed = 0;
+		tree->nodeMap[c]->vertsComputed = 0;
+
+
+		// compute d,w,n,m for c
+		for (d=0;d<dim;d++) {
+			w[d]->addMergedData(a,b,c,firstNeighbors[c]);
+		}
+
+		tree->nodeMap[c]->writeThetaforMerged(a,b,w,tree,D);
+
+		numJoins++;
+		this->mergeList.push_back(mergeRecord(a,b,c));
+		if (DEBUGMODE) {
+			std::cout << "joined ";
+			if (D->int2Name.find(a) == D->int2Name.end()) std::cout << a; else std::cout << D->int2Name[a];
+			std::cout  <<" and ";
+			if (D->int2Name.find(b) == D->int2Name.end()) std::cout << b; else std::cout << D->int2Name[b];
+			std::cout <<" to form "<< c <<"\n";
+		}
+	}
+	return mergeList.size();
+};
 
 bool Engine::initializeScoresML() {
 	std::set<int> neighbUnion;
