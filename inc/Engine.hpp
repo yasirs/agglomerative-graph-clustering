@@ -542,8 +542,14 @@ int Engine::readJoins(const char* filename) {
 	if (! file.is_open()) throw 0;
 	file.getline(strline,512);
 	while (sscanf(strline, "[%s, %s] => %i", aname,bname,c)==3) {
-		a = D[0].name2Int[std::string(aname)];
-		b = D[0].name2Int[std::string(bname)];
+		if (D[0].hasName(aname))
+			a = D[0].name2Int[std::string(aname)];
+		else 
+			a = atoi(aname);
+		if (D[0].hasName(bname))
+			b = D[0].name2Int[std::string(bname)];
+		else 
+			b = atoi(bname);
 		// let us create new group c and create heirarchical relations
                 assert(c == tree->makeMergeNode(a,b));
 		tree->nodeMap[c]->collapsed = 0;

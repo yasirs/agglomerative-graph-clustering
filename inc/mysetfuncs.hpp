@@ -5,6 +5,7 @@
 #include <iostream>
 #include "nodetree.hpp"
 #include <iterator>
+#include <sstream>
 #if ISVC
 #include <unordered_set>
 #else
@@ -22,7 +23,21 @@ int std::isnan(double x) {
 	return _isnan(x);
 }*/
 
+int atoi(const char* a) {
+	std::stringstream ss;
+	int i;
+	ss << a;
+	ss >> i;
+	return i;
+}
 
+int atoi(const std::string& a) {
+	std::stringstream ss;
+	int i;
+	ss << a;
+	ss >> i;
+	return i;
+}
 
 
 template<typename T> int num_set_common(const std::set<T>& s1, const std::set<T>& s2) {

@@ -57,7 +57,17 @@ class graphData{
 			edgeList.clear();
 		}
 		void copyNoEdges(graphData& Dnew);
+		bool hasName(const std::string& name);
+		bool hasName(const char* name);
 };
+
+bool graphData::hasName(const std::string& name) {
+	return (name2Int.find(name)!=name2Int.end());
+}
+
+bool graphData::hasName(const char* name) {
+	return (name2Int.find(std::string(name))!=name2Int.end());
+}
 
 void graphData::print_name_from_int(int i) {
 	std::cout << int2Name[i] << "\n";
