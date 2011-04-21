@@ -541,7 +541,7 @@ int Engine::readJoins(const char* filename) {
 	file.open(filename, std::ios::in);
 	if (! file.is_open()) throw 0;
 	file.getline(strline,512);
-	while (sscanf(strline, "[%s, %s] => %i", aname,bname,c)==3) {
+	while (sscanf(strline, "[%[0123456789], %[0123456789]] => %i", aname,bname,&c)==3) {
 		if (D[0].hasName(aname))
 			a = D[0].name2Int[std::string(aname)];
 		else 
