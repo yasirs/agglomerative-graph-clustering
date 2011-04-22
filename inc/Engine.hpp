@@ -572,6 +572,7 @@ int Engine::readJoins(const char* filename) {
 			if (D->int2Name.find(b) == D->int2Name.end()) std::cout << b; else std::cout << D->int2Name[b];
 			std::cout <<" to form "<< c <<"\n";
 		}
+		file.getline(strline,512);
 	}
 	return mergeList.size();
 };
