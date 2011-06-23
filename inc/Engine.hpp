@@ -17,6 +17,7 @@
 #include "mysetfuncs.hpp"
 #include "dataMapOther.hpp"
 #include "nodetreeOther.hpp"
+#include "modelParam.hpp"
 #include <iostream>
 #include <cassert>
 #include <cmath>
@@ -58,6 +59,38 @@ float gammaFunction(int a) {
 #ifndef NOREFERENCE
 #define NOREFERENCE 0
 #endif
+
+#if !defined(str2int_INCLUDED)
+#define str2int_INCLUDED
+int str2int(const std::string& input) {
+	unsigned int output, p10;
+	int i;
+	p10 = 1;
+	output = 0;
+	for (i = input.length()-1; i>=0; i--) {
+		output += p10*(int(input[i])-48);
+		p10 = p10 * 10;
+	}
+	return output;
+}
+
+std::string int2str(const unsigned int input) {
+	// input must be a positive integer
+	unsigned int temp = input;
+	std::string str  = "";
+	if (input == 0) { str = "0"; } else {
+		while (temp != 0) {
+			str  = char(int(temp % 10)+48) + str;
+			temp = (unsigned int)temp/10;
+		}
+	}
+	return str;
+}
+
+
+#endif
+
+
 
 class Engine{
 	public:
@@ -103,23 +136,52 @@ class Engine{
 		void printHRG(const char* filename, int d);
 };
 
-void printHRG(const char* fn, int d) {
+void Engine::printHRG(const char* fn, int d) {
+	// currently only works for binary graphs
+	assert(D[d].gtype=='b');
+	BinomialSelfStats* stat;
+	BinomialParam* param;
+	float p;
+	int e,n;
 	// check that the mergeList has right number of merges
 	assert(D[d].numV==(mergeList.size()+1));
 	std::ofstream file;
-	file.open(fn,std:ios::out);
+	file.open(fn,std::ios::out);
 	std::list<mergeRecord>::iterator mergeit(mergeList.begin());
 	std::set<int>::iterator intit;
 	int jnum = 0;
-	int iL, iR;
+	int iL, iR, iM;
 	std::string tL, tR;
 	std::string nL, nR;
+	iM = 0;
 	for (; mergeit != mergeList.end(); mergeit++) {
 		iL = mergeit->child1;
 		iR = mergeit->child2;
+		assert (mergeit->merged == (iM+D[d].numV));
 		if (iL<D[d].numV) {
 			nL = D[d].int2Name[iL];
-			tL = " (G) "
+			tL = "(G)";
+		} else {
+			nL = int2str(iL-D[d].numV);
+			tL = "(D)";
+		}
+		if (iR<D[d].numV) {
+			nR = D[d].int2Name[iR];
+			tR = "(G)";
+		} else {
+			nR = int2str(iR-D[d].numV);
+			tR = "(D)";
+		}
+		param = (BinomialParam*) tree->nodeMap[iM]->params[d];
+		p = param->p;
+		e = param->numE;
+		stat = (BinomialSelfStats*) w[d]->datvert[iM];
+		n = stat->nV;
+		file << "[ "<<(iM-D[d].numV)<<" ] L= "<<nL<<" "<<tL<<" R= "<<nR<<" "<<tR<<" p= "<<p<<" e= "<<e<<" n= "<<n<<"\n";
+		iM += 1;
+	}
+	file.close();
+}
 
 
 void Engine::printCommonNeighbFile(const char* fn, int d, bool skipEdges) {
