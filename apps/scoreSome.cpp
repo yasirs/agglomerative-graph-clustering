@@ -15,6 +15,38 @@
 #include <string> 
 
 
+#if !defined(str2int_INCLUDED)
+#define str2int_INCLUDED
+int str2int(const std::string& input) {
+	unsigned int output, p10;
+	int i;
+	p10 = 1;
+	output = 0;
+	for (i = input.length()-1; i>=0; i--) {
+		output += p10*(int(input[i])-48);
+		p10 = p10 * 10;
+	}
+	return output;
+}
+
+std::string int2str(const unsigned int input) {
+	// input must be a positive integer
+	unsigned int temp = input;
+	std::string str  = "";
+	if (input == 0) { str = "0"; } else {
+		while (temp != 0) {
+			str  = char(int(temp % 10)+48) + str;
+			temp = (unsigned int)temp/10;
+		}
+	}
+	return str;
+}
+
+
+#endif
+
+
+
 bool fexists(const char* filename) {
 	std::ifstream ifile(filename);
 	return ifile;
@@ -83,8 +115,7 @@ int main(int argc, char* argv[]) {
 	// run the agglomerative algorithm
 	std::cout << "starting to run\n";
 	en->runML();
-	fnout = fnstem + ".hrg";
-	en->printHRG(fnout.c_str(),0);
+	fnout = fnstem +"_0.hrg"; en->printHRG(fnout.c_str(),0);
 	en->passFB();
 	std::cout << "done running\n";
 	lp.attach(en); // attached the engine
@@ -116,6 +147,7 @@ int main(int argc, char* argv[]) {
 		en->initializeScoresML();
 		std::cout << "running on the residual\n";
 		en->runML();
+		fnout = fnstem +"_"+int2str(residint)+".hrg"; en->printHRG(fnout.c_str(),0);
 		en->passFB();
 		lp.attach(en);
 		//fnout = fnstem + ".scores" + sres;
