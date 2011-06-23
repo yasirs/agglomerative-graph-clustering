@@ -172,12 +172,12 @@ void Engine::printHRG(const char* fn, int d) {
 			nR = int2str(iR-D[d].numV);
 			tR = "(D)";
 		}
-		param = (BinomialParam*) tree->nodeMap[iM]->params[d];
+		param = (BinomialParam*) tree->nodeMap[iM+D[d].numV]->params[d];
 		p = param->p;
 		e = param->numE;
-		stat = (BinomialSelfStats*) w[d]->datvert[iM];
+		stat = (BinomialSelfStats*) w[d]->datvert[iM+D[d].numV];
 		n = stat->nV;
-		file << "[ "<<(iM-D[d].numV)<<" ] L= "<<nL<<" "<<tL<<" R= "<<nR<<" "<<tR<<" p= "<<p<<" e= "<<e<<" n= "<<n<<"\n";
+		file << "[ "<< iM <<" ] L= "<<nL<<" "<<tL<<" R= "<<nR<<" "<<tR<<" p= "<<p<<" e= "<<e<<" n= "<<n<<"\n";
 		iM += 1;
 	}
 	file.close();
