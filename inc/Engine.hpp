@@ -100,7 +100,26 @@ class Engine{
 		void printHyperGeomFile(const char* filename, int d, bool skipEdges);
 		void printDegreeProdFile(const char* filename, int d, bool skipEdges);
 		void printCommonNeighbFile(const char* filename, int d, bool skipEdges);
+		void printHRG(const char* filename, int d);
 };
+
+void printHRG(const char* fn, int d) {
+	// check that the mergeList has right number of merges
+	assert(D[d].numV==(mergeList.size()+1));
+	std::ofstream file;
+	file.open(fn,std:ios::out);
+	std::list<mergeRecord>::iterator mergeit(mergeList.begin());
+	std::set<int>::iterator intit;
+	int jnum = 0;
+	int iL, iR;
+	std::string tL, tR;
+	std::string nL, nR;
+	for (; mergeit != mergeList.end(); mergeit++) {
+		iL = mergeit->child1;
+		iR = mergeit->child2;
+		if (iL<D[d].numV) {
+			nL = D[d].int2Name[iL];
+			tL = " (G) "
 
 
 void Engine::printCommonNeighbFile(const char* fn, int d, bool skipEdges) {
