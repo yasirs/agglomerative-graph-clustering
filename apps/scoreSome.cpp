@@ -83,6 +83,8 @@ int main(int argc, char* argv[]) {
 	// run the agglomerative algorithm
 	std::cout << "starting to run\n";
 	en->runML();
+	fnout = fnstem + ".hrg";
+	en->printHRG(fnout.c_str(),0);
 	en->passFB();
 	std::cout << "done running\n";
 	lp.attach(en); // attached the engine
