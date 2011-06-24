@@ -172,10 +172,15 @@ void Engine::printHRG(const char* fn, int d) {
 			nR = int2str(iR-D[d].numV);
 			tR = "(D)";
 		}
-		param = (BinomialParam*) tree->nodeMap[iM+D[d].numV]->params[d];
+		if (w[d]->DerivedType()=="dataMap") { 
+			param = (BinomialParam*) tree->returnNode(iM+D[d].numV)->params[d];
+			stat = (BinomialSelfStats*) w[d]->datvert[iM+D[d].numV];
+		} else if (w[d]->DerivedType()=="dataMapOther") { 
+			param = (BinomialParam*) ((TreeClassOther*) tree)->returnNode(iM+D[d].numV)->paramsOriginal[d];
+			stat = (BinomialSelfStats*) ((dataMapOther*) w[d])->oDatvert[iM+D[d].numV];
+		}
 		p = param->p;
 		e = param->numE;
-		stat = (BinomialSelfStats*) w[d]->datvert[iM+D[d].numV];
 		n = stat->nV;
 		file << "[ "<< iM <<" ] L= "<<nL<<" "<<tL<<" R= "<<nR<<" "<<tR<<" p= "<<p<<" e= "<<e<<" n= "<<n<<"\n";
 		iM += 1;
