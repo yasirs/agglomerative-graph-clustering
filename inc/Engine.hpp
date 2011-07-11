@@ -115,7 +115,7 @@ class Engine{
 		Engine(graphData* G, int d);
 		Engine(graphData* G, graphData* Goriginal, graphData* GsoFar, int d);
 		bool initializeScoresML();
-		int runML();
+		int runML(bool,bool);
 		int runFB();
 		int readJoins(const char* filename);
 		void passFB();
@@ -144,7 +144,10 @@ void Engine::printHRG(const char* fn, int d) {
 	float p;
 	int e,n;
 	// check that the mergeList has right number of merges
-	assert(D[d].numV==(mergeList.size()+1));
+	if (D[d].numV!=(mergeList.size()+1)) {
+		std::cout << "D["<<d<<"].numV ="<<D[d].numV<<", mergeList.size() ="<<mergeList.size()<<"\n";
+		assert(0);
+	}
 	std::ofstream file;
 	file.open(fn,std::ios::out);
 	std::list<mergeRecord>::iterator mergeit(mergeList.begin());
@@ -357,7 +360,11 @@ float Engine::deltascoreML(int d, int a, int b, int x) {
 };
 
 
-int Engine::runML() {
+int Engine::runML(bool forceJoin=false,bool collapseIfPossible=true) {
+	this->tree->topLevel.clear();
+	for (unsigned int i=0; i<D[0].numV; i++) {
+		tree->topLevel.insert(i);
+	}
 	std::set<int> emptySet, tempSet;
 	std::set<int> possSet1, possSet2;
 	std::set<int>::iterator intit, intit2, intit3, intsetit;
@@ -369,15 +376,41 @@ int Engine::runML() {
 	scoremap::scDestType::iterator smIn;
 	std::map<int, std::map<int,float> >::iterator datOut;
 	std::map<int, float>::iterator datIn;
+	assert((mergeList.size()==0));
+	#if DEBUGMODE
+	std::cout << "forceJoin = "<<forceJoin<<"\n";
+	#endif
 	//while (sm.hasPos()) {
-	while (! sm.isEmpty()) {
+	while ((! sm.isEmpty())or((forceJoin)and(tree->topLevel.size()>1))) {
 		// join and do stuff
-		pscore = sm.popBestScore();
-		a = pscore.u; b = pscore.v;
-		sm.erase(b,a);
+		#if DEBUGMODE
+		if (mergeList.size() != (D[0].numV-tree->topLevel.size())) {
+			std::cout << "mergeList.size()="<<mergeList.size()<<", D[0].numV="<<D[0].numV<<", tree->topLevel.size()="<<tree->topLevel.size()<<"\n";
+		} else {
+			std::cout << "OK: mergeList.size()="<<mergeList.size()<<", D[0].numV="<<D[0].numV<<", tree->topLevel.size()="<<tree->topLevel.size()<<"\n";
+		}
+		#endif
+			
+		if (! sm.isEmpty()) {
+			#if DEBUGMODE
+			std::cout << "from sm\n";
+			#endif
+			pscore = sm.popBestScore();
+			a = pscore.u; b = pscore.v;
+			sm.erase(b,a);
+		} else {
+			#if DEBUGMODE
+			std::cout << "from topLevel\n";
+			#endif
+			intsetit = tree->topLevel.begin();
+			a = *intsetit;
+			intsetit++;
+			b = *intsetit;
+		}
+			
 		// let us create new group c and create heirarchical relations
                 c = tree->makeMergeNode(a,b);
-		if ((tree->nodeMap[a]->collapsed)&&(tree->nodeMap[b]->collapsed)&&(pscore.s.centerMscore>=0)) {
+		if ((collapseIfPossible)&((tree->nodeMap[a]->collapsed)&&(tree->nodeMap[b]->collapsed)&&(pscore.s.centerMscore>=0))) {
                         assert( tree->nodeMap[c]->collapseNode(tree->nodeMap) );
 		} else {
 			tree->nodeMap[c]->collapsed = 0;

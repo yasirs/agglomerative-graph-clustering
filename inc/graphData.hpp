@@ -10,6 +10,11 @@
 #include <tr1/unordered_map>
 #include <boost/lexical_cast.hpp>
 
+#ifndef DEBUGMODE
+#define DEBUGMODE 0
+#endif
+
+
 void my_Tokenize(const std::string& str,std::vector<std::string>& tokens,const std::string& delimiter);
 
 std::string getstvec(std::vector<std::string> a, int i) {
@@ -369,6 +374,9 @@ bool graphData::readGeneralBasedOnOld(graphData* Goriginal, const char* filename
 		Goriginal[ii].numV = numV;
 	}
 	aveP = sum/(numV * numV); // shouldn't matter because aveP is to be used for binary
+#if DEBUGMODE
+	std::cout << "read graph, V = " << numV << ", E = " << sum/2<<"\n";
+#endif
 	return 1;
 };
 
@@ -616,6 +624,9 @@ bool graphData::readGeneral(const char* fn, const char* sep) {
 	}
 	numV = name2Int.size();
 	aveP = sum/(numV * numV); // shouldn't matter because aveP is to be used for binary
+#if DEBUGMODE
+	std::cout << "read graph, V = " << numV << ", E = " << sum/2<<"\n";
+#endif
 	return 1;
 };
 

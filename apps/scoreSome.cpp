@@ -1,4 +1,4 @@
-#define DEBUGMODE 0
+#define DEBUGMODE 1
 #define NOGSL 1
 #define NOREFERENCE 0
 #define ISVC 0
@@ -114,7 +114,7 @@ int main(int argc, char* argv[]) {
 
 	// run the agglomerative algorithm
 	std::cout << "starting to run\n";
-	en->runML();
+	en->runML(true,false);
 	fnout = fnstem +"_0.hrg"; en->printHRG(fnout.c_str(),0);
 	en->passFB();
 	std::cout << "done running\n";
@@ -146,7 +146,7 @@ int main(int argc, char* argv[]) {
 		en = new Engine(Gnew,Goriginal,GsoFar,1);
 		en->initializeScoresML();
 		std::cout << "running on the residual\n";
-		en->runML();
+		en->runML(true,false);
 		fnout = fnstem +"_"+int2str(residint)+".hrg"; en->printHRG(fnout.c_str(),0);
 		en->passFB();
 		lp.attach(en);
