@@ -1,4 +1,4 @@
-#define DEBUGMODE 1
+#define DEBUGMODE 0
 #define NOGSL 1
 #define NOREFERENCE 0
 #define ISVC 0

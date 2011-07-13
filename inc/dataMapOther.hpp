@@ -280,8 +280,9 @@ void dataMapOther::initialize(graphData& D, graphData& Doriginal, graphData& Dso
 	for (u=0; u != D.numV; u++) {
 		this->initVert(u);
 	}
-	std::map<int, graphData::destList*>::iterator it1 (D.edgeList.begin());
-	for (; it1 != D.edgeList.end(); ++it1) {
+	// Use the Original graph for making first neighbors
+	std::map<int, graphData::destList*>::iterator it1 (Doriginal.edgeList.begin());
+	for (; it1 != Doriginal.edgeList.end(); ++it1) {
 		u = (*it1).first;
 		if (fNeighbours.find(u)==fNeighbours.end()) fNeighbours[u] = emptySet;
 		for (graphData::destList::iterator it2 ((*it1).second->begin()); it2 != (*it1).second->end(); ++it2) {
