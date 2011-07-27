@@ -89,6 +89,7 @@ int main(int argc, char* argv[]) {
 	Goriginal[0].readGeneral(fnin.c_str());
 	Goriginal[0].gtype = gtype;
 	std::cout << "read file!\n";
+	std::cout << "Initial Etot = "<<Goriginal->Etot << "\n";
 	fnin = fnstem + ".labels";
 	doScores = fexists(fnin.c_str());
 	if (doScores) {
@@ -139,7 +140,7 @@ int main(int argc, char* argv[]) {
 		dummy >> sres;
 		std::cout << "getting the residual graph\n";
 		Gnew = residualDiff(Goriginal, GsoFar, 1);
-		//fnout = fnstem + sres + ".residual"; Gnew->writeSingle(fnout.c_str());
+		fnout = fnstem + sres + ".residual"; Gnew->writeSingle(fnout.c_str());
 		std::cout << "got the residual\n";
 		std::cout << "Etot = "<< Gnew->Etot << "\n";
 		delete en;
