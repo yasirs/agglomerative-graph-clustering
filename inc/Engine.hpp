@@ -403,9 +403,14 @@ int Engine::runML(bool forceJoin=false,bool collapseIfPossible=true) {
 			std::cout << "from topLevel\n";
 			#endif
 			intsetit = tree->topLevel.begin();
+			std::advance(intsetit,(rand() % tree->topLevel.size()));
 			a = *intsetit;
-			intsetit++;
-			b = *intsetit;
+			b = a;
+			while(b==a) {
+				intsetit = tree->topLevel.begin();
+				std::advance(intsetit,(rand() % tree->topLevel.size()));
+				b = *intsetit;
+			}
 		}
 			
 		// let us create new group c and create heirarchical relations
