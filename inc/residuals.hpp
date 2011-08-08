@@ -60,7 +60,7 @@ graphData* residualDiff(graphData* Doriginal, graphData* GsoFar, int dim) {
 				thisweight = wthis - wpredicted;
 				if ((thisweight)>EPS) {
 					Dnew[d].set_uv(u,v,thisweight);
-					Dnew[d].Etot += thisweight;
+					Dnew[d].Etot += thisweight; // added for both u,v and v,u since original stores both
 					NE += 1;
 				}
 			}

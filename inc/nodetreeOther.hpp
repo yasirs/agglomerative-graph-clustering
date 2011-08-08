@@ -21,6 +21,7 @@ class NodeOther: public Node {
 
 class TreeClassOther: public TreeClass {
 	public:
+		virtual bool isOther() { return true; }
 		virtual int makeMergeNode(int a, int b);
 		TreeClassOther(graphData* G, int dimension);
 		virtual ~TreeClassOther();
@@ -156,7 +157,9 @@ bool NodeOther::writeThetaforMerged(int a, int b, dataMap** ww, TreeClass* tree,
 		}
 		this->paramsOriginal[d]->cleanup();
 		this->paramsSoFar[d]->cleanup();
-		this->params[d]->bestfromSoFar(this->paramsOriginal[d],this->paramsSoFar[d]);
+		this->params[d]->cleanup()
+		//this->params[d]->bestfromSoFar(this->paramsOriginal[d],this->paramsSoFar[d]);
+		
 	}
 	return 1;
 }

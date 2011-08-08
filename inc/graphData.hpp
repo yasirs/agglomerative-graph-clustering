@@ -620,7 +620,7 @@ bool graphData::readGeneral(const char* fn, const char* sep) {
 
 		sum += 2; // NOTE : this shouldn't really matter as the sum isn't used for
 				// weighted graphs
-		Etot += weight;
+		Etot += 2*weight;
 	}
 	numV = name2Int.size();
 	aveP = sum/(numV * numV); // shouldn't matter because aveP is to be used for binary

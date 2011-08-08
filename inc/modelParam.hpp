@@ -7,7 +7,7 @@ class ModelParamBase {
 		virtual void calculate(ModelPairStatsBase* pab, ModelSelfStatsBase* sa, ModelSelfStatsBase* sb)=0;
 		virtual void collapse(ModelParamBase* pa, ModelParamBase* pb)=0;
 		virtual void cleanup()=0;
-		virtual void bestfromSoFar(ModelParamBase* Ori, ModelParamBase* Sof)=0;
+		//virtual void bestfromSoFar(ModelParamBase* Ori, ModelParamBase* Sof)=0;
 		virtual bool isZero()=0;
 		virtual float predict(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb)=0;
 		virtual float updatedSoFar(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb, float oldsofar)=0;
@@ -23,7 +23,7 @@ class BinomialParam: public ModelParamBase {
 		virtual void calculate(ModelPairStatsBase* pab, ModelSelfStatsBase* sa, ModelSelfStatsBase* sb);
 		virtual void collapse(ModelParamBase* pa, ModelParamBase* pb);
 		virtual void cleanup();
-		virtual void bestfromSoFar(ModelParamBase* Ori, ModelParamBase* Sof);
+		//virtual void bestfromSoFar(ModelParamBase* Ori, ModelParamBase* Sof);
 		virtual bool isZero();
 		virtual float predict(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb);
 		virtual float updatedSoFar(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb, float oldsofar);
@@ -41,11 +41,11 @@ float BinomialParam::updatedSoFar(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb
 	return 1 - (1 - oldsofar)*(1 - this->predict(sa,sb));
 }
 
-void BinomialParam::bestfromSoFar(ModelParamBase* Ori, ModelParamBase* Sof) {
+/*void BinomialParam::bestfromSoFar(ModelParamBase* Ori, ModelParamBase* Sof) {
 	//this->p = std::max(0.0f,(((BinomialParam*) Ori)->p - ((BinomialParam*) Sof)->p)/(1 - ((BinomialParam*) Sof)->p));
 	//this->p = 1.0f - (1.0f-((BinomialParam*) Ori)->p) * (1.0f - ((BinomialParam*) Sof)->p);
 	this->p = ((BinomialParam*) Ori)->p;
-}
+}*/
 
 void BinomialParam::collapse(ModelParamBase* pa, ModelParamBase* pb) {
 	this->numE += ((BinomialParam*) pa)->numE + ((BinomialParam*) pb)->numE;
@@ -80,7 +80,7 @@ class GaussianParam: public ModelParamBase {
 		virtual void calculate(ModelPairStatsBase* pab, ModelSelfStatsBase* sa, ModelSelfStatsBase* sb);
 		virtual void collapse(ModelParamBase* pa, ModelParamBase* pb);
 		virtual void cleanup();
-		virtual void bestfromSoFar(ModelParamBase* Ori, ModelParamBase* Sof);
+		//virtual void bestfromSoFar(ModelParamBase* Ori, ModelParamBase* Sof);
 		virtual bool isZero();
 		virtual float predict(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb);
 		virtual float updatedSoFar(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb, float oldsofar);
@@ -98,11 +98,11 @@ float GaussianParam::updatedSoFar(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb
 	return (oldsofar + this->predict(sa,sb));
 }
 
-void GaussianParam::bestfromSoFar(ModelParamBase* Ori, ModelParamBase* Sof) {
+/*void GaussianParam::bestfromSoFar(ModelParamBase* Ori, ModelParamBase* Sof) {
 	//this->p = std::max(0.0f,(((GaussianParam*) Ori)->p - ((GaussianParam*) Sof)->p)/(1 - ((GaussianParam*) Sof)->p));
 	//this->p = 1.0f - (1.0f-((GaussianParam*) Ori)->p) * (1.0f - ((GaussianParam*) Sof)->p);
 	this->mu = ((GaussianParam*) Ori)->mu;
-}
+}*/
 
 void GaussianParam::collapse(ModelParamBase* pa, ModelParamBase* pb) {
 	this->sumE += ((GaussianParam*) pa)->sumE + ((GaussianParam*) pb)->sumE;
@@ -140,7 +140,7 @@ class PoissonParam: public ModelParamBase {
 		virtual void calculate(ModelPairStatsBase* pab, ModelSelfStatsBase* sa, ModelSelfStatsBase* sb);
 		virtual void collapse(ModelParamBase* pa, ModelParamBase* pb);
 		virtual void cleanup();
-		virtual void bestfromSoFar(ModelParamBase* Ori, ModelParamBase* Sof);
+		//virtual void bestfromSoFar(ModelParamBase* Ori, ModelParamBase* Sof);
 		virtual bool isZero();
 		virtual float predict(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb);
 		virtual float updatedSoFar(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb, float oldsofar);
@@ -159,11 +159,11 @@ float PoissonParam::updatedSoFar(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb,
 	return oldsofar + this->predict(sa,sb);
 }
 
-void PoissonParam::bestfromSoFar(ModelParamBase* Ori, ModelParamBase* Sof) {
+/*void PoissonParam::bestfromSoFar(ModelParamBase* Ori, ModelParamBase* Sof) {
 	//this->p = std::max(0.0f,(((PoissonParam*) Ori)->p - ((PoissonParam*) Sof)->p)/(1 - ((PoissonParam*) Sof)->p));
 	this->lambda = ((PoissonParam*) Ori)->lambda;
 	//this->lambda = std::max(0.0f,(((PoissonParam*) Ori)->lambda - ((PoissonParam*) Sof)->lambda));
-}
+}*/
 
 void PoissonParam::collapse(ModelParamBase* pa, ModelParamBase* pb) {
 	assert(pa != NULL);
@@ -207,7 +207,7 @@ class WParam : public ModelParamBase {
 		virtual void calculate(ModelPairStatsBase* pab, ModelSelfStatsBase* sa, ModelSelfStatsBase* sb);
 		virtual void collapse(ModelParamBase* pa, ModelParamBase* pb);
 		virtual void cleanup();
-		virtual void bestfromSoFar(ModelParamBase* Ori, ModelParamBase* Sof);
+		//virtual void bestfromSoFar(ModelParamBase* Ori, ModelParamBase* Sof);
 		virtual bool isZero();
 		virtual float predict(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb);
 		virtual float updatedSoFar(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb, float oldsofar);
@@ -225,10 +225,10 @@ float WParam::updatedSoFar(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb, float
 	return 1 - (1 - oldsofar)*(1 - this->predict(sa,sb));
 }
 
-void WParam::bestfromSoFar(ModelParamBase* Ori, ModelParamBase* Sof) {
+/*void WParam::bestfromSoFar(ModelParamBase* Ori, ModelParamBase* Sof) {
 	//this->p = std::max(0.0f,(((WParam*) Ori)->p - ((WParam*) Sof)->p)/(1 - ((WParam*) Sof)->p));
 	this->p = ((WParam*) Ori)->p;
-}
+}*/
 
 void WParam::collapse(ModelParamBase* pa, ModelParamBase* pb) {
 	this->numerator += ((WParam*) pa)->numerator + ((WParam*) pb)->numerator;
@@ -263,7 +263,7 @@ class DcorrParam: public ModelParamBase {
 		virtual void calculate(ModelPairStatsBase* pab, ModelSelfStatsBase* sa, ModelSelfStatsBase* sb);
 		virtual void collapse(ModelParamBase* pa, ModelParamBase* pb);
 		virtual void cleanup();
-		virtual void bestfromSoFar(ModelParamBase* Ori, ModelParamBase* Sof);
+		//virtual void bestfromSoFar(ModelParamBase* Ori, ModelParamBase* Sof);
 		virtual bool isZero();
 		virtual float predict(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb);
 		virtual float updatedSoFar(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb, float oldsofar);
@@ -298,10 +298,10 @@ float DcorrParam::updatedSoFar(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb, f
 	return oldsofar + predict(sa,sb);
 }
 
-void DcorrParam::bestfromSoFar(ModelParamBase* Ori, ModelParamBase* Sof) {
+/*void DcorrParam::bestfromSoFar(ModelParamBase* Ori, ModelParamBase* Sof) {
 	//this->lambda = std::max(0.0f, ((DcorrParam*) Ori)->lambda - ((DcorrParam*) Sof)->lambda);
 	this->lambda = ((DcorrParam*) Ori)->lambda; 
-}
+}*/
 
 bool DcorrParam::isZero() {
 	return (this->lambda ==0);

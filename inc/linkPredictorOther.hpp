@@ -83,6 +83,8 @@ void linkPredictorOther::attach(Engine* e) {
 		
 	// assign new tree, w
 	tree = e->tree;
+	assert(tree->isOther());
+	ttree = (TreeClassOther* ) tree;
 	w = e->w;
 	dim = e->dim;
 	assert(w[0]->DerivedType().compare("dataMapOther")==0);
@@ -139,11 +141,7 @@ void linkPredictorOther::attach(Engine* e) {
 						std::cerr << "graph type "<<D[d].gtype<<" not yet supported for link prediction (top Params).\n";
 						throw 1;
 					}
-					oriP[d]->calculate(ww[d]->get_uvOriginal(n1,n2),ww[d]->oDatvert[n1],ww[d]->oDatvert[n2]);
-					oriP[d]->cleanup();
-					sofP[d]->calculate(ww[d]->get_uvSoFar(n1,n2),ww[d]->sDatvert[n1],ww[d]->sDatvert[n2]);
-					sofP[d]->cleanup();
-					topParams[n1][n2][d]->bestfromSoFar(oriP[d],sofP[d]);
+					topParams[n1][n2][d]->calculate(ww[d]->get_uvOriginal(n1,n2),ww[d]->oDatvert[n1],ww[d]->oDatvert[n2]);
 				}
 			}
 		}
@@ -200,7 +198,7 @@ void linkPredictorOther::updateSoFarLazy(graphData* GsoFar) {
 			n = NodeGen.goNext();
 			Node* pnode = tree->nodeMap[n];
 			assert(pnode->isOther());
-			ModelParamBase* par = pnode->params[d];
+			ModelParamBase* par = ((NodeOther*)pnode )->paramsOriginal[d];
 			if (pnode->collapsed) {
 				// need to go over the vertices
 				assert(pnode->vertsComputed);

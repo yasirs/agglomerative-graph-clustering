@@ -44,6 +44,7 @@ class Node{
 
 class TreeClass{
 	public:
+		virtual bool isOther() {return false; }
 		graphData* D;
 		std::map<int, Node*> nodeMap;
 		std::set<int> topLevel;
