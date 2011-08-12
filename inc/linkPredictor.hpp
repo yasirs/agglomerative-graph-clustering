@@ -12,7 +12,7 @@ class linkPredictor {
 	public:
 		std::map<int,std::map<int, ModelParamBase**> > topParams;
 		int dim;
-		dataMap** w;
+		dataMap* w;
 		TreeClass* tree;
 		graphData* D;
 		bool attached;
@@ -210,7 +210,7 @@ void linkPredictor::attach(Engine* e) {
 						throw 1;
 					}
 					
-					topParams[n1][n2][d]->calculate(w[d]->get_uv(n1,n2),w[d]->datvert[n1],w[d]->datvert[n2]);
+					topParams[n1][n2][d]->calculate(w->get_uv(n1,n2,d),w->datvert[d][n1],w->datvert[d][n2]);
 					topParams[n1][n2][d]->cleanup();
 				}
 			}
@@ -241,7 +241,7 @@ float linkPredictor::predictEdge(unsigned int u, unsigned int v, int d) {
 	} else {
 		param = topParams[ipair.first][ipair.second][d];
 	}
-	return param->predict(w[d]->datvert[u],w[d]->datvert[v]);
+	return param->predict(w->datvert[d][u],w->datvert[d][v]);
 };
 
 linkPredictor::~linkPredictor() {
