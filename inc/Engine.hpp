@@ -97,7 +97,7 @@ class Engine{
 		graphData *D;
 		int dim;
 		int curLev;
-		dataMap** w;
+		dataMap* w;
 		scoremap sm;
 		int* NodeMembership;
 		TreeClass *tree;
@@ -175,12 +175,12 @@ void Engine::printHRG(const char* fn, int d) {
 			nR = int2str(iR-D[d].numV);
 			tR = "(D)";
 		}
-		if (w[d]->DerivedType()=="dataMap") { 
+		if (w->DerivedType()=="dataMap") { 
 			param = (BinomialParam*) tree->returnNode(iM+D[d].numV)->params[d];
-			stat = (BinomialSelfStats*) w[d]->datvert[iM+D[d].numV];
-		} else if (w[d]->DerivedType()=="dataMapOther") { 
+			stat = (BinomialSelfStats*) w->datvert[d][iM+D[d].numV];
+		} else if (w->DerivedType()=="dataMapOther") { 
 			param = (BinomialParam*) ((TreeClassOther*) tree)->returnNode(iM+D[d].numV)->paramsOriginal[d];
-			stat = (BinomialSelfStats*) ((dataMapOther*) w[d])->oDatvert[iM+D[d].numV];
+			stat = (BinomialSelfStats*) ((dataMapOther*) w)->oDatvert[d][iM+D[d].numV];
 		}
 		p = param->p;
 		e = param->numE;
@@ -265,14 +265,11 @@ void Engine::printDegreeProdFile(const char* fn, int d, bool skipEdges) {
 Engine::Engine(graphData* G, graphData* Goriginal, graphData* GsoFar, int d) {
 	D = G;
 	dim = d;
-	w = new dataMap*[dim];
+	w = new dataMapOther;
 	tree = new TreeClassOther(G,dim);
 	int x,y;
 	// initialize weights, degrees, selfMissing and first neighbors, and nV
-	for (int dd=0; dd<dim; dd++) {
-		w[dd] = new dataMapOther;
-		( (dataMapOther*)  w[dd]   )->initialize(D[dd], Goriginal[dd], GsoFar[dd], firstNeighbors);
-	}
+	((dataMapOther*) w)->initialize(D, Goriginal, GsoFar, dim);
 	std::set<int> emptySet;
 	// initialize 2nd neighbors
 	std::map<int, Node*>::iterator itnode;
@@ -301,14 +298,11 @@ Engine::Engine(graphData* G, graphData* Goriginal, graphData* GsoFar, int d) {
 Engine::Engine(graphData* G, int d) {
 	D = G;
 	dim = d;
-	w = new dataMap*[dim];
 	tree = new TreeClass(G,d);
 	int x,y;
 	// initialize weights, degrees, selfMissing and first neighbors, and nV
-	for (d=0; d<dim; d++) {
-		w[d] = new dataMap;
-		w[d]->initialize(D[d], firstNeighbors);
-	}
+	w = new dataMap;
+	w->initialize(D, dim);
 	std::set<int> emptySet;
 	// initialize 2nd neighbors
 	std::map<int, Node*>::iterator itnode;
@@ -327,36 +321,33 @@ Engine::Engine(graphData* G, int d) {
 
 
 Engine::~Engine() {
-	for (int i=0; i<dim; i++) {
-		delete w[i];
-	}
-	delete[] w;
+	delete w;
 	delete tree;
 };
 
 
 float Engine::centerscoreFB(int d, int a, int b) {
 	assert(a!=b);
-	return this->w[d]->FBcenterscore(a,b);
+	return this->w->FBcenterscore(a,b,d);
 };
 
 
 float Engine::deltascoreFB(int d, int a, int b, int x) {
 	assert((a!=b)&&(a!=x)&&(b!=x));
-	return this->w[d]->FBdeltascore(a,b,x);
+	return this->w->FBdeltascore(a,b,x,d);
 };
 
 
 
 float Engine::centerscoreML(int d, int a, int b) {
 	assert(a!=b);
-	return this->w[d]->MLcenterscore(a,b);
+	return this->w->MLcenterscore(a,b,d);
 };
 
 
 float Engine::deltascoreML(int d, int a, int b, int x) {
 	assert((a!=b)&&(a!=x)&&(b!=x));
-	return this->w[d]->MLdeltascore(a,b,x);
+	return this->w->MLdeltascore(a,b,x,d);
 };
 
 
@@ -433,9 +424,7 @@ int Engine::runML(bool forceJoin=false,bool collapseIfPossible=true) {
 
 		// compute d,w,n,m for c
 
-		for (d=0;d<dim;d++) {
-			w[d]->addMergedData(a,b,c,firstNeighbors[c]);
-		}
+		w->addMergedData(a,b,c);
 
 		tree->nodeMap[c]->writeThetaforMerged(a,b,w,tree,D);
 
@@ -681,9 +670,7 @@ int Engine::readJoins(const char* filename) {
 
 
 		// compute d,w,n,m for c
-		for (d=0;d<dim;d++) {
-			w[d]->addMergedData(a,b,c,firstNeighbors[c]);
-		}
+		w->addMergedData(a,b,c);
 
 		tree->nodeMap[c]->writeThetaforMerged(a,b,w,tree,D);
 
