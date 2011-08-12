@@ -5,6 +5,7 @@
 #include "graphData.hpp"
 #include "Engine.hpp"
 #include "mygenerators.hpp"
+#include "linkPredictor.hpp"
 #include <cassert>
 #include <cmath>
 #include <math.h>
@@ -13,7 +14,7 @@ class linkPredictorOther: public linkPredictor {
 	public:
 		//std::map<int,std::map<int, float*> > topThetas;
 		//int dim;
-		dataMapOther** ww;
+		dataMapOther* ww;
 		TreeClassOther* ttree;
 		//graphData* D;
 		//bool attached;
@@ -35,7 +36,7 @@ class linkPredictorOther: public linkPredictor {
 
 linkPredictorOther::~linkPredictorOther() {
 	if (attached)
-		delete[] ww;
+		delete ww;
 	// do nothing, the base class function does it for us
 }
 
@@ -65,7 +66,7 @@ void linkPredictorOther::attach(Engine* e) {
 	int d;
 	ModelParamBase **tp;
 	if (attached) {
-		delete[] ww;
+		delete ww;
 		std::map<int, std::map<int, ModelParamBase**> >::iterator outit;
 		std::map<int, ModelParamBase**>::iterator init;
 		for (outit = topParams.begin(); outit != topParams.end(); ++outit) {
@@ -87,9 +88,8 @@ void linkPredictorOther::attach(Engine* e) {
 	ttree = (TreeClassOther* ) tree;
 	w = e->w;
 	dim = e->dim;
-	assert(w[0]->DerivedType().compare("dataMapOther")==0);
-	ww = new dataMapOther*[dim];
-	for (d=0;d<dim;d++) { ww[d] = (dataMapOther*) w[d]; }
+	assert(w->DerivedType().compare("dataMapOther")==0);
+	ww = (dataMapOther*) w;
 	D = e->D;
 	
 	oriP = new ModelParamBase*[dim];
@@ -141,7 +141,7 @@ void linkPredictorOther::attach(Engine* e) {
 						std::cerr << "graph type "<<D[d].gtype<<" not yet supported for link prediction (top Params).\n";
 						throw 1;
 					}
-					topParams[n1][n2][d]->calculate(ww[d]->get_uvOriginal(n1,n2),ww[d]->oDatvert[n1],ww[d]->oDatvert[n2]);
+					topParams[n1][n2][d]->calculate(ww->get_uvOriginal(n1,n2,d),ww->oDatvert[d][n1],ww->oDatvert[d][n2]);
 				}
 			}
 		}
@@ -171,14 +171,14 @@ void linkPredictorOther::updateSoFarLazy(graphData* GsoFar) {
 				ModelSelfStatsBase* su;
 				for (; (! G1.isDone()); ) {
 					u = G1.goNext();
-					su = ww[d]->oDatvert[u];
+					su = ww->oDatvert[d][u];
 					int v;
 					ModelSelfStatsBase* sv;
 					AllChildVertGenerator G2(tree, n2);
 					for (; (! G2.isDone()); ) {
 						v = G2.goNext();
 						if (u != v) {
-							sv = ww[d]->oDatvert[v];
+							sv = ww->oDatvert[d][v];
 							//oldpred = par->predict(su,sv);
 							wnew = par->updatedSoFar(su,sv,GsoFar[d].get_uv(u,v));
 							//wnew = 1 - (1 - GsoFar[d].get_uv(u,v))*(1 - wpredicted);
@@ -207,14 +207,14 @@ void linkPredictorOther::updateSoFarLazy(graphData* GsoFar) {
 				ModelSelfStatsBase* su;
 				for (; (! G1.isDone()); ) {
 					u = G1.goNext();
-					su = ww[d]->oDatvert[u];
+					su = ww->oDatvert[d][u];
 					int v;
 					ModelSelfStatsBase* sv;
 					AllChildVertGenerator G2(tree, n);
 					for (; (! G2.isDone()); ) {
 						v = G2.goNext();
 						if (u != v) {
-							sv = ww[d]->oDatvert[v];
+							sv = ww->oDatvert[d][v];
 							wnew = par->updatedSoFar(su,sv,GsoFar[d].get_uv(u,v));
 							if (wnew>EPS) {
 								GsoFar[d].set_uv(u,v,wnew);
@@ -234,14 +234,14 @@ void linkPredictorOther::updateSoFarLazy(graphData* GsoFar) {
 							ModelSelfStatsBase* su;
 							for (; (! G1.isDone()); ) {
 								u = G1.goNext();
-								su = ww[d]->oDatvert[u];
+								su = ww->oDatvert[d][u];
 								int v;
 								ModelSelfStatsBase* sv;
 								AllChildVertGenerator G2(tree, *cit2);
 								for (; (! G2.isDone()); ) {
 									v = G2.goNext();
 									if (u != v) {
-										sv = ww[d]->oDatvert[v];
+										sv = ww->oDatvert[d][v];
 										wnew = par->updatedSoFar(su,sv,GsoFar[d].get_uv(u,v));
 										if (wnew>EPS) {
 											GsoFar[d].set_uv(u,v,wnew);
