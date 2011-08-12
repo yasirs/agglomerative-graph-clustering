@@ -10,7 +10,7 @@ class NodeOther: public Node {
 	public:
 		ModelParamBase** paramsOriginal;
 		ModelParamBase** paramsSoFar;
-		virtual bool writeThetaforMerged(int a, int b, dataMap** w, TreeClass* tree, graphData* D);
+		virtual bool writeThetaforMerged(int a, int b, dataMap* w, TreeClass* tree, graphData* D);
 		NodeOther(int nodeID, int parentID, int partytype, bool isTerminal, int vertID, int dimension, graphData* D);
 		NodeOther(int nodeID, int parentID, int partytype, bool isTerminal, int dimension, graphData* D);
 		virtual void destroy(int di);
@@ -143,13 +143,13 @@ NodeOther::~NodeOther() {
 	delete[] paramsOriginal;
 }
 
-bool NodeOther::writeThetaforMerged(int a, int b, dataMap** ww, TreeClass* tree, graphData* D) {
-	dataMapOther **w = (dataMapOther**) ww;
+bool NodeOther::writeThetaforMerged(int a, int b, dataMap* ww, TreeClass* tree, graphData* D) {
+	dataMapOther *w = (dataMapOther*) ww;
 
 	for (int d=0;d<(tree->dim);d++) {
-		this->params[d]->calculate(w[d]->get_uv(a,b),w[d]->datvert[a],w[d]->datvert[b]);
-		this->paramsOriginal[d]->calculate(w[d]->get_uvOriginal(a,b),w[d]->oDatvert[a],w[d]->oDatvert[b]);
-		this->paramsSoFar[d]->calculate(w[d]->get_uvSoFar(a,b),w[d]->sDatvert[a],w[d]->sDatvert[b]);
+		this->params[d]->calculate(w->get_uv(a,b,d),w->datvert[d][a],w->datvert[d][b]);
+		this->paramsOriginal[d]->calculate(w->get_uvOriginal(a,b,d),w->oDatvert[d][a],w->oDatvert[d][b]);
+		this->paramsSoFar[d]->calculate(w->get_uvSoFar(a,b,d),w->sDatvert[d][a],w->sDatvert[d][b]);
 		if (this->collapsed) {
 			this->params[d]->collapse(((NodeOther*) tree->nodeMap[a])->params[d], ((NodeOther*) tree->nodeMap[b])->params[d]);
 			this->paramsOriginal[d]->collapse(((NodeOther*) tree->nodeMap[a])->paramsOriginal[d], ((NodeOther*) tree->nodeMap[b])->paramsOriginal[d]);
@@ -157,7 +157,7 @@ bool NodeOther::writeThetaforMerged(int a, int b, dataMap** ww, TreeClass* tree,
 		}
 		this->paramsOriginal[d]->cleanup();
 		this->paramsSoFar[d]->cleanup();
-		this->params[d]->cleanup()
+		this->params[d]->cleanup();
 		//this->params[d]->bestfromSoFar(this->paramsOriginal[d],this->paramsSoFar[d]);
 		
 	}
