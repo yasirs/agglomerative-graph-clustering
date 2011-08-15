@@ -35,8 +35,20 @@ class linkPredictorOther: public linkPredictor {
 
 
 linkPredictorOther::~linkPredictorOther() {
-	if (attached)
-		delete ww;
+	/*if (attached) {
+		std::map<int, std::map<int, ModelParamBase**> >::iterator outit;
+		std::map<int, ModelParamBase**>::iterator init;
+		for (outit = topParams.begin(); outit != topParams.end(); ++outit) {
+			for (init = (*outit).second.begin(); init != (*outit).second.end(); ++init) {
+				for (int d=0;d<dim;d++) {
+					delete init->second[d];
+				}
+				delete[] (*init).second;
+			}
+			topParams[(*outit).first].clear();
+		}
+		topParams.clear();
+	}*/
 	// do nothing, the base class function does it for us
 }
 
@@ -66,7 +78,7 @@ void linkPredictorOther::attach(Engine* e) {
 	int d;
 	ModelParamBase **tp;
 	if (attached) {
-		delete ww;
+		//delete ww;
 		std::map<int, std::map<int, ModelParamBase**> >::iterator outit;
 		std::map<int, ModelParamBase**>::iterator init;
 		for (outit = topParams.begin(); outit != topParams.end(); ++outit) {

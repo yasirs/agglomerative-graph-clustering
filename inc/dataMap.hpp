@@ -143,6 +143,8 @@ bool dataMap::AddEdge(int u, int v, float x, int d) {
 void dataMap::initialize(graphData* D,int _dim) {
 	this->dim = _dim;
 	this->datvert = new std::vector<ModelSelfStatsBase*>[this->dim];
+	this->datpair = new std::tr1::unordered_map<int, std::tr1::unordered_map<int,ModelPairStatsBase*> >[this->dim];
+	this->gtype = new char[this->dim];
 	for (int d=0; d<this->dim;d++) {
 		this->gtype[d] = D[d].gtype;
 		if (gtype[d]=='b') MyNullPairStat = new BinomialPairStats;

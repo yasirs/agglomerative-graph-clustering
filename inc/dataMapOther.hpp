@@ -273,10 +273,14 @@ ModelPairStatsBase* dataMapOther::get_uvSoFar(int u, int v, int d) {
 void dataMapOther::initialize(graphData* D, graphData* Doriginal, graphData* DsoFar, int _dim) {
 	std::cout << "inside dataMapOther initialize\n";
 	unsigned int u, v;
-	for (u=0; u != D[0].numV; u++) {
-		this->initVert(u);
-	}
 	this->dim = _dim;
+	this->datpair = new std::tr1::unordered_map<int, std::tr1::unordered_map<int,ModelPairStatsBase*> >[this->dim];
+	this->datvert = new std::vector<ModelSelfStatsBase*>[this->dim];
+	this->oDatpair = new std::tr1::unordered_map<int, std::tr1::unordered_map<int,ModelPairStatsBase*> >[this->dim];
+	this->oDatvert = new std::vector<ModelSelfStatsBase*>[this->dim];
+	this->sDatpair = new std::tr1::unordered_map<int, std::tr1::unordered_map<int,ModelPairStatsBase*> >[this->dim];
+	this->sDatvert = new std::vector<ModelSelfStatsBase*>[this->dim];
+	this->gtype = new char[this->dim];
 	for(int d=0;d<this->dim;d++) {
 		assert(D[d].gtype==Doriginal[d].gtype);
 		assert(D[d].gtype==DsoFar[d].gtype);
