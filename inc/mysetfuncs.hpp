@@ -3,13 +3,18 @@
 #include <set>
 #include <algorithm>
 #include <iostream>
-#include "nodetree.hpp"
+#include <map>
+#include <vector>
+#include <string>
+//#include "nodetree.hpp"
 #include <iterator>
 #include <sstream>
 #if ISVC
 #include <unordered_set>
+#include <unordered_map>
 #else
 #include <tr1/unordered_set>
+#include <tr1/unordered_map>
 #endif
 
 
@@ -202,6 +207,7 @@ std::vector<std::string>* splitspaces(const std::string& str, const std::string&
 
 //TODO comment out this debug function
 
+#include <nodetree.hpp>
 
 Node* NfromMap(std::map<int, Node*>& nm, int i) {
 	if (nm.find(i)==nm.end()) {

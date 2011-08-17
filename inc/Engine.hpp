@@ -10,11 +10,11 @@
 #endif
 #include <list>
 #include <set>
+#include "mysetfuncs.hpp"
 #include "graphData.hpp"
 #include "nodetree.hpp"
 #include "scoremap.hpp"
 #include "dataMap.hpp"
-#include "mysetfuncs.hpp"
 #include "dataMapOther.hpp"
 #include "nodetreeOther.hpp"
 #include "modelParam.hpp"
@@ -101,8 +101,6 @@ class Engine{
 		scoremap sm;
 		int* NodeMembership;
 		TreeClass *tree;
-		std::map<int,std::set<int> > firstNeighbors;
-		std::map<int,std::set<int> > secondNeighbors;
 		//std::map<int, float> groupDegrees;
 		struct mergeRecord {
 			int child1; int child2; int merged;
@@ -273,17 +271,6 @@ Engine::Engine(graphData* G, graphData* Goriginal, graphData* GsoFar, int d) {
 	std::set<int> emptySet;
 	// initialize 2nd neighbors
 	std::map<int, Node*>::iterator itnode;
-	std::set<int>::iterator neighbit;
-	std::set<int>::iterator intsetit;
-	for (itnode = tree->nodeMap.begin(); itnode != tree->nodeMap.end(); ++itnode) {
-		x = (*itnode).second->nid;
-		if (secondNeighbors.find(x)==secondNeighbors.end()) secondNeighbors[x] = emptySet;
-		for (neighbit = firstNeighbors[x].begin(); neighbit != firstNeighbors[x].end(); ++neighbit) {
-			y = *neighbit;
-			set_difference_update(secondNeighbors[x],firstNeighbors[y],firstNeighbors[x]);
-		}
-		secondNeighbors[x].erase(x);
-	}
 };
 
 
@@ -303,20 +290,6 @@ Engine::Engine(graphData* G, int d) {
 	// initialize weights, degrees, selfMissing and first neighbors, and nV
 	w = new dataMap;
 	w->initialize(D, dim);
-	std::set<int> emptySet;
-	// initialize 2nd neighbors
-	std::map<int, Node*>::iterator itnode;
-	std::set<int>::iterator neighbit;
-	std::set<int>::iterator intsetit;
-	for (itnode = tree->nodeMap.begin(); itnode != tree->nodeMap.end(); ++itnode) {
-		x = (*itnode).second->nid;
-		if (secondNeighbors.find(x)==secondNeighbors.end()) secondNeighbors[x] = emptySet;
-		for (neighbit = firstNeighbors[x].begin(); neighbit != firstNeighbors[x].end(); ++neighbit) {
-			y = *neighbit;
-			set_difference_update(secondNeighbors[x],firstNeighbors[y],firstNeighbors[x]);
-		}
-		secondNeighbors[x].erase(x);
-	}
 };
 
 
@@ -412,15 +385,6 @@ int Engine::runML(bool forceJoin=false,bool collapseIfPossible=true) {
 			tree->nodeMap[c]->collapsed = 0;
 			tree->nodeMap[c]->vertsComputed = 0;
 		}
-		// compute neighbours
-		firstNeighbors[c] = emptySet;
-		secondNeighbors[c] = emptySet;
-		set_union_update(firstNeighbors[c],firstNeighbors[a],firstNeighbors[b]);
-		firstNeighbors[c].erase(a); firstNeighbors[c].erase(b); 
-		tempSet = emptySet;
-		set_union_update(tempSet,secondNeighbors[a],secondNeighbors[b]);
-		set_difference_update(secondNeighbors[c],tempSet,firstNeighbors[c]);
-		secondNeighbors[c].erase(a); secondNeighbors[c].erase(b);
 
 		// compute d,w,n,m for c
 
@@ -429,46 +393,37 @@ int Engine::runML(bool forceJoin=false,bool collapseIfPossible=true) {
 		tree->nodeMap[c]->writeThetaforMerged(a,b,w,tree,D);
 
 		// delete a,b scores
-		for (intit = firstNeighbors[a].begin(); intit != firstNeighbors[a].end(); ++intit) {
+		for (intit = w->fNeighbors[a].begin(); intit != w->fNeighbors[a].end(); ++intit) {
 			x = *intit;
 			if ((b!=x)&&(this->tree->nodeMap[x]->party == this->tree->nodeMap[a]->party)) {
 				sm.erase(a,x);
 				sm.erase(x,a);
 			}
 		}
-		for (intit = secondNeighbors[a].begin(); intit != secondNeighbors[a].end(); ++intit) {
+		for (intit = w->secondNeighbors[a].begin(); intit != w->secondNeighbors[a].end(); ++intit) {
 			x = *intit;
 			if ((b!=x)&&(this->tree->nodeMap[x]->party == this->tree->nodeMap[a]->party)) {
 				sm.erase(a,x);
 				sm.erase(x,a);
 			}
 		}
-		for (intit = firstNeighbors[b].begin(); intit != firstNeighbors[b].end(); ++intit) {
+		for (intit = w->fNeighbors[b].begin(); intit != w->fNeighbors[b].end(); ++intit) {
 			x = *intit;
 			if ((a!=x)&&(this->tree->nodeMap[x]->party == this->tree->nodeMap[b]->party)) {
 				sm.erase(b,x);
 				sm.erase(x,b);
 			}
 		}
-		for (intit = secondNeighbors[b].begin(); intit != secondNeighbors[b].end(); ++intit) {
+		for (intit = w->secondNeighbors[b].begin(); intit != w->secondNeighbors[b].end(); ++intit) {
 			x = *intit;
 			if ((a!=x)&&(this->tree->nodeMap[x]->party == this->tree->nodeMap[b]->party)) {
 				sm.erase(b,x);
 				sm.erase(x,b);
 			}
-		}
-		// add the c to the relevent groups neighbors!
-		for (intit = firstNeighbors[c].begin(); intit != firstNeighbors[c].end(); ++intit) {
-			x = (*intit);
-			firstNeighbors[x].insert(c);
-		}
-		for (intit = secondNeighbors[c].begin(); intit != secondNeighbors[c].end(); ++intit) {
-			x = (*intit);
-			secondNeighbors[x].insert(c);
 		}
 
 		// update all affected scores (at least one of nodes has to be a neighbor of c)
-		for (intit = firstNeighbors[c].begin(); intit != firstNeighbors[c].end(); ++intit) {
+		for (intit = w->fNeighbors[c].begin(); intit != w->fNeighbors[c].end(); ++intit) {
 			x = (*intit);
 			smOut = sm.scores.find(x);
 			if (smOut != sm.scores.end()) {
@@ -480,7 +435,7 @@ int Engine::runML(bool forceJoin=false,bool collapseIfPossible=true) {
 							if ((not D[d].multiPartite)or(this->tree->nodeMap[x]->party != this->tree->nodeMap[c]->party))
 								jscore = jscore + deltascoreML(d,x,y,c)-deltascoreML(d,x,y,a)-deltascoreML(d,x,y,b);
 						}
-						if (firstNeighbors[c].count(y)) {
+						if (w->fNeighbors[c].count(y) > 0) {
 							assert(sm.AddTo(x,y,jscore/2));
 							assert(sm.AddTo(y,x,jscore/2));
 						} else {
@@ -495,14 +450,14 @@ int Engine::runML(bool forceJoin=false,bool collapseIfPossible=true) {
 		//TODO:: debug check
 		//assert(sm.has_u(c)<0);
 		// create new c,x scores
-		for (intit = firstNeighbors[c].begin(); intit != firstNeighbors[c].end(); ++intit) {
+		for (intit = w->fNeighbors[c].begin(); intit != w->fNeighbors[c].end(); ++intit) {
 			x = *intit;
 			if ((x!=a)&&(x!=b)&&(this->tree->nodeMap[x]->party == this->tree->nodeMap[c]->party)) {
 				cscore = 0;
 				jscore = 0;
 				for (d=0;d<dim;d++) {
 					// go through the union set of neighbors
-					set_union_Enumerator<int> neighbEnum(firstNeighbors[x],firstNeighbors[c]);
+					set_union_Enumerator<int> neighbEnum(w->fNeighbors[x],w->fNeighbors[c]);
 					for (int z; neighbEnum.next(z);) {
 						if ((not D[d].multiPartite)or(this->tree->nodeMap[z]->party != this->tree->nodeMap[c]->party)) {
 							if (! ((x==z)||(c==z)||(a==z)||(b==z)) ) {
@@ -519,15 +474,15 @@ int Engine::runML(bool forceJoin=false,bool collapseIfPossible=true) {
 				assert(sm.AddPair(x,c,jscore,cscore));
 			}
 		}
-		for (intit = secondNeighbors[c].begin(); intit != secondNeighbors[c].end(); ++intit) {
+		for (intit = w->secondNeighbors[c].begin(); intit != w->secondNeighbors[c].end(); ++intit) {
 			x = *intit;
-			secondNeighbors[x].insert(c);
+			w->secondNeighbors[x].insert(c);
 			if ((x!=a)&&(x!=b)&&(this->tree->nodeMap[x]->party == this->tree->nodeMap[c]->party)) {
 				cscore = 0;
 				jscore = 0;
 				for (d=0;d<dim;d++) {
 					// go through the union set of neighbors
-					set_union_Enumerator<int> neighbEnum(firstNeighbors[x],firstNeighbors[c]);
+					set_union_Enumerator<int> neighbEnum(w->fNeighbors[x],w->fNeighbors[c]);
 					for (int z; neighbEnum.next(z);) {
 						if ((not D[d].multiPartite)or(this->tree->nodeMap[z]->party != this->tree->nodeMap[c]->party)) {
 							if (! ((x==z)||(c==z)||(a==z)||(b==z)) ) {
@@ -546,20 +501,20 @@ int Engine::runML(bool forceJoin=false,bool collapseIfPossible=true) {
 		}
 
 		//create NEW 2nd neighbor scores, if any
-		for (intit = firstNeighbors[a].begin(); intit != firstNeighbors[a].end(); ++intit) {
+		for (intit = w->fNeighbors[a].begin(); intit != w->fNeighbors[a].end(); ++intit) {
 			x = *intit;
 			if (x!=b) {
-				for (intit2 = firstNeighbors[b].begin(); intit2 != firstNeighbors[b].end(); ++intit2) {
+				for (intit2 = w->fNeighbors[b].begin(); intit2 != w->fNeighbors[b].end(); ++intit2) {
 					y = *intit2;
 					if (y!=a) {
 						// x && y may have just become 2nd neighbors
-						if ((x!=y)&&(secondNeighbors[x].find(y)==secondNeighbors[x].end())&&(firstNeighbors[x].find(y)==firstNeighbors[x].end())&&(this->tree->nodeMap[x]->party == this->tree->nodeMap[y]->party)) {
+						if ((x!=y)&&(w->secondNeighbors[x].find(y)==w->secondNeighbors[x].end())&&(w->fNeighbors[x].find(y)==w->fNeighbors[x].end())&&(this->tree->nodeMap[x]->party == this->tree->nodeMap[y]->party)) {
 							// make second neighbors and add the score
-							secondNeighbors[x].insert(y);
+							w->secondNeighbors[x].insert(y);
 							cscore = 0; jscore = 0;
 							for (d=0;d<dim;d++) {
 								// go through the union set of neighbors
-								set_union_Enumerator<int> neighbEnum(firstNeighbors[x],firstNeighbors[y]);
+								set_union_Enumerator<int> neighbEnum(w->fNeighbors[x],w->fNeighbors[y]);
 								for (int z; neighbEnum.next(z);) {
 									if (! ((x==z)||(y==z)) ) {
 										if ((not D[d].multiPartite)or(this->tree->nodeMap[z]->party != this->tree->nodeMap[x]->party)) {
@@ -571,13 +526,13 @@ int Engine::runML(bool forceJoin=false,bool collapseIfPossible=true) {
 							}
 							assert(sm.AddPair(x,y,jscore,cscore));
 						}
-						if ((x!=y)&&(secondNeighbors[y].find(x)==secondNeighbors[y].end())&&(firstNeighbors[y].find(x)==firstNeighbors[y].end())&&(this->tree->nodeMap[x]->party == this->tree->nodeMap[y]->party)) {
+						if ((x!=y)&&(w->secondNeighbors[y].find(x)==w->secondNeighbors[y].end())&&(w->fNeighbors[y].find(x)==w->fNeighbors[y].end())&&(this->tree->nodeMap[x]->party == this->tree->nodeMap[y]->party)) {
 							// make second neighbors and add the score
-							secondNeighbors[y].insert(x);
+							w->secondNeighbors[y].insert(x);
 							cscore = 0; jscore = 0;
 							for (d=0;d<dim;d++) {
 								// go through the union set of neighbors
-								set_union_Enumerator<int> neighbEnum(firstNeighbors[x],firstNeighbors[y]);
+								set_union_Enumerator<int> neighbEnum(w->fNeighbors[x],w->fNeighbors[y]);
 								for (int z; neighbEnum.next(z);) {
 									if (! ((x==z)||(y==z)) ) {
 										if ((not D[d].multiPartite)or(this->tree->nodeMap[z]->party != this->tree->nodeMap[x]->party)) {
@@ -593,27 +548,8 @@ int Engine::runML(bool forceJoin=false,bool collapseIfPossible=true) {
 				}
 			}
 		}
-
-		for (intit = firstNeighbors[a].begin(); intit != firstNeighbors[a].end(); ++intit) {
-			x = *intit;
-			firstNeighbors[x].erase(a);
-		}
-		firstNeighbors.erase(a);
-		for (intit = firstNeighbors[b].begin(); intit != firstNeighbors[b].end(); ++intit) {
-			x = *intit;
-			firstNeighbors[x].erase(b);
-		}
-		firstNeighbors.erase(b);
-		for (intit = secondNeighbors[a].begin(); intit != secondNeighbors[a].end(); ++intit) {
-			x = *intit;
-			secondNeighbors[x].erase(a);
-		}
-		secondNeighbors.erase(a);
-		for (intit = secondNeighbors[b].begin(); intit != secondNeighbors[b].end(); ++intit) {
-			x = *intit;
-			secondNeighbors[x].erase(b);
-		}
-		secondNeighbors.erase(b);
+		w->deleteNeighbors(a);
+		w->deleteNeighbors(b);
 		// should be done!
 		
 
@@ -703,7 +639,7 @@ bool Engine::initializeScoresML() {
 	// initialize scores
 	for (itnode = tree->nodeMap.begin(); itnode != tree->nodeMap.end(); ++itnode) {
 		x = (*itnode).second->nid;
-		for (neighbit = firstNeighbors[x].begin(); neighbit != firstNeighbors[x].end(); ++neighbit) {
+		for (neighbit = w->fNeighbors[x].begin(); neighbit != w->fNeighbors[x].end(); ++neighbit) {
 			y = *neighbit;
 			// if score(x,y) doesnt exist, compute it
 			if ((! sm.has_uv(x,y))&&(this->tree->nodeMap[x]->party == this->tree->nodeMap[y]->party)) {
@@ -713,7 +649,7 @@ bool Engine::initializeScoresML() {
 				for (d=0;d<dim;d++) {
 					// go through the union set of neighbors
 					neighbUnion.clear();
-					set_union_update(neighbUnion, firstNeighbors[x], firstNeighbors[y]);
+					set_union_update(neighbUnion, w->fNeighbors[x], w->fNeighbors[y]);
 					for (unsetit = neighbUnion.begin(); unsetit != neighbUnion.end(); ++unsetit) {
 						z = *unsetit;
 						if (! ((x==z)||(y==z)) ) {
@@ -727,7 +663,7 @@ bool Engine::initializeScoresML() {
 				assert(sm.AddPair(x,y,jscore,cscore));
 			}
 		}
-		for (neighbit = secondNeighbors[x].begin(); neighbit != secondNeighbors[x].end(); ++neighbit) {
+		for (neighbit = w->secondNeighbors[x].begin(); neighbit != w->secondNeighbors[x].end(); ++neighbit) {
 			y = *neighbit;
 			// if score(x,y) doesnt exist, compute it
 			if ((! sm.has_uv(x,y))&&(this->tree->nodeMap[x]->party == this->tree->nodeMap[y]->party)) {
@@ -737,7 +673,7 @@ bool Engine::initializeScoresML() {
 				for (d=0;d<dim;d++) {
 					// go through the union set of neighbors
 					neighbUnion.clear();
-					set_union_update(neighbUnion, firstNeighbors[x], firstNeighbors[y]);
+					set_union_update(neighbUnion, w->fNeighbors[x], w->fNeighbors[y]);
 					for (unsetit = neighbUnion.begin(); unsetit != neighbUnion.end(); ++unsetit) {
 						z = *unsetit;
 						if (! ((x==z)||(y==z)) ) {

@@ -16,6 +16,7 @@
 class dataMap{
 	public:
 		std::map<int,std::set<int> > fNeighbors;
+		std::map<int,std::set<int> > secondNeighbors;
 		int dim;
                 virtual void dbgcheck() {
                         std::cout << "Inside dataMap object!\n";
@@ -44,7 +45,24 @@ class dataMap{
 		virtual ~dataMap();
 		virtual void initVert(unsigned int u);
 		virtual std::string DerivedType() { return std::string("dataMap"); }
+		bool deleteNeighbors(int a);
 };
+
+bool dataMap::deleteNeighbors(int a) {
+		int x;
+		std::set<int>::iterator intit;
+		for (intit = fNeighbors[a].begin(); intit != fNeighbors[a].end(); ++intit) {
+			x = *intit;
+			fNeighbors[x].erase(a);
+		}
+		for (intit = secondNeighbors[a].begin(); intit != secondNeighbors[a].end(); ++intit) {
+			x = *intit;
+			secondNeighbors[x].erase(a);
+		}
+		secondNeighbors.erase(a);
+		return true;
+}
+	
 
 
 void dataMap::initVert(unsigned int u) {
@@ -141,10 +159,12 @@ bool dataMap::AddEdge(int u, int v, float x, int d) {
 }
 
 void dataMap::initialize(graphData* D,int _dim) {
+	std::set<int> emptySet;
 	this->dim = _dim;
 	this->datvert = new std::vector<ModelSelfStatsBase*>[this->dim];
 	this->datpair = new std::tr1::unordered_map<int, std::tr1::unordered_map<int,ModelPairStatsBase*> >[this->dim];
 	this->gtype = new char[this->dim];
+	unsigned int u, v;
 	for (int d=0; d<this->dim;d++) {
 		this->gtype[d] = D[d].gtype;
 		if (gtype[d]=='b') MyNullPairStat = new BinomialPairStats;
@@ -153,7 +173,6 @@ void dataMap::initialize(graphData* D,int _dim) {
 		else if (gtype[d]=='d') MyNullPairStat = new DcorrPairStats;
 		else if (gtype[d]=='g') MyNullPairStat = new GaussianPairStats;
 		else {std::cout << "bad graph type\n";}
-		unsigned int u, v;
 		for (u=0; u != D[d].numV; u++) {
 			this->initVert(u);
 		}
@@ -169,6 +188,15 @@ void dataMap::initialize(graphData* D,int _dim) {
 				fNeighbors[v].insert(u);
 			}
 		}
+	}
+	std::set<int>::iterator neighbit;
+	for (int u=0; u<D[0].numV; u++) {
+		if (secondNeighbors.find(u)==secondNeighbors.end()) secondNeighbors[u] = emptySet;
+		for (neighbit = fNeighbors[u].begin(); neighbit != fNeighbors[u].end(); ++neighbit) {
+			v = *neighbit;
+			set_difference_update(secondNeighbors[u],fNeighbors[v],fNeighbors[u]);
+		}
+		secondNeighbors[u].erase(u);
 	}
 }
 
@@ -194,16 +222,37 @@ dataMap::~dataMap() {
 };
 
 void dataMap::addMergedData(int a, int b, int c) {
+	std::set<int>::iterator intit;
+	int x;
 	for (int d=0; d<this->dim; d++) {
 		assert(this->AddPair(c,c, this->get_uv(a,a,d)->Add3(this->get_uv(a,b,d), this->get_uv(b,b,d)),d ) );
 		this->datvert[d].push_back(this->datvert[d][a]->Add2(this->datvert[d][b],this->get_uv(a,b,d)));
-		int x;
 		for (std::set<int>::iterator intit (fNeighbors[c].begin()) ; intit != fNeighbors[c].end(); ++intit) {
 			x = (*intit);
 			this->AddPair(c,x,this->MyNullPairStat->Add3(this->get_uv(a,x,d),this->get_uv(b,x,d)),d);
 			this->AddPair(x,c,this->MyNullPairStat->Add3(this->get_uv(x,a,d),this->get_uv(x,b,d)),d);
 		}
 	}
+	// also need to update neighbors
+	std::set<int> emptySet, tempSet;
+	fNeighbors[c] = emptySet;
+	secondNeighbors[c] = emptySet;
+	set_union_update(fNeighbors[c],fNeighbors[a],fNeighbors[b]);
+	fNeighbors[c].erase(a); fNeighbors[c].erase(b); 
+	tempSet = emptySet;
+	set_union_update(tempSet,secondNeighbors[a],secondNeighbors[b]);
+	set_difference_update(secondNeighbors[c],tempSet,fNeighbors[c]);
+	secondNeighbors[c].erase(a); secondNeighbors[c].erase(b);
+	// add it c to the list of its neighbors as well
+	for (intit = fNeighbors[c].begin(); intit != fNeighbors[c].end(); ++intit) {
+		x = (*intit);
+		fNeighbors[x].insert(c);
+	}
+	for (intit = secondNeighbors[c].begin(); intit != secondNeighbors[c].end(); ++intit) {
+		x = (*intit);
+		secondNeighbors[x].insert(c);
+	}
+	
 }
 	
 

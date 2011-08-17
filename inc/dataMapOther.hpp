@@ -135,6 +135,16 @@ void dataMapOther::addMergedData(int a, int b, int c) {
 			this->AddPairSoFar(x,c,this->MyNullPairStat->Add3(this->get_uvSoFar(x,a,d),this->get_uvSoFar(x,b,d)),d);
 		}
 	}
+	// also need to update neighbors
+	std::set<int> emptySet, tempSet;
+	fNeighbors[c] = emptySet;
+	secondNeighbors[c] = emptySet;
+	set_union_update(fNeighbors[c],fNeighbors[a],fNeighbors[b]);
+	fNeighbors[c].erase(a); fNeighbors[c].erase(b); 
+	tempSet = emptySet;
+	set_union_update(tempSet,secondNeighbors[a],secondNeighbors[b]);
+	set_difference_update(secondNeighbors[c],tempSet,fNeighbors[c]);
+	secondNeighbors[c].erase(a); secondNeighbors[c].erase(b);
 }
 
 
@@ -271,6 +281,7 @@ ModelPairStatsBase* dataMapOther::get_uvSoFar(int u, int v, int d) {
 
 
 void dataMapOther::initialize(graphData* D, graphData* Doriginal, graphData* DsoFar, int _dim) {
+	std::set<int> emptySet;
 	std::cout << "inside dataMapOther initialize\n";
 	unsigned int u, v;
 	this->dim = _dim;
@@ -327,6 +338,16 @@ void dataMapOther::initialize(graphData* D, graphData* Doriginal, graphData* Dso
 				assert(this->AddEdgeSoFar(u,v,(*it2).second,d));
 			}
 		}
+	}
+
+	std::set<int>::iterator neighbit;
+	for (int u=0; u<D[0].numV; u++) {
+		if (secondNeighbors.find(u)==secondNeighbors.end()) secondNeighbors[u] = emptySet;
+		for (neighbit = fNeighbors[u].begin(); neighbit != fNeighbors[u].end(); ++neighbit) {
+			v = *neighbit;
+			set_difference_update(secondNeighbors[u],fNeighbors[v],fNeighbors[u]);
+		}
+		secondNeighbors[u].erase(u);
 	}
 
 }
