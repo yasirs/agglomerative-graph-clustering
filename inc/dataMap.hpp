@@ -54,10 +54,13 @@ bool dataMap::deleteNeighbors(int a) {
 		for (intit = fNeighbors[a].begin(); intit != fNeighbors[a].end(); ++intit) {
 			x = *intit;
 			fNeighbors[x].erase(a);
+			fNeighbors[a].erase(x);
 		}
+		fNeighbors.erase(a);
 		for (intit = secondNeighbors[a].begin(); intit != secondNeighbors[a].end(); ++intit) {
 			x = *intit;
 			secondNeighbors[x].erase(a);
+			secondNeighbors[a].erase(x);
 		}
 		secondNeighbors.erase(a);
 		return true;

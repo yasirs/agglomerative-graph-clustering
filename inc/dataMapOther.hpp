@@ -115,6 +115,8 @@ dataMapOther::~dataMapOther() {
 };
 
 void dataMapOther::addMergedData(int a, int b, int c) {
+	std::set<int>::iterator intit;
+	int x;
 	for(int d=0; d< this->dim;d++) {
 		assert(this->AddPair(c,c, this->get_uv(a,a,d)->Add3(this->get_uv(a,b,d), this->get_uv(b,b,d)),d ) );
 		assert(this->AddPairOriginal(c,c, this->get_uvOriginal(a,a,d)->Add3(this->get_uvOriginal(a,b,d), this->get_uvOriginal(b,b,d)),d ) );
@@ -145,6 +147,16 @@ void dataMapOther::addMergedData(int a, int b, int c) {
 	set_union_update(tempSet,secondNeighbors[a],secondNeighbors[b]);
 	set_difference_update(secondNeighbors[c],tempSet,fNeighbors[c]);
 	secondNeighbors[c].erase(a); secondNeighbors[c].erase(b);
+	// add it c to the list of its neighbors as well
+	for (intit = fNeighbors[c].begin(); intit != fNeighbors[c].end(); ++intit) {
+		x = (*intit);
+		fNeighbors[x].insert(c);
+	}
+	for (intit = secondNeighbors[c].begin(); intit != secondNeighbors[c].end(); ++intit) {
+		x = (*intit);
+		secondNeighbors[x].insert(c);
+	}
+
 }
 
 
