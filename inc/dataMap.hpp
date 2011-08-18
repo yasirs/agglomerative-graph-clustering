@@ -227,14 +227,10 @@ dataMap::~dataMap() {
 void dataMap::addMergedData(int a, int b, int c) {
 	std::set<int>::iterator intit;
 	int x;
-	for (int d=0; d<this->dim; d++) {
+	int d;
+	for (d=0; d<this->dim; d++) {
 		assert(this->AddPair(c,c, this->get_uv(a,a,d)->Add3(this->get_uv(a,b,d), this->get_uv(b,b,d)),d ) );
 		this->datvert[d].push_back(this->datvert[d][a]->Add2(this->datvert[d][b],this->get_uv(a,b,d)));
-		for (std::set<int>::iterator intit (fNeighbors[c].begin()) ; intit != fNeighbors[c].end(); ++intit) {
-			x = (*intit);
-			this->AddPair(c,x,this->MyNullPairStat->Add3(this->get_uv(a,x,d),this->get_uv(b,x,d)),d);
-			this->AddPair(x,c,this->MyNullPairStat->Add3(this->get_uv(x,a,d),this->get_uv(x,b,d)),d);
-		}
 	}
 	// also need to update neighbors
 	std::set<int> emptySet, tempSet;
@@ -255,7 +251,13 @@ void dataMap::addMergedData(int a, int b, int c) {
 		x = (*intit);
 		secondNeighbors[x].insert(c);
 	}
-	
+	for (d=0; d<this->dim; d++) {
+		for (std::set<int>::iterator intit (fNeighbors[c].begin()) ; intit != fNeighbors[c].end(); ++intit) {
+			x = (*intit);
+			this->AddPair(c,x,this->MyNullPairStat->Add3(this->get_uv(a,x,d),this->get_uv(b,x,d)),d);
+			this->AddPair(x,c,this->MyNullPairStat->Add3(this->get_uv(x,a,d),this->get_uv(x,b,d)),d);
+		}
+	}
 }
 	
 

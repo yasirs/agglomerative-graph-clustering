@@ -117,25 +117,14 @@ dataMapOther::~dataMapOther() {
 void dataMapOther::addMergedData(int a, int b, int c) {
 	std::set<int>::iterator intit;
 	int x;
-	for(int d=0; d< this->dim;d++) {
+	int d;
+	for(d=0; d< this->dim;d++) {
 		assert(this->AddPair(c,c, this->get_uv(a,a,d)->Add3(this->get_uv(a,b,d), this->get_uv(b,b,d)),d ) );
 		assert(this->AddPairOriginal(c,c, this->get_uvOriginal(a,a,d)->Add3(this->get_uvOriginal(a,b,d), this->get_uvOriginal(b,b,d)),d ) );
 		assert(this->AddPairSoFar(c,c, this->get_uvSoFar(a,a,d)->Add3(this->get_uvSoFar(a,b,d), this->get_uvSoFar(b,b,d)),d ) );
 		this->datvert[d].push_back(this->datvert[d][a]->Add2(this->datvert[d][b],this->get_uv(a,b,d)));
 		this->oDatvert[d].push_back(this->oDatvert[d][a]->Add2(this->oDatvert[d][b],this->get_uv(a,b,d)));
 		this->sDatvert[d].push_back(this->sDatvert[d][a]->Add2(this->sDatvert[d][b],this->get_uv(a,b,d)));
-		int x;
-		for (std::set<int>::iterator intit (fNeighbors[c].begin()) ; intit != fNeighbors[c].end(); ++intit) {
-			x = (*intit);
-			this->AddPair(c,x,this->MyNullPairStat->Add3(this->get_uv(a,x,d),this->get_uv(b,x,d)),d);
-			this->AddPair(x,c,this->MyNullPairStat->Add3(this->get_uv(x,a,d),this->get_uv(x,b,d)),d);
-	
-			this->AddPairOriginal(c,x,this->MyNullPairStat->Add3(this->get_uvOriginal(a,x,d),this->get_uvOriginal(b,x,d)),d);
-			this->AddPairOriginal(x,c,this->MyNullPairStat->Add3(this->get_uvOriginal(x,a,d),this->get_uvOriginal(x,b,d)),d);
-	
-			this->AddPairSoFar(c,x,this->MyNullPairStat->Add3(this->get_uvSoFar(a,x,d),this->get_uvSoFar(b,x,d)),d);
-			this->AddPairSoFar(x,c,this->MyNullPairStat->Add3(this->get_uvSoFar(x,a,d),this->get_uvSoFar(x,b,d)),d);
-		}
 	}
 	// also need to update neighbors
 	std::set<int> emptySet, tempSet;
@@ -155,6 +144,19 @@ void dataMapOther::addMergedData(int a, int b, int c) {
 	for (intit = secondNeighbors[c].begin(); intit != secondNeighbors[c].end(); ++intit) {
 		x = (*intit);
 		secondNeighbors[x].insert(c);
+	}
+	for (d = 0;d<this->dim;d++) {
+		for (std::set<int>::iterator intit (fNeighbors[c].begin()) ; intit != fNeighbors[c].end(); ++intit) {
+			x = (*intit);
+			this->AddPair(c,x,this->MyNullPairStat->Add3(this->get_uv(a,x,d),this->get_uv(b,x,d)),d);
+			this->AddPair(x,c,this->MyNullPairStat->Add3(this->get_uv(x,a,d),this->get_uv(x,b,d)),d);
+	
+			this->AddPairOriginal(c,x,this->MyNullPairStat->Add3(this->get_uvOriginal(a,x,d),this->get_uvOriginal(b,x,d)),d);
+			this->AddPairOriginal(x,c,this->MyNullPairStat->Add3(this->get_uvOriginal(x,a,d),this->get_uvOriginal(x,b,d)),d);
+	
+			this->AddPairSoFar(c,x,this->MyNullPairStat->Add3(this->get_uvSoFar(a,x,d),this->get_uvSoFar(b,x,d)),d);
+			this->AddPairSoFar(x,c,this->MyNullPairStat->Add3(this->get_uvSoFar(x,a,d),this->get_uvSoFar(x,b,d)),d);
+		}
 	}
 
 }
