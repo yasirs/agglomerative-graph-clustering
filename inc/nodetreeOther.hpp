@@ -157,7 +157,7 @@ bool NodeOther::writeThetaforMerged(int a, int b, dataMap** ww, TreeClass* tree,
 		}
 		this->paramsOriginal[d]->cleanup();
 		this->paramsSoFar[d]->cleanup();
-		this->params[d]->cleanup()
+		this->params[d]->cleanup();
 		//this->params[d]->bestfromSoFar(this->paramsOriginal[d],this->paramsSoFar[d]);
 		
 	}
