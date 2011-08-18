@@ -154,6 +154,7 @@ void linkPredictorOther::attach(Engine* e) {
 						throw 1;
 					}
 					topParams[n1][n2][d]->calculate(ww->get_uvOriginal(n1,n2,d),ww->oDatvert[d][n1],ww->oDatvert[d][n2]);
+					topParams[n1][n2][d]->cleanup();					
 				}
 			}
 		}
