@@ -13,7 +13,8 @@ class dataMapOther: public dataMap{
 		dataMapOther() { 
 			std::cout << "inside dataMapOther constructor!\n";
 		}
-		
+
+		std::map<int,std::set<int> > oFNeighbors;
 		std::tr1::unordered_map<int, std::tr1::unordered_map<int, ModelPairStatsBase*> >* oDatpair;
 		std::vector<ModelSelfStatsBase*>* oDatvert;
 		std::tr1::unordered_map<int, std::tr1::unordered_map<int, ModelPairStatsBase*> >* sDatpair;
@@ -128,10 +129,10 @@ void dataMapOther::addMergedData(int a, int b, int c) {
 	}
 	// also need to update neighbors
 	std::set<int> emptySet, tempSet;
-	fNeighbors[c] = emptySet;
+	fNeighbors[c] = emptySet; oFNeighbors[c] = emptySet;
 	secondNeighbors[c] = emptySet;
-	set_union_update(fNeighbors[c],fNeighbors[a],fNeighbors[b]);
-	fNeighbors[c].erase(a); fNeighbors[c].erase(b); 
+	set_union_update(fNeighbors[c],fNeighbors[a],fNeighbors[b]); set_union_update(oFNeighbors[c],oFNeighbors[a],oFNeighbors[b]);
+	fNeighbors[c].erase(a); fNeighbors[c].erase(b); oFNeighbors[c].erase(a); oFNeighbors[c].erase(b); 
 	tempSet = emptySet;
 	set_union_update(tempSet,secondNeighbors[a],secondNeighbors[b]);
 	set_difference_update(secondNeighbors[c],tempSet,fNeighbors[c]);
@@ -145,17 +146,23 @@ void dataMapOther::addMergedData(int a, int b, int c) {
 		x = (*intit);
 		secondNeighbors[x].insert(c);
 	}
+	for (intit = oFNeighbors[c].begin(); intit != oFNeighbors[c].end(); ++intit) {
+		x = (*intit);
+		oFNeighbors[x].insert(c);
+	}
 	for (d = 0;d<this->dim;d++) {
 		for (std::set<int>::iterator intit (fNeighbors[c].begin()) ; intit != fNeighbors[c].end(); ++intit) {
 			x = (*intit);
 			this->AddPair(c,x,this->MyNullPairStat->Add3(this->get_uv(a,x,d),this->get_uv(b,x,d)),d);
 			this->AddPair(x,c,this->MyNullPairStat->Add3(this->get_uv(x,a,d),this->get_uv(x,b,d)),d);
 	
-			this->AddPairOriginal(c,x,this->MyNullPairStat->Add3(this->get_uvOriginal(a,x,d),this->get_uvOriginal(b,x,d)),d);
-			this->AddPairOriginal(x,c,this->MyNullPairStat->Add3(this->get_uvOriginal(x,a,d),this->get_uvOriginal(x,b,d)),d);
-	
 			this->AddPairSoFar(c,x,this->MyNullPairStat->Add3(this->get_uvSoFar(a,x,d),this->get_uvSoFar(b,x,d)),d);
 			this->AddPairSoFar(x,c,this->MyNullPairStat->Add3(this->get_uvSoFar(x,a,d),this->get_uvSoFar(x,b,d)),d);
+		}
+		for (std::set<int>::iterator intit (oFNeighbors[c].begin()) ; intit != oFNeighbors[c].end(); ++intit) {
+			x = (*intit);
+			this->AddPairOriginal(c,x,this->MyNullPairStat->Add3(this->get_uvOriginal(a,x,d),this->get_uvOriginal(b,x,d)),d);
+			this->AddPairOriginal(x,c,this->MyNullPairStat->Add3(this->get_uvOriginal(x,a,d),this->get_uvOriginal(x,b,d)),d);	
 		}
 	}
 
@@ -322,26 +329,30 @@ void dataMapOther::initialize(graphData* D, graphData* Doriginal, graphData* Dso
 		for (u=0; u != D[d].numV; u++) {
 			this->initVert(u);
 		}
-	
+
+		// use current graph to make current first neighbors
 		std::map<int, graphData::destList*>::iterator it1 (D[d].edgeList.begin());
 		for (; it1 != D[d].edgeList.end(); ++it1) {
 			u = (*it1).first;
 			for (graphData::destList::iterator it2 ((*it1).second->begin()); it2 != (*it1).second->end(); ++it2) {
 				v = (*it2).first;
 				assert(this->AddEdge(u,v,(*it2).second,d));
+				if (fNeighbors.find(v)==fNeighbors.end()) fNeighbors[v] = emptySet;
+				fNeighbors[u].insert(v);
+				fNeighbors[v].insert(u);
 			}
 		}
 	
-		// Use the Original graph for making first neighbors
+		// Use the Original graph for making Original first neighbors
 		for (it1 = Doriginal[d].edgeList.begin(); it1 != Doriginal[d].edgeList.end(); ++it1) {
 			u = (*it1).first;
 			if (fNeighbors.find(u)==fNeighbors.end()) fNeighbors[u] = emptySet;
 			for (graphData::destList::iterator it2 ((*it1).second->begin()); it2 != (*it1).second->end(); ++it2) {
 				v = (*it2).first;
 				assert(this->AddEdgeOriginal(u,v,(*it2).second,d));
-				if (fNeighbors.find(v)==fNeighbors.end()) fNeighbors[v] = emptySet;
-				fNeighbors[u].insert(v);
-				fNeighbors[v].insert(u);
+				if (oFNeighbors.find(v)==oFNeighbors.end()) oFNeighbors[v] = emptySet;
+				oFNeighbors[u].insert(v);
+				oFNeighbors[v].insert(u);
 			}
 		}
 	
