@@ -82,7 +82,7 @@ int main(int argc, char* argv[]) {
 	//fnstem = "grassland";
 	fnin = fnstem+".edges";
 	// let us read in the graph
-	graphData *Goriginal, *Gnew, *GsoFar;
+	graphData *Goriginal, *Gnew, *GsoFar, *Gempty;
 	Engine *en;
 	Goriginal = new graphData[1];
 	GsoFar = new graphData[1];
@@ -123,7 +123,7 @@ int main(int argc, char* argv[]) {
 	std::cout << "starting to run\n";
 	en->runML(true,false);
 	fnout = fnstem +"_0.hrg"; en->printHRG(fnout.c_str(),0);
-	//en->passFB();
+	en->passFB();
 	std::cout << "done running\n";
 	lp.attach(en); // attached the engine
 	std::cout << "Attached!\n";
@@ -134,6 +134,8 @@ int main(int argc, char* argv[]) {
 	en->tree->writeCollapsedHierEdges(fnout.c_str());
 	lp.updateSoFarLazy(GsoFar);
 	fnout = fnstem + ".0soFar";
+	GsoFar->writeSingle(fnout.c_str());
+	fnout = fnstem + "." +  "0this";
 	GsoFar->writeSingle(fnout.c_str());
 	if (doScores)
 		Glabel->putSoFar(GsoFar, 1);
@@ -155,7 +157,7 @@ int main(int argc, char* argv[]) {
 		std::cout << "running on the residual\n";
 		en->runML(true,false);
 		fnout = fnstem +"_"+int2str(residint)+".hrg"; en->printHRG(fnout.c_str(),0);
-		//en->passFB();
+		en->passFB();
 		lp.attach(en);
 		//fnout = fnstem + ".scores" + sres;
 		//std::cout << "done!\nPrinting out the " << residint <<"th heirarchical network\n";
@@ -166,6 +168,12 @@ int main(int argc, char* argv[]) {
 		if (doScores) 
 			Glabel->putSoFar(GsoFar, residint+1);
 		GsoFar->writeSingle(fnout.c_str());
+		Gempty = new graphData[1];
+		Goriginal[0].copyNoEdges(Gempty[0]);
+		lp.updateSoFarLazy(Gempty);
+		fnout = fnstem + "." +  sres + "this";
+		Gempty->writeSingle(fnout.c_str());
+		delete[] Gempty;
 		delete[] Gnew;
 		residint++;
 	}
