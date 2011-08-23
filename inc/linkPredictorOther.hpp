@@ -153,7 +153,7 @@ void linkPredictorOther::attach(Engine* e) {
 						std::cerr << "graph type "<<D[d].gtype<<" not yet supported for link prediction (top Params).\n";
 						throw 1;
 					}
-					topParams[n1][n2][d]->calculate(ww->get_uvOriginal(n1,n2,d),ww->oDatvert[d][n1],ww->oDatvert[d][n2]);
+					topParams[n1][n2][d]->calculate(ww->get_uv(n1,n2,d),ww->datvert[d][n1],ww->datvert[d][n2]);
 					topParams[n1][n2][d]->cleanup();					
 				}
 			}
@@ -185,14 +185,14 @@ void linkPredictorOther::updateSoFarLazy(graphData* GsoFar) {
 					ModelSelfStatsBase* su;
 					for (; (! G1.isDone()); ) {
 						u = G1.goNext();
-						su = ww->oDatvert[d][u];
+						su = ww->datvert[d][u];
 						int v;
 						ModelSelfStatsBase* sv;
 						AllChildVertGenerator G2(tree, n2);
 						for (; (! G2.isDone()); ) {
 							v = G2.goNext();
 							if (u != v) {
-								sv = ww->oDatvert[d][v];
+								sv = ww->datvert[d][v];
 								//oldpred = par->predict(su,sv);
 								wnew = par->updatedSoFar(su,sv,GsoFar[d].get_uv(u,v));
 								//wnew = 1 - (1 - GsoFar[d].get_uv(u,v))*(1 - wpredicted);
@@ -223,14 +223,14 @@ void linkPredictorOther::updateSoFarLazy(graphData* GsoFar) {
 					ModelSelfStatsBase* su;
 					for (; (! G1.isDone()); ) {
 						u = G1.goNext();
-						su = ww->oDatvert[d][u];
+						su = ww->datvert[d][u];
 						int v;
 						ModelSelfStatsBase* sv;
 						AllChildVertGenerator G2(tree, n);
 						for (; (! G2.isDone()); ) {
 							v = G2.goNext();
 							if (u != v) {
-								sv = ww->oDatvert[d][v];
+								sv = ww->datvert[d][v];
 								wnew = par->updatedSoFar(su,sv,GsoFar[d].get_uv(u,v));
 								if (wnew>EPS) {
 									GsoFar[d].set_uv(u,v,wnew);
@@ -250,14 +250,14 @@ void linkPredictorOther::updateSoFarLazy(graphData* GsoFar) {
 								ModelSelfStatsBase* su;
 								for (; (! G1.isDone()); ) {
 									u = G1.goNext();
-									su = ww->oDatvert[d][u];
+									su = ww->datvert[d][u];
 									int v;
 									ModelSelfStatsBase* sv;
 									AllChildVertGenerator G2(tree, *cit2);
 									for (; (! G2.isDone()); ) {
 										v = G2.goNext();
 										if (u != v) {
-											sv = ww->oDatvert[d][v];
+											sv = ww->datvert[d][v];
 											wnew = par->updatedSoFar(su,sv,GsoFar[d].get_uv(u,v));
 											if (wnew>EPS) {
 												GsoFar[d].set_uv(u,v,wnew);

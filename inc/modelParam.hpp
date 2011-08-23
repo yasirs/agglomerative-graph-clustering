@@ -38,7 +38,7 @@ void BinomialParam::init() {
 }
 
 float BinomialParam::updatedSoFar(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb, float oldsofar) {
-	return 1 - (1 - oldsofar)*(1 - this->predict(sa,sb));
+	return oldsofar + this->predict(sa,sb);
 }
 
 /*void BinomialParam::bestfromSoFar(ModelParamBase* Ori, ModelParamBase* Sof) {
@@ -222,7 +222,7 @@ void WParam::init() {
 }
 
 float WParam::updatedSoFar(ModelSelfStatsBase* sa, ModelSelfStatsBase* sb, float oldsofar) {
-	return 1 - (1 - oldsofar)*(1 - this->predict(sa,sb));
+	return oldsofar + this->predict(sa,sb);
 }
 
 /*void WParam::bestfromSoFar(ModelParamBase* Ori, ModelParamBase* Sof) {
