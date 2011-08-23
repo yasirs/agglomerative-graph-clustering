@@ -267,7 +267,7 @@ Engine::Engine(graphData* G, graphData* Goriginal, graphData* GsoFar, int d) {
 	tree = new TreeClassOther(G,dim);
 	int x,y;
 	// initialize weights, degrees, selfMissing and first neighbors, and nV
-	((dataMapOther*) w)->initialize(D, Goriginal, GsoFar, dim);
+	((dataMapOther*) w)->initialize(D, Goriginal, dim);
 	std::set<int> emptySet;
 	// initialize 2nd neighbors
 	std::map<int, Node*>::iterator itnode;
