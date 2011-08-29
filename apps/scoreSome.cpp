@@ -1,4 +1,4 @@
-#define DEBUGMODE 1
+#define DEBUGMODE 0
 #define NOGSL 1
 #define NOREFERENCE 0
 #define ISVC 0
@@ -123,6 +123,11 @@ int main(int argc, char* argv[]) {
 	std::cout << "starting to run\n";
 	en->runML(true,false);
 	fnout = fnstem +"_0.hrg"; en->printHRG(fnout.c_str(),0);
+	// write the pre-pass predictions for this round
+	lp.attach(en); fnout = fnstem+".0prepass"; 
+	Gempty = new graphData[1];
+	Goriginal[0].copyNoEdges(Gempty[0]);
+	lp.updateSoFarLazy(Gempty); Gempty->writeSingle(fnout.c_str()); delete[] Gempty;
 	en->passFB();
 	std::cout << "done running\n";
 	lp.attach(en); // attached the engine
@@ -135,8 +140,11 @@ int main(int argc, char* argv[]) {
 	lp.updateSoFarLazy(GsoFar);
 	fnout = fnstem + ".0soFar";
 	GsoFar->writeSingle(fnout.c_str());
-	fnout = fnstem + "." +  "0this";
-	GsoFar->writeSingle(fnout.c_str());
+	// write the post-pass predictions for this round
+	lp.attach(en); fnout = fnstem+".0postpass"; 
+	Gempty = new graphData[1];
+	Goriginal[0].copyNoEdges(Gempty[0]);
+	lp.updateSoFarLazy(Gempty); Gempty->writeSingle(fnout.c_str()); delete[] Gempty;
 	if (doScores)
 		Glabel->putSoFar(GsoFar, 1);
 
@@ -157,7 +165,20 @@ int main(int argc, char* argv[]) {
 		std::cout << "running on the residual\n";
 		en->runML(true,false);
 		fnout = fnstem +"_"+int2str(residint)+".hrg"; en->printHRG(fnout.c_str(),0);
+		// write the pre-pass predictions for this round
+		lp.attach(en); fnout = fnstem+"." + sres+"prepass"; 
+		Gempty = new graphData[1];
+		Goriginal[0].copyNoEdges(Gempty[0]);
+		lp.updateSoFarLazy(Gempty); Gempty->writeSingle(fnout.c_str()); delete[] Gempty;
+		
 		en->passFB();
+
+		// write the post-pass predictions for this round
+		lp.attach(en); fnout = fnstem+"." + sres+"postpass"; 
+		Gempty = new graphData[1];
+		Goriginal[0].copyNoEdges(Gempty[0]);
+		lp.updateSoFarLazy(Gempty); Gempty->writeSingle(fnout.c_str()); delete[] Gempty;
+
 		lp.attach(en);
 		//fnout = fnstem + ".scores" + sres;
 		//std::cout << "done!\nPrinting out the " << residint <<"th heirarchical network\n";
@@ -168,12 +189,6 @@ int main(int argc, char* argv[]) {
 		if (doScores) 
 			Glabel->putSoFar(GsoFar, residint+1);
 		GsoFar->writeSingle(fnout.c_str());
-		Gempty = new graphData[1];
-		Goriginal[0].copyNoEdges(Gempty[0]);
-		lp.updateSoFarLazy(Gempty);
-		fnout = fnstem + "." +  sres + "this";
-		Gempty->writeSingle(fnout.c_str());
-		delete[] Gempty;
 		delete[] Gnew;
 		residint++;
 	}
