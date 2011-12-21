@@ -7,6 +7,7 @@
 #include <vector>
 #include <sstream>
 #include <iostream>
+#include <exception>
 #include <tr1/unordered_map>
 #include <boost/lexical_cast.hpp>
 
@@ -29,6 +30,16 @@ class graphData{
 	public:
 		unsigned int numV,multiPartite;
 		char gtype;
+		std::string getType() { return std::string(1,gtype); }
+		bool setType(std::string ss) {
+			if (ss.length()!=1) {
+				throw(std::runtime_error("type should be of length 1, not" + boost::lexical_cast<std::string>(ss.length())));
+				if (ss.length()>1) gtype = ss[0];
+				return false;
+			}
+			gtype = ss[0];
+			return true;
+		}
 		float aveP;
 		float Etot;
 		typedef std::tr1::unordered_map<int, float> destList;
@@ -263,7 +274,7 @@ bool graphData::readGeneralBasedOnOld(graphData* Goriginal, const char* filename
 	this->numV = Goriginal->numV;
 	this->multiPartite = 0;
 	file.open(filename,std::ios::in);
-	if (! file.is_open()) return 0;
+	if (! file.is_open()) {throw(std::runtime_error("file " + std::string(filename)+"not open.\n")); return 0;}
 	while (!file.eof()) {
 		getline(file,strline);
 		tok.clear();
@@ -293,11 +304,11 @@ bool graphData::readGeneralBasedOnOld(graphData* Goriginal, const char* filename
 			this->multiPartite = 1;
 		} else {
 			// nothing to do for this line
-			if (DEBUGMODE) std::cout << "Error: don't know what to do with a line of "<<tok.size()<<"tokens!\n";
+			if (DEBUGMODE) throw(std::runtime_error("Error: don't know what to do with a line of " + boost::lexical_cast<std::string>(tok.size()) + "tokens at line = " + boost::lexical_cast<std::string>(strline)+"\n"));
 			continue;
 		}
 		if (Vt1==Vt2) {
-			std::cout << "self loop in "<<filename<<", line = "<<strline<<"\n";
+			throw(std::runtime_error("self loop in " + std::string(filename) +", line = " + boost::lexical_cast<std::string>(strline)+"\n"));
 		}
 		
 		if (name2Int.find(Vt1)==name2Int.end()) {
