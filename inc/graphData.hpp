@@ -142,8 +142,7 @@ void graphData::writeSingle_noname(const char* fn) {
 					file << u <<'\t' << v  << '\t' << weight << '\n';
 				}
 				else {
-					std::cerr << gtype << " type of graph not recognized in writing graphs\n";
-					throw 1;
+					throw(std::runtime_error(std::string(gtype,1)+" type of graph not recognized in writing graphs"));
 				}
 			}
 		}
@@ -184,8 +183,7 @@ void graphData::writeSingle(const char* fn) {
 					file << uname <<'\t' << vname  << '\t' << weight << '\n';
 				}
 				else {
-					std::cerr << gtype << " type of graph not recognized in writing graphs\n";
-					throw 1;
+					throw(std::runtime_error(std::string(gtype,1)+" type of graph not recognized in writing graphs"));
 				}
 			}
 		}
@@ -223,8 +221,7 @@ void graphData::writeBoth(const char* fn) {
 				file << int2Name[u] <<'\t' << int2Name[v] << '\t' << weight << '\n';
 			}
 			else {
-				std::cerr << gtype << " type of graph not recognized in writing graphs\n";
-				throw 1;
+				throw(std::runtime_error(std::string(gtype,1)+" type of graph not recognized in writing graphs"));
 			}
 		}
 	}
@@ -576,7 +573,7 @@ bool graphData::readGeneral(const char* fn, const char* sep) {
 			this->multiPartite = 1;
 		} else {
 			// nothing to do for this line
-			if (DEBUGMODE) std::cout << "Error: don't know what to do with a line of "<<tok.size()<<"tokens!\n";
+			if (DEBUGMODE) throw(std::runtime_error("Error: don't know what to do with a line of " + boost::lexical_cast<std::string>(tok.size())+"tokens!"));
 			continue;
 		}
 
