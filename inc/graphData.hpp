@@ -7,7 +7,8 @@
 #include <vector>
 #include <sstream>
 #include <iostream>
-#include <exception>
+#include <stdexcept>
+#include <algorithm>
 #include <tr1/unordered_map>
 #include <boost/lexical_cast.hpp>
 
@@ -77,9 +78,35 @@ class graphData{
 		void copyNoEdges(graphData& Dnew);
 		bool hasName(const std::string& name);
 		bool hasName(const char* name);
+		std::vector<int> testLabels(std::vector<std::pair<int,int> > nonEdges);
 };
 
-std::vector<std::pair<int,int> > getNonEdges() {
+
+std::vector<int> graphData::testLabels(std::vector<std::pair<int,int> > nonEdges) {
+	std::vector<std::pair<int,int> >::iterator foundPair;
+	std::vector<int> elabs(nonEdges.size(),0);
+	int src, dest;
+	for (std::map<int,destList*>::iterator dlIt = edgeList.begin(); dlIt != edgeList.end(); dlIt++) {
+		src = dlIt->first;
+		for (destList::iterator destIt = dlIt->second->begin(); 
+			destIt != dlIt->second->end(); 
+			++destIt) {
+			dest = destIt->first;
+			std::pair<int,int> srdest;
+			if (dest<src) srdest = std::make_pair(src,dest);
+			else srdest = std::make_pair(dest,src);
+			foundPair = std::lower_bound(nonEdges.begin(), nonEdges.end(), srdest);
+			if ((foundPair != nonEdges.end()) && (*foundPair == srdest)) {
+				elabs[foundPair - nonEdges.begin()] = 1;
+			} else {
+				std::runtime_error("test edge not found in non-edges : "+int2Name[src]+", "+int2Name[dest]);
+			}
+		}
+	}
+	return elabs;
+}
+
+std::vector<std::pair<int,int> > graphData::getNonEdges() {
 	std::vector<std::pair<int,int> > nonEdges;
 	for (int u=0;u<numV;u++) {
 		for (int v=0;v<numV;v++) {
@@ -507,13 +534,14 @@ bool graphData::readBinaryBasedOnOld(graphData* Goriginal, const char* filename)
 			linesread++;
 			if (name2Int.find(tok[0])==name2Int.end()) {
 				// do nothing
+				throw(std::runtime_error(std::string(tok[0])+" not found in previous graph"));
 				continue;
-				return 0;
 			} else {
 				u = name2Int[tok[0]];
 			}
 			if (name2Int.find(tok[1])==name2Int.end()) {
 				// do nothing
+				throw(std::runtime_error(std::string(tok[1])+" not found in previous graph"));
 				continue;
 				return 0;
 			} else {
