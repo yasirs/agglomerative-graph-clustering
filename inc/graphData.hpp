@@ -5,6 +5,7 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <exception>
 #include <sstream>
 #include <iostream>
 #include <tr1/unordered_map>
@@ -29,6 +30,16 @@ class graphData{
 	public:
 		unsigned int numV,multiPartite;
 		char gtype;
+		std::string getType() { return std::string(1,gtype); }
+		bool setType(std::string ss) {
+			if (ss.length()!=1) {
+				throw(std::runtime_error("type should be of length 1, not" + boost::lexical_cast<std::string>(ss.length())));
+				if (ss.length()>1) gtype = ss[0];
+				return false;
+			}
+			gtype = ss[0];
+			return true;
+		}
 		float aveP;
 		float Etot;
 		typedef std::tr1::unordered_map<int, float> destList;
