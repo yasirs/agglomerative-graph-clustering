@@ -73,6 +73,7 @@ class graphData{
 			edgeList.clear();
 		}
 		void copyNoEdges(graphData& Dnew);
+		void makeComplimentary(graphData& Dnew);
 		bool hasName(const std::string& name);
 		bool hasName(const char* name);
 };
@@ -103,6 +104,23 @@ void graphData::copyNoEdges(graphData& Dnew) {
 	Dnew.name2Int = this->name2Int;
 	Dnew.gtype = this->gtype;
 	Dnew.numV = this->numV;
+}
+
+
+
+void graphData::makeComplimentary(graphData& Dnew) {
+	Dnew.int2Name = this->int2Name;
+	Dnew.name2Int = this->name2Int;
+	Dnew.gtype = this->gtype;
+	Dnew.numV = this->numV;
+	for (int i =0; i<this->numV; i++) {
+		for (int j =0; j<this->numV; j++) {
+			float e = get_uv(i,j);
+			if (e!=1) {
+				Dnew.set_uv(i,j,1-e);
+			}
+		}
+	}
 }
 
 
