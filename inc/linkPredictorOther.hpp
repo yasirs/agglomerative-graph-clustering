@@ -7,6 +7,8 @@
 #include "mygenerators.hpp"
 #include "linkPredictor.hpp"
 #include <cassert>
+#include <algorithm>
+#include <stdexcept>
 #include <cmath>
 #include <math.h>
 
@@ -29,8 +31,32 @@ class linkPredictorOther: public linkPredictor {
 		//graphData* copyNoEdges(graphData* Dold);
 		//void addPredstoGraph(graphData* PD);
 		void updateSoFarLazy(graphData* GsoFar);
+		void updateTrackEdgeHoles(graphData* soFar);
 		virtual ~linkPredictorOther();
 };
+
+
+void linkPredictorOther::updateTrackEdgeHoles(graphData* soFar) {
+	if (dim%2 != 0) {
+		throw(std::runtime_error("To track edges and holes, need 2*d graphs"));
+	}
+	for (int d=0; d<dim/2; d++) {
+		for (int u=0; u < soFar[d].numV; u++) {
+			for (int v=0; v < soFar[d].numV; v++) {
+				float e_hat = this->predictEdge(u,v,2*d);
+				float h_hat = this->predictEdge(u,v,2*d+1);
+				float del_e = std::max(ww->get_uvOriginal(u,v,2*d)->simple() - e_hat,0.0f);
+				float del_h = std::max(ww->get_uvOriginal(u,v,2*d+1)->simple() - h_hat,0.0f);
+				float e_new = e_hat + del_e - del_h;
+				float h_new = h_hat + del_h - del_e;
+				soFar[2*d].set_uv(u,v,e_new);
+				soFar[2*d+1].set_uv(u,v,h_new);
+			}
+		}
+	}
+}
+
+
 
 
 linkPredictorOther::~linkPredictorOther() {
