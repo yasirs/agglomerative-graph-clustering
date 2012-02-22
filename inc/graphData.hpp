@@ -115,9 +115,11 @@ void graphData::makeComplimentary(graphData& Dnew) {
 	Dnew.numV = this->numV;
 	for (int i =0; i<this->numV; i++) {
 		for (int j =0; j<this->numV; j++) {
-			float e = get_uv(i,j);
-			if (e!=1) {
-				Dnew.set_uv(i,j,1-e);
+			if (i != j) {
+				float e = get_uv(i,j);
+				if (e!=1) {
+					Dnew.set_uv(i,j,1-e);
+				}
 			}
 		}
 	}

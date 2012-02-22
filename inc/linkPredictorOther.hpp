@@ -45,10 +45,10 @@ void linkPredictorOther::updateTrackEdgeHoles(graphData* soFar) {
 			for (int v=0; v < soFar[d].numV; v++) {
 				float e_hat = this->predictEdge(u,v,2*d);
 				float h_hat = this->predictEdge(u,v,2*d+1);
-				float del_e = std::max(ww->get_uvOriginal(u,v,2*d)->simple() - e_hat,0.0f);
-				float del_h = std::max(ww->get_uvOriginal(u,v,2*d+1)->simple() - h_hat,0.0f);
-				float e_new = e_hat + del_e - del_h;
-				float h_new = h_hat + del_h - del_e;
+				float del_e = std::max(ww->get_uvSimple(u,v,2*d) - e_hat,   0.0f);
+				float del_h = std::max(ww->get_uvSimple(u,v,2*d+1) - h_hat, 0.0f);
+				float e_new = soFar[2*d].get_uv(u,v) + e_hat + del_e - del_h;
+				float h_new = soFar[2*d+1].get_uv(u,v) + h_hat + del_h - del_e;
 				soFar[2*d].set_uv(u,v,e_new);
 				soFar[2*d+1].set_uv(u,v,h_new);
 			}

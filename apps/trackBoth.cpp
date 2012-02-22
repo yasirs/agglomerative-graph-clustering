@@ -93,7 +93,7 @@ int main(int argc, char* argv[]) {
 	Goriginal[0].copyNoEdges(GsoFar[1]);
 
 	std::cout << "Initializing Engine, scores\n";
-	en = new Engine(Goriginal, Goriginal, GsoFar, 1);
+	en = new Engine(Goriginal, Goriginal, GsoFar, 2);
 	en->initializeScoresML();
 
 	// run the agglomerative algorithm
@@ -110,8 +110,20 @@ int main(int argc, char* argv[]) {
 	fnout = fnstem + "0.clusters";
 	en->tree->writeCollapsedHierEdges(fnout.c_str());
 	lp.updateTrackEdgeHoles(GsoFar);
-	fnout = fnstem + ".0soFar";
-	GsoFar[0].writeSingle(fnout.c_str());
+	fnout = fnstem + ".0soFarEdges"; GsoFar[0].writeSingle(fnout.c_str());
+	fnout = fnstem + ".0soFarHoles"; GsoFar[1].writeSingle(fnout.c_str());
+
+
+	// write the post-pass predictions for this round
+	fnout = fnstem+"." + "0postpassEdges"; 
+	Gempty = new graphData[2];
+	Goriginal[0].copyNoEdges(Gempty[0]);
+	Goriginal[1].copyNoEdges(Gempty[1]);	
+	lp.updateSoFarLazy(Gempty); Gempty[0].writeSingle(fnout.c_str()); 
+	fnout = fnstem+"."+"0postpassHoles"; Gempty[1].writeSingle(fnout.c_str());
+	delete[] Gempty;
+	
+
 
 	int residint = 1;
 	while(residint <= numResids) {
@@ -120,8 +132,9 @@ int main(int argc, char* argv[]) {
 		std::string sres;
 		dummy >> sres;
 		std::cout << "getting the residual graph\n";
-		Gnew = residualDiff(Goriginal, GsoFar, 1);
-		fnout = fnstem + sres + ".residual"; Gnew->writeSingle(fnout.c_str());
+		Gnew = residualDiff(Goriginal, GsoFar, 2);
+		fnout = fnstem + sres + ".residualEdges"; Gnew[0].writeSingle(fnout.c_str());
+		fnout = fnstem + sres + ".residualHoles"; Gnew[1].writeSingle(fnout.c_str());
 		std::cout << "got the residual\n";
 		std::cout << "Etot = "<< Gnew->Etot << "\n";
 		delete en;
@@ -132,21 +145,26 @@ int main(int argc, char* argv[]) {
 		fnout = fnstem +"_"+int2str(residint)+".hrg"; en->printHRG(fnout.c_str(),0);
 		
 		en->passFB();
-
-		// write the post-pass predictions for this round
-		lp.attach(en); fnout = fnstem+"." + sres+"postpass"; 
-		Gempty = new graphData[1];
-		Goriginal[0].copyNoEdges(Gempty[0]);
-		lp.updateSoFarLazy(Gempty); Gempty->writeSingle(fnout.c_str()); delete[] Gempty;
-
 		lp.attach(en);
+
+		
+		// write the post-pass predictions for this round
+		fnout = fnstem+"." + sres+"postpassEdges"; 
+		Gempty = new graphData[2];
+		Goriginal[0].copyNoEdges(Gempty[0]);
+		Goriginal[1].copyNoEdges(Gempty[1]);	
+		lp.updateSoFarLazy(Gempty); Gempty[0].writeSingle(fnout.c_str()); 
+		fnout = fnstem+"."+sres+"postpassHoles"; Gempty[1].writeSingle(fnout.c_str());
+		delete[] Gempty;
+		
+
 		//fnout = fnstem + ".scores" + sres;
 		//std::cout << "done!\nPrinting out the " << residint <<"th heirarchical network\n";
 		fnout = fnstem + sres + ".clusters";
 		en->tree->writeCollapsedHierEdges(fnout.c_str());
 		lp.updateTrackEdgeHoles(GsoFar);
-		fnout = fnstem +  "." + sres + "soFar";
-		GsoFar[0].writeSingle(fnout.c_str());
+		fnout = fnstem +  "." + sres + "soFarEdges"; GsoFar[0].writeSingle(fnout.c_str());
+		fnout = fnstem +  "." + sres + "soFarHoles"; GsoFar[1].writeSingle(fnout.c_str());
 		delete[] Gnew;
 		residint++;
 	}

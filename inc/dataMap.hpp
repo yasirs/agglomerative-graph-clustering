@@ -70,6 +70,9 @@ bool dataMap::deleteNeighbors(int a) {
 
 void dataMap::initVert(unsigned int u) {
 	for (int d=0;d<this->dim;d++) {
+		if (datvert[d].size() != u) {
+			throw(std::runtime_error("Something wrong! datvert[d].size != u"));
+		}
 		assert(datvert[d].size()==u);
 		if (gtype[d]=='b') {
 			datvert[d].push_back(new BinomialSelfStats);

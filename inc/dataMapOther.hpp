@@ -212,7 +212,11 @@ void dataMapOther::initialize(graphData* D, graphData* Doriginal, int _dim) {
 	for(int d=0;d<this->dim;d++) {
 		assert(D[d].gtype==Doriginal[d].gtype);
 		this->gtype[d] = D[d].gtype;
-	
+	}
+	for (u=0; u != D[0].numV; u++) {
+		this->initVert(u);
+	}
+	for(int d=0;d<this->dim;d++) {
 		if (gtype[d]=='b') MyNullPairStat = new BinomialPairStats;
 		else if (gtype[d]=='p') MyNullPairStat = new PoissonPairStats;
 		else if (gtype[d]=='w') MyNullPairStat = new WPairStats;
@@ -221,9 +225,6 @@ void dataMapOther::initialize(graphData* D, graphData* Doriginal, int _dim) {
 		else {std::cout << "bad graph type\n";}
 	
 		std::set<int> emptySet;
-		for (u=0; u != D[d].numV; u++) {
-			this->initVert(u);
-		}
 
 		// use current graph to make current first neighbors
 		std::map<int, graphData::destList*>::iterator it1 (D[d].edgeList.begin());
@@ -231,7 +232,10 @@ void dataMapOther::initialize(graphData* D, graphData* Doriginal, int _dim) {
 			u = (*it1).first;
 			for (graphData::destList::iterator it2 ((*it1).second->begin()); it2 != (*it1).second->end(); ++it2) {
 				v = (*it2).first;
-				assert(this->AddEdge(u,v,(*it2).second,d));
+				if( ! this->AddEdge(u,v,(*it2).second,d)) {
+					throw(std::runtime_error("Error: Edge already present?"));
+					assert(false);
+				}
 				if (fNeighbors.find(v)==fNeighbors.end()) fNeighbors[v] = emptySet;
 				fNeighbors[u].insert(v);
 				fNeighbors[v].insert(u);
