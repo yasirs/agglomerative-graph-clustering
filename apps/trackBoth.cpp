@@ -41,14 +41,6 @@ std::string int2str(const unsigned int input) {
 
 #endif
 
-
-
-bool fexists(const char* filename) {
-	std::ifstream ifile(filename);
-	return ifile;
-}
-
-
 int main(int argc, char* argv[]) {
 	std::string fnstem,fnin,fnout;
 	linkPredictorOther lp;
