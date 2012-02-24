@@ -101,7 +101,7 @@ int main(int argc, char* argv[]) {
 	
 	fnout = fnstem + "0.clusters";
 	en->tree->writeCollapsedHierEdges(fnout.c_str());
-	lp.updateTrackEdgeHoles(GsoFar);
+	lp.updateSoFarLazy(GsoFar);
 	fnout = fnstem + ".0soFarEdges"; GsoFar[0].writeSingle(fnout.c_str());
 	fnout = fnstem + ".0soFarHoles"; GsoFar[1].writeSingle(fnout.c_str());
 
@@ -154,7 +154,7 @@ int main(int argc, char* argv[]) {
 		//std::cout << "done!\nPrinting out the " << residint <<"th heirarchical network\n";
 		fnout = fnstem + sres + ".clusters";
 		en->tree->writeCollapsedHierEdges(fnout.c_str());
-		lp.updateTrackEdgeHoles(GsoFar);
+		lp.updateSoFarLazy(GsoFar);
 		fnout = fnstem +  "." + sres + "soFarEdges"; GsoFar[0].writeSingle(fnout.c_str());
 		fnout = fnstem +  "." + sres + "soFarHoles"; GsoFar[1].writeSingle(fnout.c_str());
 		delete[] Gnew;
