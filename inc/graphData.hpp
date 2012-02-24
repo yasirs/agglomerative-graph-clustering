@@ -5,7 +5,7 @@
 #include <fstream>
 #include <string>
 #include <vector>
-#include <exception>
+#include <stdexcept>
 #include <sstream>
 #include <iostream>
 #include <tr1/unordered_map>
