@@ -90,9 +90,9 @@ int main(int argc, char* argv[]) {
 
 	// run the agglomerative algorithm
 	std::cout << "starting to run\n";
-	en->runML(true,false);
+	en->runML(true,true);
 	fnout = fnstem +"_0.hrg"; en->printHRG(fnout.c_str(),0);
-	en->passFB();
+	//en->passFB();
 	std::cout << "done running\n";
 	lp.attach(en); // attached the engine
 	std::cout << "Attached!\n";
@@ -133,10 +133,10 @@ int main(int argc, char* argv[]) {
 		en = new Engine(Gnew,Goriginal,GsoFar,2);
 		en->initializeScoresML();
 		std::cout << "running on the residual\n";
-		en->runML(true,false);
+		en->runML(true,true);
 		fnout = fnstem +"_"+int2str(residint)+".hrg"; en->printHRG(fnout.c_str(),0);
 		
-		en->passFB();
+		//en->passFB();
 		lp.attach(en);
 
 		
