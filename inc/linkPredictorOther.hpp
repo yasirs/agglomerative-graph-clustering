@@ -32,6 +32,8 @@ class linkPredictorOther: public linkPredictor {
 		//void addPredstoGraph(graphData* PD);
 		void updateSoFarLazy(graphData* GsoFar);
 		void updateTrackEdgeHoles(graphData* soFar);
+		void integrateEdgeHoles(graphData* soFarEdgeHoles, graphData* soFarIntegrated);
+
 		virtual ~linkPredictorOther();
 };
 
@@ -57,6 +59,19 @@ void linkPredictorOther::updateTrackEdgeHoles(graphData* soFar) {
 }
 
 
+void linkPredictorOther::integrateEdgeHoles(graphData* soFarEdgeHoles, graphData* soFarIntegrated) {
+	if (dim%2 != 0) {
+		throw(std::runtime_error("To track edges and holes, need 2*d graphs"));
+	}
+	for (int d=0; d<dim/2; d++) {
+		for (int u=0; u < soFarEdgeHoles[d].numV; u++) {
+			for (int v=0; v < soFarEdgeHoles[d].numV; v++) {
+				soFarIntegrated[d].set_uv(u,v, 0.5+0.5*(soFarEdgeHoles[2*d].get_uv(u,v) - soFarEdgeHoles[2*d+1].get_uv(u,v)));
+			}
+		}
+	}
+}
+				
 
 
 linkPredictorOther::~linkPredictorOther() {

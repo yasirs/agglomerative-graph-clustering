@@ -71,10 +71,11 @@ int main(int argc, char* argv[]) {
 	}
 	fnstem = argv[1];
 	fnin = fnstem+".edges";
-	graphData *Goriginal, *Gnew, *GsoFar, *Gempty;
+	graphData *Goriginal, *Gnew, *GsoFar, *Gempty, *GsoFarIntegrated;
 	Engine *en;
 	Goriginal = new graphData[2];
 	GsoFar = new graphData[2];
+	GsoFarIntegrated = new graphData[1]; GsoFarIntegrated[0].gtype = gtype;
 	Goriginal[0].readGeneral(fnin.c_str());
 	Goriginal[0].gtype = gtype;
 	Goriginal[0].makeComplimentary(Goriginal[1]); Goriginal[1].gtype = gtype;
@@ -83,6 +84,7 @@ int main(int argc, char* argv[]) {
 
 	Goriginal[0].copyNoEdges(GsoFar[0]);
 	Goriginal[0].copyNoEdges(GsoFar[1]);
+	Goriginal[0].copyNoEdges(GsoFarIntegrated[0]);
 
 	std::cout << "Initializing Engine, scores\n";
 	en = new Engine(Goriginal, Goriginal, GsoFar, 2);
@@ -104,6 +106,10 @@ int main(int argc, char* argv[]) {
 	lp.updateSoFarLazy(GsoFar);
 	fnout = fnstem + ".0soFarEdges"; GsoFar[0].writeSingle(fnout.c_str());
 	fnout = fnstem + ".0soFarHoles"; GsoFar[1].writeSingle(fnout.c_str());
+
+	// integrate the edge and hole graphs
+	lp.integrateEdgeHoles(GsoFar, GsoFarIntegrated);
+	fnout = fnstem + "0.soFarIntegrated"; GsoFarIntegrated[0].writeSingle(fnout.c_str());
 
 
 	// write the post-pass predictions for this round
@@ -157,6 +163,11 @@ int main(int argc, char* argv[]) {
 		lp.updateSoFarLazy(GsoFar);
 		fnout = fnstem +  "." + sres + "soFarEdges"; GsoFar[0].writeSingle(fnout.c_str());
 		fnout = fnstem +  "." + sres + "soFarHoles"; GsoFar[1].writeSingle(fnout.c_str());
+
+
+		lp.integrateEdgeHoles(GsoFar, GsoFarIntegrated);
+		fnout = fnstem + sres + ".soFarIntegrated"; GsoFarIntegrated[0].writeSingle(fnout.c_str());
+
 		delete[] Gnew;
 		residint++;
 	}
