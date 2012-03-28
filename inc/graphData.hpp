@@ -79,7 +79,7 @@ class graphData{
 		bool hasName(const char* name);
 };
 
-std::vector<std::pair<int,int> > getNonEdges() {
+std::vector<std::pair<int,int> > graphData::getNonEdges() {
 	std::vector<std::pair<int,int> > nonEdges;
 	for (int u=0;u<numV;u++) {
 		for (int v=0;v<numV;v++) {

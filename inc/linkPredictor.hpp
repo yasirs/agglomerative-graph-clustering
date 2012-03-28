@@ -106,7 +106,7 @@ std::vector<float>* linkPredictor::returnNonEdgePred(graphData* Dref, std::vecto
 				if (! Dref[d].has_uv(u,v)) {
 					assert(nonEdges[i].first==u);
 					assert(nonEdges[i].second==v);
-					nePreds.append(this->predictEdge(u,v,d));
+					nePreds[d].push_back(this->predictEdge(u,v,d));
 				}
 			}
 		}

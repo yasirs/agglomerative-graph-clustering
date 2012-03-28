@@ -33,7 +33,7 @@ class linkPredictorOther: public linkPredictor {
 		void updateSoFarLazy(graphData* GsoFar);
 		void updateTrackEdgeHoles(graphData* soFar);
 		void integrateEdgeHoles(graphData* soFarEdgeHoles, graphData* soFarIntegrated);
-		std::vector<float>* integrateEdgeHoleNonEdgePred(graphData *Dref, std::vector<std::pair<int, int> >& nonEdges);
+		std::vector<float>* integrateEdgeHoleNonEdgePred(graphData *Dref, std::vector<std::pair<int, int> >& nonEdges, graphData* soFarEdgeHoles);
 
 		virtual ~linkPredictorOther();
 };
@@ -76,7 +76,7 @@ std::vector<float>* linkPredictorOther::integrateEdgeHoleNonEdgePred(graphData* 
 				if (! Dref[d].has_uv(u,v)) {
 					assert(nonEdges[i].first==u);
 					assert(nonEdges[i].second==v);
-					nePreds.append(.5 +.5*(soFarEdgeHoles[2*d].get_uv(u,v) - soFarEdgeHoles[2*d+1].get_uv(u,v)));
+					nePreds[d].push_back(.5 +.5*(soFarEdgeHoles[2*d].get_uv(u,v) - soFarEdgeHoles[2*d+1].get_uv(u,v)));
 				}
 			}
 		}
