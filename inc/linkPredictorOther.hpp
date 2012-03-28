@@ -33,6 +33,7 @@ class linkPredictorOther: public linkPredictor {
 		void updateSoFarLazy(graphData* GsoFar);
 		void updateTrackEdgeHoles(graphData* soFar);
 		void integrateEdgeHoles(graphData* soFarEdgeHoles, graphData* soFarIntegrated);
+		std::vector<float>* integrateEdgeHoleNonEdgePred(graphData *Dref, std::vector<std::pair<int, int> >& nonEdges);
 
 		virtual ~linkPredictorOther();
 };
@@ -57,6 +58,32 @@ void linkPredictorOther::updateTrackEdgeHoles(graphData* soFar) {
 		}
 	}
 }
+
+
+std::vector<float>* linkPredictorOther::integrateEdgeHoleNonEdgePred(graphData* Dref, std::vector<std::pair<int,int> >& nonEdges, graphData* soFarEdgeHoles) {
+	if (dim%2 != 0) {
+		throw(std::runtime_error("To track edges and holes, need 2*d graphs"));
+	}
+	std::vector<float>* nePreds;
+	nePreds = new std::vector<float>[dim/2];
+	int u,v,d,i;
+	float w;
+	for (d=1;d<dim/2;d++) assert(D[d].numV == D[0].numV);
+	for (d=0;d<dim/2;d++) {
+		i = 0;
+		for (u=0; u<D[d].numV; u++) {
+			for (v=0;v<u; v++) {
+				if (! Dref[d].has_uv(u,v)) {
+					assert(nonEdges[i].first==u);
+					assert(nonEdges[i].second==v);
+					nePreds.append(.5 +.5*(soFarEdgeHoles[2*d].get_uv(u,v) - soFarEdgeHoles[2*d+1].get_uv(u,v)));
+				}
+			}
+		}
+	}
+	return nePreds;
+}
+
 
 
 void linkPredictorOther::integrateEdgeHoles(graphData* soFarEdgeHoles, graphData* soFarIntegrated) {

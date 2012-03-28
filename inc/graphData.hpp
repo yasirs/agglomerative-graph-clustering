@@ -43,6 +43,7 @@ class graphData{
 		float aveP;
 		float Etot;
 		typedef std::tr1::unordered_map<int, float> destList;
+		std::vector<std::pair<int,int> > getNonEdges();
 		std::map<int, std::string> int2Name;
 		std::map<std::string, int> name2Int;
 		std::map<int, destList*> edgeList;
@@ -77,6 +78,20 @@ class graphData{
 		bool hasName(const std::string& name);
 		bool hasName(const char* name);
 };
+
+std::vector<std::pair<int,int> > getNonEdges() {
+	std::vector<std::pair<int,int> > nonEdges;
+	for (int u=0;u<numV;u++) {
+		for (int v=0;v<numV;v++) {
+			if (! this->has_uv(u,v)) {
+				nonEdges.push_back(std::pair<int,int>(u,v));
+			}
+		}
+	}
+	return nonEdges;
+}
+
+
 
 bool graphData::hasName(const std::string& name) {
 	return (name2Int.find(name)!=name2Int.end());
