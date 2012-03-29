@@ -77,7 +77,33 @@ class graphData{
 		void makeComplimentary(graphData& Dnew);
 		bool hasName(const std::string& name);
 		bool hasName(const char* name);
+		std::vector<int> testLabels(std::vector<std::pair<int,int> > nonEdges);
 };
+
+std::vector<int> graphData::testLabels(std::vector<std::pair<int,int> > nonEdges) {
+	std::vector<std::pair<int,int> >::iterator foundPair;
+	std::vector<int> elabs(nonEdges.size(),0);
+	int src, dest;
+	for (std::map<int,destList*>::iterator dlIt = edgeList.begin(); dlIt != edgeList.end(); dlIt++) {
+		src = dlIt->first;
+		for (destList::iterator destIt = dlIt->second->begin(); 
+			destIt != dlIt->second->end(); 
+			++destIt) {
+			dest = destIt->first;
+			std::pair<int,int> srdest;
+			if (dest<src) srdest = std::make_pair(src,dest);
+			else srdest = std::make_pair(dest,src);
+			foundPair = std::lower_bound(nonEdges.begin(), nonEdges.end(), srdest);
+			if ((foundPair != nonEdges.end()) && (*foundPair == srdest)) {
+				elabs[foundPair - nonEdges.begin()] = 1;
+			} else {
+				std::runtime_error("test edge not found in non-edges : "+int2Name[src]+", "+int2Name[dest]);
+			}
+		}
+	}
+	return elabs;
+}
+
 
 std::vector<std::pair<int,int> > graphData::getNonEdges() {
 	std::vector<std::pair<int,int> > nonEdges;
