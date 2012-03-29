@@ -109,7 +109,7 @@ std::vector<int> graphData::testLabels(std::vector<std::pair<int,int> > nonEdges
 std::vector<std::pair<int,int> > graphData::getNonEdges() {
 	std::vector<std::pair<int,int> > nonEdges;
 	for (int u=0;u<numV;u++) {
-		for (int v=0;v<numV;v++) {
+		for (int v=0;v<u;v++) {
 			if (! this->has_uv(u,v)) {
 				nonEdges.push_back(std::pair<int,int>(u,v));
 			}
@@ -342,7 +342,8 @@ bool graphData::readGeneralBasedOnOld(graphData* Goriginal, const char* filename
 			this->multiPartite = 1;
 		} else {
 			// nothing to do for this line
-			if (DEBUGMODE) throw(std::runtime_error("Error: don't know what to do with a line of " + boost::lexical_cast<std::string>(tok.size()) + "tokens at line = " + boost::lexical_cast<std::string>(strline)+"\n"));
+			if (DEBUGMODE) throw(std::runtime_error("Error: don't know what to do with a line of " + boost::lexical_cast<std::string>(tok.size()) + "tokens at line = " + boost::lexical_cast<std::string>(strline)
+				+"of file "+filename));
 			continue;
 		}
 		if (Vt1==Vt2) {
@@ -582,12 +583,13 @@ bool graphData::readGeneral(const char* fn, const char* sep) {
 	float sum = 0;
 	float weight;
 	std::string Vt1, Vt2;
-	int Vg1, Vg2;
+	int Vg1, Vg2, lno;
 	//std::istringstream temp;
 	file.open(fn,std::ios::in);
-	if (! file.is_open()) return 0;
+	if (! file.is_open()) {throw(std::runtime_error("file " + std::string(fn)+"not open.\n")); }
 	while (!file.eof()) {
 		getline(file,strline);
+		lno++;
 		tok.clear();
 		my_Tokenize(strline,tok,sep);
 		if (tok.size()==2) {
@@ -615,7 +617,8 @@ bool graphData::readGeneral(const char* fn, const char* sep) {
 			this->multiPartite = 1;
 		} else {
 			// nothing to do for this line
-			if (DEBUGMODE) throw(std::runtime_error("Error: don't know what to do with a line of " + boost::lexical_cast<std::string>(tok.size())+"tokens!"));
+			if (DEBUGMODE) throw(std::runtime_error("Error: don't know what to do with a line of " + boost::lexical_cast<std::string>(tok.size())+" tokens at line "
+				+boost::lexical_cast<std::string>(lno)+" of file "+fn));
 			continue;
 		}
 
@@ -788,7 +791,7 @@ bool graphData::readBinary(const char* fn) {
 	int u,v;
 	float sum = 0;
 	file.open(fn,std::ios::in);
-	if (! file.is_open()) return 0;
+	if (! file.is_open()) {throw(std::runtime_error("file " + std::string(fn)+"not open.\n")); return 0;}
 	while (!file.eof()) {
 		getline(file,strline);
 		tok.clear();

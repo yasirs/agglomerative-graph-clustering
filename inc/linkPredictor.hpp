@@ -170,7 +170,10 @@ std::vector<float>* linkPredictor::returnNonEdgePred(graphData* Dref, std::vecto
 		for (u=0; u<D[d].numV; u++) {
 			for (v=0;v<u; v++) {
 				if (! Dref[d].has_uv(u,v)) {
-					assert(nonEdges[i].first==u);
+					if (nonEdges[i].first!=u) { throw(std::runtime_error("i="+boost::lexical_cast<std::string>(i)+"u="+
+						boost::lexical_cast<std::string>(u)+",first="+boost::lexical_cast<std::string>(nonEdges[i].first))); }
+					if (nonEdges[i].second!=v) { throw(std::runtime_error("i="+boost::lexical_cast<std::string>(i)+"v="+
+						boost::lexical_cast<std::string>(v)+",second="+boost::lexical_cast<std::string>(nonEdges[i].second))); }
 					assert(nonEdges[i].second==v);
 					nePreds[d].push_back(this->predictEdge(u,v,d));
 					i++;
