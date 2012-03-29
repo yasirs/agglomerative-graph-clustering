@@ -6,7 +6,7 @@
 #include <map>
 #include <vector>
 #include <string>
-//#include "nodetree.hpp"
+#include "nodetree.hpp"
 #include <iterator>
 #include <sstream>
 #if ISVC
@@ -207,7 +207,6 @@ std::vector<std::string>* splitspaces(const std::string& str, const std::string&
 
 //TODO comment out this debug function
 
-#include <nodetree.hpp>
 
 Node* NfromMap(std::map<int, Node*>& nm, int i) {
 	if (nm.find(i)==nm.end()) {
