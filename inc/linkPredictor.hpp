@@ -107,6 +107,7 @@ std::vector<float>* linkPredictor::returnNonEdgePred(graphData* Dref, std::vecto
 					assert(nonEdges[i].first==u);
 					assert(nonEdges[i].second==v);
 					nePreds[d].push_back(this->predictEdge(u,v,d));
+					i++;
 				}
 			}
 		}
