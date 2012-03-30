@@ -616,8 +616,7 @@ bool graphData::readGeneral(const char* fn, const char* sep) {
 			this->multiPartite = 1;
 		} else {
 			// nothing to do for this line
-			if (DEBUGMODE) throw(std::runtime_error("Error: don't know what to do with a line of " + boost::lexical_cast<std::string>(tok.size())+" tokens at line "
-				+boost::lexical_cast<std::string>(lno)+" of file "+fn));
+			if (DEBUGMODE) std::cout << "Error: don't know what to do with a line of "<<tok.size()<<"tokens!\n";
 			continue;
 		}
 
