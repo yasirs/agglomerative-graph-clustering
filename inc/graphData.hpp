@@ -342,8 +342,7 @@ bool graphData::readGeneralBasedOnOld(graphData* Goriginal, const char* filename
 			this->multiPartite = 1;
 		} else {
 			// nothing to do for this line
-			if (DEBUGMODE) throw(std::runtime_error("Error: don't know what to do with a line of " + boost::lexical_cast<std::string>(tok.size()) + "tokens at line = " + boost::lexical_cast<std::string>(strline)
-				+"of file "+filename));
+			if (DEBUGMODE) std::cout << "Error: don't know what to do with a line of "<<tok.size()<<"tokens!\n";
 			continue;
 		}
 		if (Vt1==Vt2) {
