@@ -108,7 +108,7 @@ std::vector<int> graphData::testLabels(std::vector<std::pair<int,int> > nonEdges
 std::vector<std::pair<int,int> > graphData::getNonEdges() {
 	std::vector<std::pair<int,int> > nonEdges;
 	for (int u=0;u<numV;u++) {
-		for (int v=0;v<numV;v++) {
+		for (int v=0;v<u;v++) {
 			if (! this->has_uv(u,v)) {
 				nonEdges.push_back(std::pair<int,int>(u,v));
 			}
