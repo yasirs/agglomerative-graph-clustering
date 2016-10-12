@@ -24,6 +24,7 @@ class linkPredictor {
 		float predictEdge(unsigned int u, unsigned int v, int d);
 		graphData* makeNonEdgePred(graphData* Dref);
 		graphData* makeEdgePred(graphData* Dref);
+		std::vector<float>* returnNonEdgePred(graphData* Dref, std::vector<std::pair<int,int> >& nonEdges);
 		graphData* makeCompleteEdgePred();
 		graphData* copyNoEdges(graphData* Dold);
 		void addPredstoGraph(graphData* PD);
@@ -157,7 +158,32 @@ graphData* linkPredictor::makeNonEdgePred(graphData* Dref) {
 	return PD;
 };
 
-
+std::vector<float>* linkPredictor::returnNonEdgePred(graphData* Dref, std::vector<std::pair<int,int> >& nonEdges) {
+	assert(attached);
+	std::vector<float>* nePreds;
+	nePreds = new std::vector<float>[dim];
+	int u,v,d,i;
+	float w;
+	for (d=1;d<dim;d++) assert(D[d].numV == D[0].numV);
+	for (d=0;d<dim;d++) {
+		i = 0;
+		for (u=0; u<D[d].numV; u++) {
+			for (v=0;v<u; v++) {
+				if (! Dref[d].has_uv(u,v)) {
+					if (nonEdges[i].first!=u) { throw(std::runtime_error("i="+boost::lexical_cast<std::string>(i)+"u="+
+						boost::lexical_cast<std::string>(u)+",first="+boost::lexical_cast<std::string>(nonEdges[i].first))); }
+					if (nonEdges[i].second!=v) { throw(std::runtime_error("i="+boost::lexical_cast<std::string>(i)+"v="+
+						boost::lexical_cast<std::string>(v)+",second="+boost::lexical_cast<std::string>(nonEdges[i].second))); }
+					assert(nonEdges[i].second==v);
+					nePreds[d].push_back(this->predictEdge(u,v,d));
+					i++;
+				}
+			}
+		}
+	}
+	return nePreds;
+}
+	
 
 
 

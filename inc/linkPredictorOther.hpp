@@ -167,26 +167,28 @@ void linkPredictorOther::updateSoFarLazy(graphData* GsoFar) {
 				// need to process this
 				int n2 = (*init).first;
 				ModelParamBase* par = (*init).second[d];
-				AllChildVertGenerator G1(tree, n1); 
-				int u;
-				ModelSelfStatsBase* su;
-				for (; (! G1.isDone()); ) {
-					u = G1.goNext();
-					su = ww[d]->oDatvert[u];
-					int v;
-					ModelSelfStatsBase* sv;
-					AllChildVertGenerator G2(tree, n2);
-					for (; (! G2.isDone()); ) {
-						v = G2.goNext();
-						if (u != v) {
-							sv = ww[d]->oDatvert[v];
-							//oldpred = par->predict(su,sv);
-							wnew = par->updatedSoFar(su,sv,GsoFar[d].get_uv(u,v));
-							//wnew = 1 - (1 - GsoFar[d].get_uv(u,v))*(1 - wpredicted);
-							if (wnew>EPS) {
-								GsoFar[d].set_uv(u,v,wnew);
-							} else {
-								GsoFar[d].delete_uv(u,v);
+				if (not par->isZero()) {
+					AllChildVertGenerator G1(tree, n1); 
+					int u;
+					ModelSelfStatsBase* su;
+					for (; (! G1.isDone()); ) {
+						u = G1.goNext();
+						su = ww[d]->oDatvert[u];
+						int v;
+						ModelSelfStatsBase* sv;
+						AllChildVertGenerator G2(tree, n2);
+						for (; (! G2.isDone()); ) {
+							v = G2.goNext();
+							if (u != v) {
+								sv = ww[d]->oDatvert[v];
+								//oldpred = par->predict(su,sv);
+								wnew = par->updatedSoFar(su,sv,GsoFar[d].get_uv(u,v));
+								//wnew = 1 - (1 - GsoFar[d].get_uv(u,v))*(1 - wpredicted);
+								if (wnew>EPS) {
+									GsoFar[d].set_uv(u,v,wnew);
+								} else {
+									GsoFar[d].delete_uv(u,v);
+								}
 							}
 						}
 					}
@@ -200,54 +202,56 @@ void linkPredictorOther::updateSoFarLazy(graphData* GsoFar) {
 			Node* pnode = tree->nodeMap[n];
 			assert(pnode->isOther());
 			ModelParamBase* par = ((NodeOther*)pnode )->paramsOriginal[d];
-			if (pnode->collapsed) {
-				// need to go over the vertices
-				assert(pnode->vertsComputed);
-				AllChildVertGenerator G1(tree, n); 
-				int u;
-				ModelSelfStatsBase* su;
-				for (; (! G1.isDone()); ) {
-					u = G1.goNext();
-					su = ww[d]->oDatvert[u];
-					int v;
-					ModelSelfStatsBase* sv;
-					AllChildVertGenerator G2(tree, n);
-					for (; (! G2.isDone()); ) {
-						v = G2.goNext();
-						if (u != v) {
-							sv = ww[d]->oDatvert[v];
-							wnew = par->updatedSoFar(su,sv,GsoFar[d].get_uv(u,v));
-							if (wnew>EPS) {
-								GsoFar[d].set_uv(u,v,wnew);
-							} else {
-								GsoFar[d].delete_uv(u,v);
+			if (not par->isZero()) {
+				if (pnode->collapsed) {
+					// need to go over the vertices
+					assert(pnode->vertsComputed);
+					AllChildVertGenerator G1(tree, n); 
+					int u;
+					ModelSelfStatsBase* su;
+					for (; (! G1.isDone()); ) {
+						u = G1.goNext();
+						su = ww[d]->oDatvert[u];
+						int v;
+						ModelSelfStatsBase* sv;
+						AllChildVertGenerator G2(tree, n);
+						for (; (! G2.isDone()); ) {
+							v = G2.goNext();
+							if (u != v) {
+								sv = ww[d]->oDatvert[v];
+								wnew = par->updatedSoFar(su,sv,GsoFar[d].get_uv(u,v));
+								if (wnew>EPS) {
+									GsoFar[d].set_uv(u,v,wnew);
+								} else {
+									GsoFar[d].delete_uv(u,v);
+								}
 							}
 						}
 					}
-				}
-			} else {
-				// need to go over child - vertices (pair-wise)
-				for (std::set<int>::iterator cit1(pnode->childSet.begin()); cit1 != pnode->childSet.end(); cit1++) {
-					for (std::set<int>::iterator cit2(pnode->childSet.begin()); cit2 != pnode->childSet.end(); cit2++) {
-						if ((*cit1) != (*cit2)) {
-							AllChildVertGenerator G1(tree, *cit1); 
-							int u;
-							ModelSelfStatsBase* su;
-							for (; (! G1.isDone()); ) {
-								u = G1.goNext();
-								su = ww[d]->oDatvert[u];
-								int v;
-								ModelSelfStatsBase* sv;
-								AllChildVertGenerator G2(tree, *cit2);
-								for (; (! G2.isDone()); ) {
-									v = G2.goNext();
-									if (u != v) {
-										sv = ww[d]->oDatvert[v];
-										wnew = par->updatedSoFar(su,sv,GsoFar[d].get_uv(u,v));
-										if (wnew>EPS) {
-											GsoFar[d].set_uv(u,v,wnew);
-										} else {
-											GsoFar[d].delete_uv(u,v);
+				} else {
+					// need to go over child - vertices (pair-wise)
+					for (std::set<int>::iterator cit1(pnode->childSet.begin()); cit1 != pnode->childSet.end(); cit1++) {
+						for (std::set<int>::iterator cit2(pnode->childSet.begin()); cit2 != pnode->childSet.end(); cit2++) {
+							if ((*cit1) != (*cit2)) {
+								AllChildVertGenerator G1(tree, *cit1); 
+								int u;
+								ModelSelfStatsBase* su;
+								for (; (! G1.isDone()); ) {
+									u = G1.goNext();
+									su = ww[d]->oDatvert[u];
+									int v;
+									ModelSelfStatsBase* sv;
+									AllChildVertGenerator G2(tree, *cit2);
+									for (; (! G2.isDone()); ) {
+										v = G2.goNext();
+										if (u != v) {
+											sv = ww[d]->oDatvert[v];
+											wnew = par->updatedSoFar(su,sv,GsoFar[d].get_uv(u,v));
+											if (wnew>EPS) {
+												GsoFar[d].set_uv(u,v,wnew);
+											} else {
+												GsoFar[d].delete_uv(u,v);
+											}
 										}
 									}
 								}

@@ -7,6 +7,8 @@
 #include <vector>
 #include <sstream>
 #include <iostream>
+#include <stdexcept>
+#include <algorithm>
 #include <tr1/unordered_map>
 #include <boost/lexical_cast.hpp>
 
@@ -29,9 +31,20 @@ class graphData{
 	public:
 		unsigned int numV,multiPartite;
 		char gtype;
+		std::string getType() { return std::string(1,gtype); }
+		bool setType(std::string ss) {
+			if (ss.length()!=1) {
+				throw(std::runtime_error("type should be of length 1, not" + boost::lexical_cast<std::string>(ss.length())));
+				if (ss.length()>1) gtype = ss[0];
+				return false;
+			}
+			gtype = ss[0];
+			return true;
+		}
 		float aveP;
 		float Etot;
 		typedef std::tr1::unordered_map<int, float> destList;
+		std::vector<std::pair<int,int> > getNonEdges();
 		std::map<int, std::string> int2Name;
 		std::map<std::string, int> name2Int;
 		std::map<int, destList*> edgeList;
@@ -48,6 +61,7 @@ class graphData{
 		bool readGeneral(const char* filename, const char* sep="\t"); //something wrong here, doesnt work??
 		void writeBoth(const char* filename);
 		void writeSingle(const char* filename);
+		
 		void writeSingle_noname(const char* filename);
 		int degree(int i);
 		int get_int_from_name(const char * vname);
@@ -64,7 +78,45 @@ class graphData{
 		void copyNoEdges(graphData& Dnew);
 		bool hasName(const std::string& name);
 		bool hasName(const char* name);
+		std::vector<int> testLabels(std::vector<std::pair<int,int> > nonEdges);
 };
+
+
+std::vector<int> graphData::testLabels(std::vector<std::pair<int,int> > nonEdges) {
+	std::vector<std::pair<int,int> >::iterator foundPair;
+	std::vector<int> elabs(nonEdges.size(),0);
+	int src, dest;
+	for (std::map<int,destList*>::iterator dlIt = edgeList.begin(); dlIt != edgeList.end(); dlIt++) {
+		src = dlIt->first;
+		for (destList::iterator destIt = dlIt->second->begin(); 
+			destIt != dlIt->second->end(); 
+			++destIt) {
+			dest = destIt->first;
+			std::pair<int,int> srdest;
+			if (dest<src) srdest = std::make_pair(src,dest);
+			else srdest = std::make_pair(dest,src);
+			foundPair = std::lower_bound(nonEdges.begin(), nonEdges.end(), srdest);
+			if ((foundPair != nonEdges.end()) && (*foundPair == srdest)) {
+				elabs[foundPair - nonEdges.begin()] = 1;
+			} else {
+				std::runtime_error("test edge not found in non-edges : "+int2Name[src]+", "+int2Name[dest]);
+			}
+		}
+	}
+	return elabs;
+}
+
+std::vector<std::pair<int,int> > graphData::getNonEdges() {
+	std::vector<std::pair<int,int> > nonEdges;
+	for (int u=0;u<numV;u++) {
+		for (int v=0;v<u;v++) {
+			if (! this->has_uv(u,v)) {
+				nonEdges.push_back(std::pair<int,int>(u,v));
+			}
+		}
+	}
+	return nonEdges;
+}
 
 bool graphData::hasName(const std::string& name) {
 	return (name2Int.find(name)!=name2Int.end());
@@ -131,8 +183,7 @@ void graphData::writeSingle_noname(const char* fn) {
 					file << u <<'\t' << v  << '\t' << weight << '\n';
 				}
 				else {
-					std::cerr << gtype << " type of graph not recognized in writing graphs\n";
-					throw 1;
+					throw(std::runtime_error(std::string(gtype,1)+" type of graph not recognized in writing graphs"));
 				}
 			}
 		}
@@ -173,8 +224,7 @@ void graphData::writeSingle(const char* fn) {
 					file << uname <<'\t' << vname  << '\t' << weight << '\n';
 				}
 				else {
-					std::cerr << gtype << " type of graph not recognized in writing graphs\n";
-					throw 1;
+					throw(std::runtime_error(std::string(gtype,1)+" type of graph not recognized in writing graphs"));
 				}
 			}
 		}
@@ -212,8 +262,7 @@ void graphData::writeBoth(const char* fn) {
 				file << int2Name[u] <<'\t' << int2Name[v] << '\t' << weight << '\n';
 			}
 			else {
-				std::cerr << gtype << " type of graph not recognized in writing graphs\n";
-				throw 1;
+				throw(std::runtime_error(std::string(gtype,1)+" type of graph not recognized in writing graphs"));
 			}
 		}
 	}
@@ -263,7 +312,7 @@ bool graphData::readGeneralBasedOnOld(graphData* Goriginal, const char* filename
 	this->numV = Goriginal->numV;
 	this->multiPartite = 0;
 	file.open(filename,std::ios::in);
-	if (! file.is_open()) return 0;
+	if (! file.is_open()) {throw(std::runtime_error("file " + std::string(filename)+"not open.\n")); return 0;}
 	while (!file.eof()) {
 		getline(file,strline);
 		tok.clear();
@@ -297,7 +346,7 @@ bool graphData::readGeneralBasedOnOld(graphData* Goriginal, const char* filename
 			continue;
 		}
 		if (Vt1==Vt2) {
-			std::cout << "self loop in "<<filename<<", line = "<<strline<<"\n";
+			throw(std::runtime_error("self loop in " + std::string(filename) +", line = " + boost::lexical_cast<std::string>(strline)+"\n"));
 		}
 		
 		if (name2Int.find(Vt1)==name2Int.end()) {
@@ -485,13 +534,14 @@ bool graphData::readBinaryBasedOnOld(graphData* Goriginal, const char* filename)
 			linesread++;
 			if (name2Int.find(tok[0])==name2Int.end()) {
 				// do nothing
+				throw(std::runtime_error(std::string(tok[0])+" not found in previous graph"));
 				continue;
-				return 0;
 			} else {
 				u = name2Int[tok[0]];
 			}
 			if (name2Int.find(tok[1])==name2Int.end()) {
 				// do nothing
+				throw(std::runtime_error(std::string(tok[1])+" not found in previous graph"));
 				continue;
 				return 0;
 			} else {
@@ -532,12 +582,13 @@ bool graphData::readGeneral(const char* fn, const char* sep) {
 	float sum = 0;
 	float weight;
 	std::string Vt1, Vt2;
-	int Vg1, Vg2;
+	int Vg1, Vg2, lno;
 	//std::istringstream temp;
 	file.open(fn,std::ios::in);
-	if (! file.is_open()) return 0;
+	if (! file.is_open()) {throw(std::runtime_error("file " + std::string(fn)+"not open.\n")); }
 	while (!file.eof()) {
 		getline(file,strline);
+		lno++;
 		tok.clear();
 		my_Tokenize(strline,tok,sep);
 		if (tok.size()==2) {
@@ -738,7 +789,7 @@ bool graphData::readBinary(const char* fn) {
 	int u,v;
 	float sum = 0;
 	file.open(fn,std::ios::in);
-	if (! file.is_open()) return 0;
+	if (! file.is_open()) {throw(std::runtime_error("file " + std::string(fn)+"not open.\n")); return 0;}
 	while (!file.eof()) {
 		getline(file,strline);
 		tok.clear();
