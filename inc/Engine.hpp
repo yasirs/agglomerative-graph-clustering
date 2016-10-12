@@ -230,9 +230,10 @@ void Engine::printHyperGeomFile(const char* fn, int d, bool skipEdges) {
 	for (u=0; u<D[d].numV; u++) {
 		n = D[d].degree(u);
 		for (v=u+1; v<D[d].numV; v++) {
-			if (skipEdges) if (D[d].has_uv(u,v)) continue;
 			m = D[d].degree(v);
-			//dmin = std::min(m,n);
+			if (D[d].has_uv(u,v)) {
+				if (skipEdges) continue; else {m=m-1; n=n-1;}
+			}
 			c = num_common_keys( *(D[d].edgeList[u]), *(D[d].edgeList[v]) );
 			s = gsl_cdf_hypergeometric_Q(c, n, t-n, m) + gsl_ran_hypergeometric_pdf(c, n, t-n, m);
 			s = -log10(s);
@@ -267,7 +268,7 @@ Engine::Engine(graphData* G, graphData* Goriginal, graphData* GsoFar, int d) {
 	tree = new TreeClassOther(G,dim);
 	int x,y;
 	// initialize weights, degrees, selfMissing and first neighbors, and nV
-	((dataMapOther*) w)->initialize(D, Goriginal, GsoFar, dim);
+	((dataMapOther*) w)->initialize(D, Goriginal, dim);
 	std::set<int> emptySet;
 	// initialize 2nd neighbors
 	std::map<int, Node*>::iterator itnode;

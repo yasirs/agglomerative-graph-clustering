@@ -9,7 +9,6 @@ class TreeClassOther;
 class NodeOther: public Node {
 	public:
 		ModelParamBase** paramsOriginal;
-		ModelParamBase** paramsSoFar;
 		virtual bool writeThetaforMerged(int a, int b, dataMap* w, TreeClass* tree, graphData* D);
 		NodeOther(int nodeID, int parentID, int partytype, bool isTerminal, int vertID, int dimension, graphData* D);
 		NodeOther(int nodeID, int parentID, int partytype, bool isTerminal, int dimension, graphData* D);
@@ -66,30 +65,23 @@ TreeClassOther::TreeClassOther(graphData* G, int dimension) {
 
 NodeOther::NodeOther(int nodeID, int parentID, int partytype, bool isTerminal, int dimension, graphData* D) :Node(nodeID, parentID, partytype, isTerminal, dimension, D) {
 	this->paramsOriginal = new ModelParamBase*[dimension];
-	this->paramsSoFar = new ModelParamBase*[dimension];
 	for (int d=0; d<dimension; d++) {
 		if (D[d].gtype == 'b') {
 			this->paramsOriginal[d] = new BinomialParam;
-			this->paramsSoFar[d] = new BinomialParam;
 		} else if (D[d].gtype == 'p') {
 			this->paramsOriginal[d] = new PoissonParam;
-			this->paramsSoFar[d] = new PoissonParam;
 		} else if (D[d].gtype == 'w') {
 			this->paramsOriginal[d] = new WParam;
-			this->paramsSoFar[d] = new WParam;
 		} else if (D[d].gtype == 'd') {
 			this->paramsOriginal[d] = new DcorrParam;
-			this->paramsSoFar[d] = new DcorrParam;
 		} else if (D[d].gtype == 'g') {
 			this->paramsOriginal[d] = new GaussianParam;
-			this->paramsSoFar[d] = new GaussianParam;
 		} else {
 			std::cerr << "dont know what to do with graph type "<<D[d].gtype<<" while making node\n";
 			throw(1);
 		}
 		if (isTerminal) {
 			this->paramsOriginal[d]->init();
-			this->paramsSoFar[d]->init();
 		}
 	}
 }
@@ -100,29 +92,22 @@ NodeOther::NodeOther(int nodeID, int parentID, int partytype, bool isTerminal, i
 		throw(1);
 	}
 	this->paramsOriginal = new ModelParamBase*[dimension];
-	this->paramsSoFar = new ModelParamBase*[dimension];
 	for (int d=0; d<dimension; d++) {
 		if (D[d].gtype == 'b') {
 			this->paramsOriginal[d] = new BinomialParam;
-			this->paramsSoFar[d] = new BinomialParam;
 		} else if (D[d].gtype == 'p') {
 			this->paramsOriginal[d] = new PoissonParam;
-			this->paramsSoFar[d] = new PoissonParam;
 		} else if (D[d].gtype == 'w') {
 			this->paramsOriginal[d] = new WParam;
-			this->paramsSoFar[d] = new WParam;
 		} else if (D[d].gtype == 'd') {
 			this->paramsOriginal[d] = new DcorrParam;
-			this->paramsSoFar[d] = new DcorrParam;
 		} else if (D[d].gtype == 'g') {
 			this->paramsOriginal[d] = new GaussianParam;
-			this->paramsSoFar[d] = new GaussianParam;
 		} else {
 			std::cerr << "dont know what to do with graph type "<<D[d].gtype<<" while making node\n";
 			throw(1);
 		}
 		paramsOriginal[d]->init();
-		paramsSoFar[d]->init();
 	}
 }
 
@@ -131,7 +116,6 @@ void NodeOther::destroy(int di) {
 	Node::destroy(di);
 	int d;
 	for (d=0;d<di;d++) {
-		delete paramsSoFar[d];
 		delete paramsOriginal[d];
 	}
 }
@@ -139,7 +123,6 @@ void NodeOther::destroy(int di) {
 
 
 NodeOther::~NodeOther() {
-	delete[] paramsSoFar;
 	delete[] paramsOriginal;
 }
 
@@ -149,16 +132,12 @@ bool NodeOther::writeThetaforMerged(int a, int b, dataMap* ww, TreeClass* tree, 
 	for (int d=0;d<(tree->dim);d++) {
 		this->params[d]->calculate(w->get_uv(a,b,d),w->datvert[d][a],w->datvert[d][b]);
 		this->paramsOriginal[d]->calculate(w->get_uvOriginal(a,b,d),w->oDatvert[d][a],w->oDatvert[d][b]);
-		this->paramsSoFar[d]->calculate(w->get_uvSoFar(a,b,d),w->sDatvert[d][a],w->sDatvert[d][b]);
 		if (this->collapsed) {
 			this->params[d]->collapse(((NodeOther*) tree->nodeMap[a])->params[d], ((NodeOther*) tree->nodeMap[b])->params[d]);
 			this->paramsOriginal[d]->collapse(((NodeOther*) tree->nodeMap[a])->paramsOriginal[d], ((NodeOther*) tree->nodeMap[b])->paramsOriginal[d]);
-			this->paramsSoFar[d]->collapse(((NodeOther*) tree->nodeMap[a])->paramsSoFar[d], ((NodeOther*) tree->nodeMap[b])->paramsSoFar[d]);
 		}
 		this->paramsOriginal[d]->cleanup();
-		this->paramsSoFar[d]->cleanup();
 		this->params[d]->cleanup();
-		//this->params[d]->bestfromSoFar(this->paramsOriginal[d],this->paramsSoFar[d]);
 		
 	}
 	return 1;
